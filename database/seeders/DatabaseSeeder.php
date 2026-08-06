@@ -2,10 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Models\ActivityLog;
 use App\Models\Appointment;
+use App\Models\Attachment;
 use App\Models\Department;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
+use App\Models\DoctorScheduleException;
 use App\Models\MedicalRecord;
 use App\Models\Patient;
 use App\Models\Payment;
@@ -13,8 +16,10 @@ use App\Models\Prescription;
 use App\Models\PrescriptionItem;
 use App\Models\Review;
 use App\Models\Setting;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
@@ -113,6 +118,10 @@ class DatabaseSeeder extends Seeder
             ]);
             $doctors->push($doctor);
 
+            // Secondary Department Affiliation (Many-to-Many)
+            $secondaryDep = $departments[($index + 1) % $departments->count()];
+            $doctor->secondaryDepartments()->attach($secondaryDep->id);
+
             // Create recurring weekly schedule (Mon - Fri, 09:00 - 17:00)
             for ($day = 1; $day <= 5; $day++) {
                 DoctorSchedule::create([
@@ -122,6 +131,16 @@ class DatabaseSeeder extends Seeder
                     'end_time' => '17:00:00',
                     'slot_duration_minutes' => 30,
                     'is_active' => true,
+                ]);
+            }
+
+            // Create sample schedule exception for 1 doctor
+            if ($index === 0) {
+                DoctorScheduleException::create([
+                    'doctor_id' => $doctor->id,
+                    'exception_date' => now()->addDays(14)->format('Y-m-d'),
+                    'type' => 'unavailable',
+                    'reason' => 'Attending Annual Cardiology Conference',
                 ]);
             }
         }
@@ -151,7 +170,7 @@ class DatabaseSeeder extends Seeder
             $patients->push($patient);
         }
 
-        // 6. Create Completed Past Appointments with Clinical Records & Payments
+        // 6. Create Completed Past Appointments with Clinical Records, Payments & Financial Transactions
         foreach ($patients->take(5) as $idx => $patient) {
             $doctor = $doctors[$idx % $doctors->count()];
 
@@ -187,6 +206,17 @@ class DatabaseSeeder extends Seeder
                 'version' => 1,
             ]);
 
+            // Attachment for Medical Record
+            Attachment::create([
+                'attachable_type' => MedicalRecord::class,
+                'attachable_id' => $medicalRecord->id,
+                'file_path' => 'medical_records/lab_results_sample.pdf',
+                'file_name' => 'blood_test_results.pdf',
+                'mime_type' => 'application/pdf',
+                'file_size_kb' => 245,
+                'uploaded_by' => $doctor->user_id,
+            ]);
+
             // Prescription
             $prescription = Prescription::create([
                 'prescription_code' => 'RX-'.(800000 + $idx),
@@ -208,14 +238,28 @@ class DatabaseSeeder extends Seeder
             ]);
 
             // Payment
-            Payment::create([
+            $stripePaymentIntentId = 'pi_mock_'.Str::random(16);
+            $payment = Payment::create([
                 'appointment_id' => $appointment->id,
                 'patient_id' => $patient->id,
                 'amount' => $doctor->consultation_fee,
                 'currency' => 'USD',
                 'status' => 'paid',
-                'stripe_payment_intent_id' => 'pi_mock_'.Str::random(16),
+                'stripe_payment_intent_id' => $stripePaymentIntentId,
                 'paid_at' => now()->subDays(6 + $idx),
+            ]);
+
+            // Transaction (Financial Ledger)
+            Transaction::create([
+                'payment_id' => $payment->id,
+                'type' => 'charge',
+                'amount' => $doctor->consultation_fee,
+                'gateway_reference' => 'ch_mock_'.Str::random(16),
+                'raw_response' => [
+                    'id' => $stripePaymentIntentId,
+                    'status' => 'succeeded',
+                    'currency' => 'usd',
+                ],
             ]);
 
             // Review
@@ -227,13 +271,24 @@ class DatabaseSeeder extends Seeder
                 'comment' => 'Very thorough consultation! The doctor answered all my questions clearly.',
                 'is_visible' => true,
             ]);
+
+            // Activity Log
+            ActivityLog::create([
+                'causer_id' => $patient->user_id,
+                'subject_type' => Appointment::class,
+                'subject_id' => $appointment->id,
+                'action' => 'completed',
+                'description' => "Appointment {$appointment->appointment_code} completed by doctor.",
+                'properties' => ['status' => 'completed'],
+                'ip_address' => '127.0.0.1',
+            ]);
         }
 
         // 7. Create Upcoming Confirmed Appointments
-        foreach ($patients->skip(5) as $idx => $patient) {
+        foreach ($patients->slice(5, 3) as $idx => $patient) {
             $doctor = $doctors[$idx % $doctors->count()];
 
-            Appointment::create([
+            $appointment = Appointment::create([
                 'appointment_code' => 'APT-'.(710000 + $idx),
                 'patient_id' => $patient->id,
                 'doctor_id' => $doctor->id,
@@ -246,9 +301,62 @@ class DatabaseSeeder extends Seeder
                 'consultation_fee_snapshot' => $doctor->consultation_fee,
                 'confirmed_at' => now()->subDays(1),
             ]);
+
+            // Sample In-App Notification
+            DB::table('notifications')->insert([
+                'id' => (string) Str::uuid(),
+                'type' => 'App\\Notifications\\AppointmentConfirmedNotification',
+                'notifiable_type' => User::class,
+                'notifiable_id' => $patient->user_id,
+                'data' => json_encode([
+                    'appointment_id' => $appointment->id,
+                    'message' => "Your appointment {$appointment->appointment_code} with {$doctor->user->name} is confirmed.",
+                ]),
+                'read_at' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         }
 
-        // 8. System Settings
+        // 8. Create Pending and Cancelled Appointments
+        $pendingPatient = $patients->slice(8, 1)->first();
+        if ($pendingPatient) {
+            $doctor = $doctors[0];
+            Appointment::create([
+                'appointment_code' => 'APT-720001',
+                'patient_id' => $pendingPatient->id,
+                'doctor_id' => $doctor->id,
+                'department_id' => $doctor->department_id,
+                'appointment_date' => now()->addDays(5)->format('Y-m-d'),
+                'start_time' => '14:00:00',
+                'end_time' => '14:30:00',
+                'reason' => 'Initial consultation request.',
+                'status' => 'pending',
+                'consultation_fee_snapshot' => $doctor->consultation_fee,
+            ]);
+        }
+
+        $cancelledPatient = $patients->slice(9, 1)->first();
+        if ($cancelledPatient) {
+            $doctor = $doctors[1];
+            Appointment::create([
+                'appointment_code' => 'APT-730001',
+                'patient_id' => $cancelledPatient->id,
+                'doctor_id' => $doctor->id,
+                'department_id' => $doctor->department_id,
+                'appointment_date' => now()->subDays(2)->format('Y-m-d'),
+                'start_time' => '15:00:00',
+                'end_time' => '15:30:00',
+                'reason' => 'General checkup.',
+                'status' => 'cancelled',
+                'consultation_fee_snapshot' => $doctor->consultation_fee,
+                'cancelled_by' => $cancelledPatient->user_id,
+                'cancellation_reason' => 'Personal scheduling conflict.',
+                'cancelled_at' => now()->subDays(3),
+            ]);
+        }
+
+        // 9. System Settings
         Setting::create(['key' => 'hospital_name', 'value' => 'MediFlow General Hospital', 'type' => 'string', 'updated_by' => $adminUser->id]);
         Setting::create(['key' => 'support_email', 'value' => 'support@mediflow.com', 'type' => 'string', 'updated_by' => $adminUser->id]);
         Setting::create(['key' => 'currency', 'value' => 'USD', 'type' => 'string', 'updated_by' => $adminUser->id]);

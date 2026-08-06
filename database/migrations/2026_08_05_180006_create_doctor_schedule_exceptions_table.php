@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['doctor_id', 'exception_date']);
+            $table->unique(['doctor_id', 'exception_date', 'type']);
         });
     }
 
