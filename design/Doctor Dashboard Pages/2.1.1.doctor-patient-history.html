@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patient Clinical History — #MDF-9021 — MediFlow Doctor Portal</title>
+<meta name="description" content="Scoped clinical history, diagnoses, lab reports, and treatment record for patient #MDF-9021 at MediFlow Hospital.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, select { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+input { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--cream-alt); }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left-nav { display: flex; align-items: center; gap: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; transition: all 150ms ease; }
+.back-btn:hover { background: var(--card); border-color: var(--forest); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1280px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+/* PATIENT PROFILE HEADER CARD */
+.patient-header-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; }
+
+.patient-info-left { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.patient-avatar-xl { width: 76px; height: 72px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+.patient-details-heading h1 { font-size: 22px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; margin-bottom: 2px; }
+.patient-details-heading p { font-size: 13.5px; color: var(--ink-muted); font-weight: 500; }
+
+.health-pills-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.health-pill { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--cream); color: var(--ink); }
+.health-pill.allergy { background: #FEE2E2; color: #991B1B; border-color: #FCA5A5; }
+.health-pill.blood { background: #DCFCE7; color: #15803D; border-color: #BBF7D0; }
+
+.header-action-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-action-lg { height: 42px; padding: 0 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700; border: 1px solid var(--line); transition: all 150ms ease; display: inline-flex; align-items: center; gap: 8px; }
+.btn-action-lg.primary { background: var(--forest); color: #fff; }
+.btn-action-lg.primary:hover { background: var(--forest-2); }
+.btn-action-lg.lime { background: var(--lime); color: var(--lime-text); border-color: #c4dc3c; }
+.btn-action-lg.lime:hover { background: #d2e85a; }
+
+/* METRICS STRIP */
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .metrics-grid { grid-template-columns: 1fr; } }
+
+.metric-tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 20px; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between; }
+.metric-info label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 2px; }
+.metric-info b { font-family: var(--font-mono); font-size: 22px; font-weight: 800; color: var(--forest); display: block; }
+.metric-info span { font-size: 12px; color: var(--ink-muted); display: block; }
+
+.metric-icon { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--cream); color: var(--forest); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.metric-icon svg { width: 20px; height: 20px; }
+
+/* TOOLBAR & FILTER TABS */
+.toolbar-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+
+.tab-group { display: flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; box-shadow: var(--shadow-sm); }
+.tab-btn { padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; display: inline-flex; align-items: center; gap: 6px; }
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { background: var(--forest); color: #fff; }
+.tab-count { font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; border-radius: 999px; background: rgba(22,24,15,0.08); color: inherit; }
+.tab-btn.active .tab-count { background: rgba(255,255,255,0.2); color: #fff; }
+
+.search-box { position: relative; width: 260px; }
+.search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-muted); }
+.search-box input { width: 100%; height: 38px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); padding: 0 16px 0 40px; font-size: 13px; color: var(--ink); transition: border-color 150ms ease; }
+.search-box input:focus { border-color: var(--forest); }
+
+/* CHRONOLOGICAL CLINICAL HISTORY FEED */
+.history-feed { display: flex; flex-direction: column; gap: 20px; }
+
+.history-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card); transition: box-shadow 150ms ease; display: flex; flex-direction: column; gap: 16px; }
+.history-card:hover { box-shadow: var(--shadow-lift); }
+
+.card-header-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.card-date-meta { font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; color: var(--ink-muted); display: flex; align-items: center; gap: 8px; }
+
+.badge-tag { font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
+.tag-consultation { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+.tag-prescription { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.tag-lab { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+
+.history-title { font-size: 17px; font-weight: 800; color: var(--forest); }
+
+/* DIAGNOSIS BLOCK INSIDE CARD */
+.diag-box { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px; }
+.diag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.diag-header b { font-size: 14.5px; font-weight: 800; color: var(--ink); }
+.icd-code { font-family: var(--font-mono); font-size: 12px; font-weight: 700; background: var(--lime-soft); color: var(--lime-text); border: 1px solid #d2e85a; padding: 2px 8px; border-radius: var(--radius-sm); }
+
+.notes-text { font-size: 13.5px; color: var(--ink); line-height: 1.6; }
+
+/* MEDICATION LIST WITHIN HISTORY */
+.med-list-mini { display: flex; flex-direction: column; gap: 8px; }
+.med-item-mini { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+.med-item-mini b { font-size: 13.5px; font-weight: 700; color: var(--forest); }
+.med-item-mini span { font-size: 12px; color: var(--ink-muted); }
+
+/* ATTRIBUTION & FOOTER ACTIONS */
+.card-footer-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.doc-attribution { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink-muted); }
+.doc-attribution img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+
+.card-action-btn { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--cream); font-size: 12.5px; font-weight: 600; color: var(--forest); transition: all 150ms ease; display: inline-flex; align-items: center; gap: 4px; }
+.card-action-btn:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Physician Menu</div>
+      <!-- ROUTE 38: /doctor/dashboard -->
+      <a href="/doctor/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard Home
+      </a>
+      <!-- ROUTE 39: /doctor/appointments (ACTIVE PARENT) -->
+      <a href="/doctor/appointments" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 46: /doctor/schedule -->
+      <a href="/doctor/schedule" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Availability & Schedule
+      </a>
+      <!-- ROUTE 48: /doctor/performance -->
+      <a href="/doctor/performance" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        My Performance
+      </a>
+
+      <div class="menu-label">Account</div>
+      <!-- ROUTE 49: /doctor/settings/profile -->
+      <a href="/doctor/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Doctor Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="user-avatar">
+        <div class="user-meta">
+          <b>Dr. Sarah Jenkins</b>
+          <span>Cardiology Dept</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div class="top-left-nav">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <!-- ROUTE 40 LINK -->
+        <a href="/doctor/appointments/101" class="back-btn">← Back to Appointment #MDF-101</a>
+      </div>
+
+      <div class="top-right">
+        <button onclick="window.print()" class="back-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print Medical Record
+        </button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- PATIENT PROFILE HEADER CARD -->
+      <div class="patient-header-card">
+        <div class="patient-info-left">
+          <div class="patient-avatar-xl">HH</div>
+          <div class="patient-details-heading">
+            <h1>Habib Hossain</h1>
+            <p>Patient Record ID: #MDF-9021 · Age: 28 · DOB: April 12, 1998 · Gender: Male</p>
+            
+            <div class="health-pills-row">
+              <span class="health-pill blood">Blood Type: O+</span>
+              <span class="health-pill allergy">Allergy: Penicillin</span>
+              <span class="health-pill">Hypertension (Controlled)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-action-group">
+          <!-- ROUTE 42: /doctor/appointments/{id}/medical-record/create -->
+          <a href="/doctor/appointments/101/medical-record/create" class="btn-action-lg primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create Record
+          </a>
+          <!-- ROUTE 44: /doctor/appointments/{id}/prescriptions/create -->
+          <a href="/doctor/appointments/101/prescriptions/create" class="btn-action-lg lime">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/></svg> New Rx
+          </a>
+        </div>
+      </div>
+
+      <!-- METRICS OVERVIEW STRIP -->
+      <div class="metrics-grid">
+        <div class="metric-tile">
+          <div class="metric-info">
+            <label>Total Hospital Visits</label>
+            <b>14</b>
+            <span>Since Nov 2024</span>
+          </div>
+          <div class="metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        </div>
+
+        <div class="metric-tile">
+          <div class="metric-info">
+            <label>Active Prescriptions</label>
+            <b>2</b>
+            <span>Amlodipine, Atorvastatin</span>
+          </div>
+          <div class="metric-icon" style="background:#DCFCE7; color:#15803D;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/></svg></div>
+        </div>
+
+        <div class="metric-tile">
+          <div class="metric-info">
+            <label>Lab Reports On File</label>
+            <b>5</b>
+            <span>Latest: Lipid & CBC</span>
+          </div>
+          <div class="metric-icon" style="background:#FEF3C7; color:#B45309;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        </div>
+
+        <div class="metric-tile">
+          <div class="metric-info">
+            <label>Last Measured BP</label>
+            <b>120/80</b>
+            <span>mmHg (Normal)</span>
+          </div>
+          <div class="metric-icon" style="background:#E0F2FE; color:#0369A1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        </div>
+      </div>
+
+      <!-- TOOLBAR ROW -->
+      <div class="toolbar-row">
+        <div class="tab-group">
+          <button class="tab-btn active" onclick="switchCategory('all', this)">All Activity <span class="tab-count">3</span></button>
+          <button class="tab-btn" onclick="switchCategory('consultation', this)">Consultations <span class="tab-count">1</span></button>
+          <button class="tab-btn" onclick="switchCategory('prescription', this)">Prescriptions <span class="tab-count">1</span></button>
+          <button class="tab-btn" onclick="switchCategory('lab', this)">Lab Tests <span class="tab-count">1</span></button>
+        </div>
+
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="historySearch" placeholder="Search diagnosis or Rx..." oninput="filterHistory()">
+        </div>
+      </div>
+
+      <!-- CLINICAL FEED -->
+      <div class="history-feed" id="historyFeed">
+        
+        <!-- ITEM 1: CONSULTATION RECORD -->
+        <div class="history-card" data-category="consultation" data-search="cardiology ecg hypertension amlodipine chest tightness dr sarah jenkins">
+          <div class="card-header-row">
+            <div class="card-date-meta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              July 14, 2026 · Consultation #REC-301
+            </div>
+            <span class="badge-tag tag-consultation">Consultation Record</span>
+          </div>
+
+          <div class="history-title">Cardiology Follow-Up & ECG Assessment</div>
+
+          <div class="diag-box">
+            <div class="diag-header">
+              <b>Primary Diagnosis: Essential Hypertension (Controlled)</b>
+              <span class="icd-code">ICD-10: I10</span>
+            </div>
+            <p class="notes-text">Blood pressure remains stable (120/80 mmHg). Resting ECG demonstrated normal sinus rhythm at 72 bpm. Adjusted dosage of Amlodipine Besylate to 5mg daily.</p>
+          </div>
+
+          <div class="card-footer-row">
+            <div class="doc-attribution">
+              <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100" alt="Dr. Sarah Jenkins">
+              Dr. Sarah Jenkins · Cardiology Department
+            </div>
+            <!-- ROUTE 43: /doctor/appointments/{id}/medical-record/edit -->
+            <a href="/doctor/appointments/101/medical-record/edit" class="card-action-btn">
+              Edit / Amend Record →
+            </a>
+          </div>
+        </div>
+
+        <!-- ITEM 2: PRESCRIPTION ITEM -->
+        <div class="history-card" data-category="prescription" data-search="rx 401 amlodipine besylate atorvastatin calcium dr sarah jenkins">
+          <div class="card-header-row">
+            <div class="card-date-meta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/></svg>
+              July 14, 2026 · Prescription #RX-401
+            </div>
+            <span class="badge-tag tag-prescription">Active Prescription</span>
+          </div>
+
+          <div class="history-title">Prescription Regimen Issued (90 Days Supply)</div>
+
+          <div class="med-list-mini">
+            <div class="med-item-mini">
+              <div>
+                <b>Amlodipine Besylate 5 mg Tablet</b>
+                <div style="font-size:12px; color:var(--ink-muted);">Take 1 tablet daily in the morning</div>
+              </div>
+              <span style="font-family:var(--font-mono); font-weight:700; font-size:12px;">2 Refills Left</span>
+            </div>
+
+            <div class="med-item-mini">
+              <div>
+                <b>Atorvastatin Calcium 20 mg Tablet</b>
+                <div style="font-size:12px; color:var(--ink-muted);">Take 1 tablet daily at bedtime</div>
+              </div>
+              <span style="font-family:var(--font-mono); font-weight:700; font-size:12px;">2 Refills Left</span>
+            </div>
+          </div>
+
+          <div class="card-footer-row">
+            <div class="doc-attribution">
+              <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100" alt="Dr. Sarah Jenkins">
+              Dr. Sarah Jenkins · Cardiology Department
+            </div>
+            <!-- ROUTE 45: /doctor/prescriptions/{id}/supersede -->
+            <a href="/doctor/prescriptions/401/supersede" class="card-action-btn">
+              Correct / Supersede Rx →
+            </a>
+          </div>
+        </div>
+
+        <!-- ITEM 3: LAB REPORT -->
+        <div class="history-card" data-category="lab" data-search="lipid panel cbc blood count laboratory dr emily watson">
+          <div class="card-header-row">
+            <div class="card-date-meta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              June 28, 2026 · Lab Test #LAB-9201
+            </div>
+            <span class="badge-tag tag-lab">Diagnostic Lab Report</span>
+          </div>
+
+          <div class="history-title">Comprehensive Blood Count (CBC) & Lipid Panel</div>
+
+          <p class="notes-text">Total Cholesterol: 185 mg/dL (Desirable), HDL: 52 mg/dL, Triglycerides: 130 mg/dL. All blood count values within standard physiological reference ranges.</p>
+
+          <div class="card-footer-row">
+            <div class="doc-attribution">
+              MediFlow Central Diagnostic Laboratory · Verified by Dr. Emily Watson
+            </div>
+            <button onclick="alert('Opening lab PDF scan...')" class="card-action-btn">
+              View Lab PDF →
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+let activeCat = 'all';
+
+function switchCategory(cat, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+  activeCat = cat;
+  filterHistory();
+}
+
+function filterHistory() {
+  const query = document.getElementById('historySearch').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.history-card');
+
+  cards.forEach(card => {
+    const cardCat = card.getAttribute('data-category');
+    const searchData = card.getAttribute('data-search').toLowerCase();
+
+    const matchesCat = (activeCat === 'all') || (cardCat === activeCat);
+    const matchesSearch = !query || searchData.includes(query);
+
+    if (matchesCat && matchesSearch) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+</script>
+
+</body>
+</html>

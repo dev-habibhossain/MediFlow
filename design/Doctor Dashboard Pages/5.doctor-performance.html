@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Performance & Clinical Analytics — Doctor Portal — MediFlow</title>
+<meta name="description" content="View clinical metrics, patient satisfaction ratings, consultation completion rate, and no-show statistics at MediFlow.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, select { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--cream-alt); }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left h1 { font-size: 20px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+.top-left p { font-size: 12.5px; color: var(--ink-muted); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+.select-period { height: 40px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 13.5px; font-weight: 600; color: var(--forest); }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1280px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+/* METRICS OVERVIEW STRIP */
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .metrics-grid { grid-template-columns: 1fr; } }
+
+.metric-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: flex-start; }
+.metric-info label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 2px; }
+.metric-info b { font-family: var(--font-mono); font-size: 26px; font-weight: 800; color: var(--forest); line-height: 1; display: block; }
+.metric-info span { font-size: 12px; color: #15803D; font-weight: 600; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; }
+.metric-info span.danger { color: #DC2626; }
+
+.metric-icon { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--cream); color: var(--forest); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.metric-icon svg { width: 22px; height: 22px; }
+
+/* MAIN ANALYTICS GRID */
+.analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+@media (max-width: 1024px) { .analytics-grid { grid-template-columns: 1fr; } }
+
+.card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.card-header h3 { font-size: 16px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 10px; }
+.card-header h3 svg { width: 18px; height: 18px; color: var(--forest); }
+
+/* RATINGS BREAKDOWN */
+.rating-summary-box { display: flex; align-items: center; gap: 24px; background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; }
+.score-big { text-align: center; border-right: 1px solid var(--line); padding-right: 24px; flex-shrink: 0; }
+.score-big b { font-family: var(--font-mono); font-size: 38px; font-weight: 800; color: var(--forest); line-height: 1; display: block; }
+.score-big span { font-size: 12px; color: var(--ink-muted); font-weight: 600; }
+.stars-gold { color: #F59E0B; font-size: 16px; margin-top: 4px; }
+
+.rating-bars-list { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.rating-bar-item { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: var(--ink-muted); }
+.bar-track { flex: 1; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; background: #F59E0B; }
+
+/* PROGRESS CIRCLES / METRIC BARS */
+.rate-progress-group { display: flex; flex-direction: column; gap: 16px; }
+.rate-item label { font-size: 13px; font-weight: 700; color: var(--ink); display: flex; justify-content: space-between; margin-bottom: 6px; }
+.rate-item label b { font-family: var(--font-mono); font-size: 14px; color: var(--forest); }
+
+.progress-track { height: 10px; border-radius: 999px; background: var(--cream-alt); border: 1px solid var(--line); overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 999px; transition: width 300ms ease; }
+
+/* MONTHLY BAR CHART PREVIEW */
+.chart-bars-wrap { display: flex; align-items: flex-end; justify-content: space-between; height: 180px; padding-top: 20px; border-bottom: 1px solid var(--line); gap: 12px; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+.chart-bar-pillar { width: 100%; max-width: 38px; background: var(--forest); border-radius: 6px 6px 0 0; transition: background 150ms ease; }
+.chart-bar-pillar:hover { background: var(--lime); }
+.chart-label { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--ink-muted); }
+
+/* RECENT REVIEWS FEED */
+.review-item { padding: 16px; background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-lg); display: flex; flex-direction: column; gap: 8px; }
+.review-top { display: flex; align-items: center; justify-content: space-between; }
+.review-top b { font-size: 14px; font-weight: 700; color: var(--ink); }
+.review-top span { font-size: 12px; color: var(--ink-muted); font-family: var(--font-mono); }
+.review-stars { color: #F59E0B; font-size: 13px; }
+.review-p { font-size: 13px; color: var(--ink); line-height: 1.45; }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Physician Menu</div>
+      <!-- ROUTE 38: /doctor/dashboard -->
+      <a href="/doctor/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard Home
+      </a>
+      <!-- ROUTE 39: /doctor/appointments -->
+      <a href="/doctor/appointments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 46: /doctor/schedule -->
+      <a href="/doctor/schedule" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Availability & Schedule
+      </a>
+      <!-- ROUTE 48: /doctor/performance (ACTIVE) -->
+      <a href="/doctor/performance" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        My Performance
+      </a>
+
+      <div class="menu-label">Account</div>
+      <!-- ROUTE 49: /doctor/settings/profile -->
+      <a href="/doctor/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Doctor Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="user-avatar">
+        <div class="user-meta">
+          <b>Dr. Sarah Jenkins</b>
+          <span>Cardiology Dept</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div class="top-left">
+          <h1>My Performance & Analytics</h1>
+          <p>Track consultation completion rates, patient ratings, and practice statistics</p>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <select class="select-period">
+          <option value="30">Last 30 Days</option>
+          <option value="90" selected>Last 90 Days</option>
+          <option value="365">Year to Date</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- METRICS GRID -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-info">
+            <label>Completion Rate</label>
+            <b>96.4%</b>
+            <span>↑ +1.2% vs last month</span>
+          </div>
+          <div class="metric-icon" style="background:#DCFCE7; color:#15803D;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-info">
+            <label>No-Show Rate</label>
+            <b>2.1%</b>
+            <span>↓ -0.5% lower (Good)</span>
+          </div>
+          <div class="metric-icon" style="background:var(--cream-alt); color:var(--ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-info">
+            <label>Avg Patient Rating</label>
+            <b>4.9 / 5</b>
+            <span>Based on 148 reviews</span>
+          </div>
+          <div class="metric-icon" style="background:#FEF3C7; color:#B45309;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-info">
+            <label>Total Consultations</label>
+            <b>342</b>
+            <span>Quarterly volume</span>
+          </div>
+          <div class="metric-icon" style="background:#E0F2FE; color:#0369A1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        </div>
+      </div>
+
+      <!-- MAIN ANALYTICS GRID -->
+      <div class="analytics-grid">
+        
+        <!-- CARD 1: CLINICAL EFFICIENCY & COMPLETION -->
+        <div class="card-shell">
+          <div class="card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Clinical Efficiency Breakdown</h3>
+          </div>
+
+          <div class="rate-progress-group">
+            <div class="rate-item">
+              <label>Completed Consultations <b>96.4%</b></label>
+              <div class="progress-track"><div class="progress-fill" style="width: 96.4%; background:#15803D;"></div></div>
+            </div>
+
+            <div class="rate-item">
+              <label>Cancelled by Patient <b>1.5%</b></label>
+              <div class="progress-track"><div class="progress-fill" style="width: 1.5%; background:#F59E0B;"></div></div>
+            </div>
+
+            <div class="rate-item">
+              <label>Patient No-Show Rate <b>2.1%</b></label>
+              <div class="progress-track"><div class="progress-fill" style="width: 2.1%; background:#DC2626;"></div></div>
+            </div>
+
+            <div class="rate-item">
+              <label>On-Time Consultation Start Rate <b>94.8%</b></label>
+              <div class="progress-track"><div class="progress-fill" style="width: 94.8%; background:var(--forest);"></div></div>
+            </div>
+          </div>
+
+          <!-- BAR CHART PREVIEW -->
+          <div style="margin-top:10px;">
+            <b style="font-size:13px; color:var(--forest); display:block; margin-bottom:4px;">Monthly Consultation Volume</b>
+            <div class="chart-bars-wrap">
+              <div class="chart-col"><div class="chart-bar-pillar" style="height: 60%;"></div><span class="chart-label">Mar</span></div>
+              <div class="chart-col"><div class="chart-bar-pillar" style="height: 75%;"></div><span class="chart-label">Apr</span></div>
+              <div class="chart-col"><div class="chart-bar-pillar" style="height: 85%;"></div><span class="chart-label">May</span></div>
+              <div class="chart-col"><div class="chart-bar-pillar" style="height: 70%;"></div><span class="chart-label">Jun</span></div>
+              <div class="chart-col"><div class="chart-bar-pillar" style="height: 95%;"></div><span class="chart-label">Jul</span></div>
+              <div class="chart-col"><div class="chart-bar-pillar" style="height: 90%; background:var(--lime);"></div><span class="chart-label">Aug</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: PATIENT SATISFACTION & REVIEWS -->
+        <div class="card-shell">
+          <div class="card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Patient Satisfaction Ratings</h3>
+          </div>
+
+          <div class="rating-summary-box">
+            <div class="score-big">
+              <b>4.9</b>
+              <div class="stars-gold">★★★★★</div>
+              <span>148 Total Reviews</span>
+            </div>
+
+            <div class="rating-bars-list">
+              <div class="rating-bar-item">
+                <span>5★</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 92%;"></div></div>
+                <span>136</span>
+              </div>
+              <div class="rating-bar-item">
+                <span>4★</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 6%;"></div></div>
+                <span>9</span>
+              </div>
+              <div class="rating-bar-item">
+                <span>3★</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 2%;"></div></div>
+                <span>3</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- RECENT FEEDBACK -->
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top:6px;">
+            <b style="font-size:13px; color:var(--forest);">Recent Patient Feedback</b>
+            
+            <div class="review-item">
+              <div class="review-top">
+                <b>Habib Hossain</b>
+                <span>July 14, 2026</span>
+              </div>
+              <div class="review-stars">★★★★★</div>
+              <p class="review-p">"Dr. Jenkins was extremely thorough in explaining my blood pressure management plan. Highly attentive and clear!"</p>
+            </div>
+
+            <div class="review-item">
+              <div class="review-top">
+                <b>Tanjila Ahmed</b>
+                <span>June 28, 2026</span>
+              </div>
+              <div class="review-stars">★★★★★</div>
+              <p class="review-p">"Excellent bedside manner. She answered all my questions regarding my routine ECG results."</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

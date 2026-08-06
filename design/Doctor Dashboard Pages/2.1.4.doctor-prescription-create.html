@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue Prescription — Doctor Portal — MediFlow</title>
+<meta name="description" content="Issue digital prescription with multi-item medication line items for appointment #MDF-101 at MediFlow Hospital.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, select { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+input, textarea { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--cream-alt); }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left-nav { display: flex; align-items: center; gap: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; transition: all 150ms ease; }
+.back-btn:hover { background: var(--card); border-color: var(--forest); }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1180px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* HEADER BANNER CARD */
+.rx-header-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 24px 32px; box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.ref-badge { font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; background: var(--cream); border: 1px solid var(--line); color: var(--forest); padding: 4px 10px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 4px; }
+.rx-header-card h1 { font-size: 22px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+
+/* ALLERGY WARNING STRIP */
+.allergy-alert-box { background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: var(--radius-lg); padding: 16px 20px; color: #991B1B; display: flex; align-items: center; gap: 12px; font-size: 13.5px; font-weight: 600; }
+.allergy-alert-box svg { width: 20px; height: 20px; flex-shrink: 0; color: #DC2626; }
+
+/* PATIENT MINI SUMMARY */
+.patient-summary-box { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.patient-meta-group { display: flex; align-items: center; gap: 14px; }
+.patient-avatar-md { width: 46px; height: 46px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.patient-info b { font-size: 15px; font-weight: 800; color: var(--forest); display: block; }
+.patient-info span { font-size: 12.5px; color: var(--ink-muted); display: block; }
+
+/* FORM CARD */
+.form-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-card); }
+@media (max-width: 600px) { .form-card { padding: 20px; } }
+
+.card-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+.card-title-text { font-size: 16px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 10px; }
+.card-title-text svg { width: 18px; height: 18px; color: var(--forest); }
+
+/* MEDICATION LINE ITEMS TABLE */
+.table-wrap { overflow-x: auto; margin-bottom: 20px; }
+.med-table { width: 100%; border-collapse: collapse; min-width: 760px; }
+.med-table th { background: var(--cream); padding: 12px 14px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); text-align: left; }
+.med-table td { padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+
+.form-control-sm { width: 100%; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--cream); padding: 0 12px; font-size: 13.5px; color: var(--ink); transition: border-color 150ms ease, background-color 150ms ease; }
+.form-control-sm:focus { border-color: var(--forest); background: var(--card); }
+
+.btn-row-add { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 18px; border-radius: 999px; background: var(--cream); border: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--forest); transition: all 150ms ease; margin-bottom: 28px; }
+.btn-row-add:hover { background: var(--forest); color: #fff; border-color: var(--forest); }
+
+.btn-remove-row { width: 36px; height: 40px; border-radius: var(--radius-sm); border: 1px solid #FCA5A5; background: #FEE2E2; color: #DC2626; display: flex; align-items: center; justify-content: center; transition: all 150ms ease; }
+.btn-remove-row:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
+
+/* INSTRUCTIONS & PHARMA NOTES */
+.form-group { margin-bottom: 24px; }
+.form-group label { font-size: 13px; font-weight: 700; color: var(--ink); display: block; margin-bottom: 6px; }
+textarea.form-control { width: 100%; height: auto; min-height: 90px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); padding: 12px 16px; font-size: 14px; color: var(--ink); resize: vertical; transition: border-color 150ms ease, background-color 150ms ease; }
+textarea.form-control:focus { border-color: var(--forest); background: var(--card); }
+
+/* BUTTONS */
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 28px; border-radius: 999px; font-size: 14.5px; font-weight: 600; transition: all 150ms ease; }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--forest-2); }
+.btn-lime { background: var(--lime); color: var(--lime-text); border: 1px solid #c4dc3c; font-weight: 700; }
+.btn-lime:hover { background: #d2e85a; }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+
+/* TOAST */
+.toast-notice { position: fixed; bottom: 24px; right: 24px; background: var(--forest); color: #fff; padding: 14px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lift); display: none; align-items: center; gap: 10px; z-index: 100; animation: slideUp 200ms ease-out; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Physician Menu</div>
+      <!-- ROUTE 38: /doctor/dashboard -->
+      <a href="/doctor/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard Home
+      </a>
+      <!-- ROUTE 39: /doctor/appointments (ACTIVE PARENT) -->
+      <a href="/doctor/appointments" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 46: /doctor/schedule -->
+      <a href="/doctor/schedule" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Availability & Schedule
+      </a>
+      <!-- ROUTE 48: /doctor/performance -->
+      <a href="/doctor/performance" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        My Performance
+      </a>
+
+      <div class="menu-label">Account</div>
+      <!-- ROUTE 49: /doctor/settings/profile -->
+      <a href="/doctor/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Doctor Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="user-avatar">
+        <div class="user-meta">
+          <b>Dr. Sarah Jenkins</b>
+          <span>Cardiology Dept</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div class="top-left-nav">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <!-- ROUTE 40 LINK -->
+        <a href="/doctor/appointments/101" class="back-btn">← Cancel & Return to Appointment #MDF-101</a>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- HEADER BANNER -->
+      <div class="rx-header-card">
+        <div>
+          <span class="ref-badge">Issue Digital Rx for Visit #MDF-101</span>
+          <h1>Issue Electronic Prescription</h1>
+        </div>
+      </div>
+
+      <!-- ALLERGY ALERT -->
+      <div class="allergy-alert-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Safety Warning: Patient Habib Hossain has a recorded allergy to <strong>Penicillin (Mild)</strong>. Avoid prescribing beta-lactam antibiotics.</span>
+      </div>
+
+      <!-- PATIENT MINI SUMMARY -->
+      <div class="patient-summary-box">
+        <div class="patient-meta-group">
+          <div class="patient-avatar-md">HH</div>
+          <div class="patient-info">
+            <b>Habib Hossain</b>
+            <span>Patient ID: #MDF-9021 · Male, 28 Yrs · Blood Type: O+</span>
+          </div>
+        </div>
+
+        <div style="font-size:12.5px; color:var(--ink-muted); font-family:var(--font-mono);">
+          Prescribing Physician: <strong>Dr. Sarah Jenkins (MD-90412)</strong>
+        </div>
+      </div>
+
+      <!-- FORM CARD -->
+      <div class="form-card">
+        <div class="card-title-row">
+          <div class="card-title-text">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/></svg>
+            Prescription Line Items & Regimen
+          </div>
+        </div>
+
+        <form id="rxForm" onsubmit="handleIssueRx(event)">
+          
+          <!-- MEDICATION ITEMS TABLE -->
+          <div class="table-wrap">
+            <table class="med-table">
+              <thead>
+                <tr>
+                  <th style="width:28%;">Medication Name & Dosage</th>
+                  <th style="width:20%;">Frequency / Timing</th>
+                  <th style="width:16%;">Duration</th>
+                  <th style="width:14%;">Refills</th>
+                  <th style="width:18%;">Special Timing Instructions</th>
+                  <th style="width:40px;"></th>
+                </tr>
+              </thead>
+              <tbody id="medRowsContainer">
+                
+                <!-- ROW 1 -->
+                <tr class="med-row">
+                  <td>
+                    <input type="text" class="form-control-sm" value="Amlodipine Besylate 5mg" placeholder="e.g. Amlodipine 5mg" required>
+                  </td>
+                  <td>
+                    <select class="form-control-sm">
+                      <option value="1x Daily (Morning)" selected>1x Daily (Morning)</option>
+                      <option value="1x Daily (Bedtime)">1x Daily (Bedtime)</option>
+                      <option value="2x Daily (12 Hours)">2x Daily (12 Hours)</option>
+                      <option value="3x Daily (8 Hours)">3x Daily (8 Hours)</option>
+                      <option value="As Needed (PRN)">As Needed (PRN)</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="text" class="form-control-sm" value="90 Days" placeholder="90 Days" required>
+                  </td>
+                  <td>
+                    <select class="form-control-sm">
+                      <option value="0">0 Refills</option>
+                      <option value="1">1 Refill</option>
+                      <option value="2" selected>2 Refills</option>
+                      <option value="3">3 Refills</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="text" class="form-control-sm" value="Take morning with food" placeholder="e.g. Take with food">
+                  </td>
+                  <td>
+                    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove item">✕</button>
+                  </td>
+                </tr>
+
+                <!-- ROW 2 -->
+                <tr class="med-row">
+                  <td>
+                    <input type="text" class="form-control-sm" value="Atorvastatin Calcium 20mg" placeholder="e.g. Atorvastatin 20mg" required>
+                  </td>
+                  <td>
+                    <select class="form-control-sm">
+                      <option value="1x Daily (Morning)">1x Daily (Morning)</option>
+                      <option value="1x Daily (Bedtime)" selected>1x Daily (Bedtime)</option>
+                      <option value="2x Daily (12 Hours)">2x Daily (12 Hours)</option>
+                      <option value="As Needed (PRN)">As Needed (PRN)</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="text" class="form-control-sm" value="90 Days" placeholder="90 Days" required>
+                  </td>
+                  <td>
+                    <select class="form-control-sm">
+                      <option value="0">0 Refills</option>
+                      <option value="1">1 Refill</option>
+                      <option value="2" selected>2 Refills</option>
+                      <option value="3">3 Refills</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input type="text" class="form-control-sm" value="Take at bedtime, avoid grapefruit" placeholder="e.g. Take with food">
+                  </td>
+                  <td>
+                    <button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove item">✕</button>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+
+          <button type="button" class="btn-row-add" onclick="addNewMedRow()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Medication Line Item
+          </button>
+
+          <!-- SPECIAL PHARMACY & PATIENT NOTES -->
+          <div class="form-group">
+            <label for="pharmacyNotes">Special Pharmacy Precautions & Directions</label>
+            <textarea id="pharmacyNotes" class="form-control" placeholder="Add additional directions for dispensing pharmacist or patient precautions...">Maintain consistent daily administration times. If patient experiences dizziness or muscle pain, notify Cardiology Desk immediately.</textarea>
+          </div>
+
+          <!-- BUTTON ROW -->
+          <div class="form-actions">
+            <!-- ROUTE 40 LINK -->
+            <a href="/doctor/appointments/101" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-lime">Sign & Issue Electronic Prescription</button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast-notice" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
+  Digital Prescription #RX-401 issued successfully!
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function addNewMedRow() {
+  const container = document.getElementById('medRowsContainer');
+  const tr = document.createElement('tr');
+  tr.className = 'med-row';
+  tr.innerHTML = `
+    <td><input type="text" class="form-control-sm" placeholder="e.g. Lisinopril 10mg" required></td>
+    <td>
+      <select class="form-control-sm">
+        <option value="1x Daily (Morning)">1x Daily (Morning)</option>
+        <option value="1x Daily (Bedtime)">1x Daily (Bedtime)</option>
+        <option value="2x Daily (12 Hours)">2x Daily (12 Hours)</option>
+        <option value="As Needed (PRN)">As Needed (PRN)</option>
+      </select>
+    </td>
+    <td><input type="text" class="form-control-sm" value="30 Days" placeholder="Duration" required></td>
+    <td>
+      <select class="form-control-sm">
+        <option value="0">0 Refills</option>
+        <option value="1" selected>1 Refill</option>
+        <option value="2">2 Refills</option>
+      </select>
+    </td>
+    <td><input type="text" class="form-control-sm" placeholder="Take after meal"></td>
+    <td><button type="button" class="btn-remove-row" onclick="removeRow(this)" title="Remove item">✕</button></td>
+  `;
+  container.appendChild(tr);
+}
+
+function removeRow(btn) {
+  const rows = document.querySelectorAll('.med-row');
+  if (rows.length > 1) {
+    btn.closest('tr').remove();
+  } else {
+    alert('Prescription must contain at least one medication line item.');
+  }
+}
+
+function handleIssueRx(e) {
+  e.preventDefault();
+  const toast = document.getElementById('toast');
+  toast.style.display = 'flex';
+
+  setTimeout(() => {
+    window.location.href = '/doctor/appointments/101';
+  }, 1200);
+}
+</script>
+
+</body>
+</html>
