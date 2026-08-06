@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Booking Confirmed — MediFlow</title>
+<meta name="description" content="Your appointment with MediFlow Hospital is successfully confirmed. View your reference code and appointment summary.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; padding: 0; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-card: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06);
+  --shadow-lift: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.wrap { max-width: 1320px; margin-inline: auto; padding-inline: 32px; position: relative; width: 100%; }
+@media (max-width: 640px) { .wrap { padding-inline: 20px; } }
+
+a:focus-visible, button:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; border-radius: 4px; }
+
+/* ============ PILLS & BUTTONS ============ */
+.pill { display: inline-flex; align-items: center; gap: 6px; background: #DCFCE7; color: #15803D; font-size: 13px; font-weight: 600; padding: 7px 16px 7px 12px; border-radius: 999px; border: 1px solid #BBF7D0; }
+.pill svg { width: 14px; height: 14px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 28px; border-radius: 999px; font-size: 15px; font-weight: 600; transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-card); }
+.btn-primary:hover { background: var(--forest-2); box-shadow: var(--shadow-lift); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid rgba(22,24,15,0.16); }
+.btn-outline:hover { border-color: var(--ink); }
+
+/* ============ HEADER ============ */
+.site-header { position: sticky; top: 0; z-index: 40; padding-top: 20px; }
+.nav-shell { display: flex; align-items: center; justify-content: space-between; background: rgba(248,246,239,0.9); backdrop-filter: blur(12px); border: 1px solid rgba(22,24,15,0.06); border-radius: 999px; padding: 8px 12px 8px 22px; box-shadow: var(--shadow-card); }
+.logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+.logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 17px; height: 17px; color: var(--lime); }
+.header-link { font-size: 14px; font-weight: 600; color: var(--forest); padding: 8px 16px; border-radius: 999px; transition: background-color 150ms ease; }
+.header-link:hover { background: rgba(22,24,15,0.05); }
+
+/* ============ MAIN SUCCESS CARD ============ */
+main { flex: 1; display: flex; align-items: center; padding: 60px 0 80px; }
+
+.success-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 56px 48px; box-shadow: var(--shadow-card); text-align: center; max-width: 760px; margin: 0 auto; position: relative; overflow: hidden; }
+@media (max-width: 600px) { .success-card { padding: 36px 24px; } }
+
+.success-card::before { content: ""; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 260px; height: 260px; border-radius: 50%; background: #BBF7D0; opacity: 0.35; filter: blur(40px); pointer-events: none; }
+
+.icon-badge { margin: 0 auto 20px; width: 68px; height: 68px; border-radius: 50%; background: #DCFCE7; color: #15803D; display: flex; align-items: center; justify-content: center; position: relative; }
+.icon-badge svg { width: 34px; height: 34px; }
+
+.success-card h1 { font-size: clamp(1.8rem, 1.4rem + 1.2vw, 2.4rem); font-weight: 800; letter-spacing: -0.02em; color: var(--forest); margin-bottom: 8px; position: relative; }
+
+.success-card p.lead { font-size: 15.5px; color: var(--ink-muted); max-width: 52ch; margin: 0 auto 28px; line-height: 1.6; position: relative; }
+
+/* CODE BADGE DISPLAY */
+.code-box { background: var(--cream); border: 1px dashed var(--line); border-radius: var(--radius-lg); padding: 20px; max-width: 480px; margin: 0 auto 36px; position: relative; }
+.code-box label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 6px; }
+.code-val { font-family: var(--font-mono); font-size: clamp(1.4rem, 1.2rem + 0.8vw, 2rem); font-weight: 700; color: var(--forest); letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.copy-btn { width: 32px; height: 32px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); color: var(--ink-muted); display: inline-flex; align-items: center; justify-content: center; transition: all 150ms ease; }
+.copy-btn:hover { color: var(--forest); border-color: var(--forest); }
+.copy-btn svg { width: 16px; height: 16px; }
+
+/* APPOINTMENT DETAILS SUMMARY GRID */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: left; margin-bottom: 36px; position: relative; }
+@media (max-width: 680px) { .summary-grid { grid-template-columns: 1fr; } }
+
+.summary-tile { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px; }
+.summary-tile label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink-muted); display: block; margin-bottom: 6px; }
+.summary-tile p { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0; }
+.summary-tile span { font-size: 12.5px; color: var(--ink-muted); display: block; margin-top: 2px; }
+
+/* ACTION BUTTONS */
+.action-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; position: relative; }
+
+/* CALENDAR SHORTCUTS */
+.cal-add-box { border-top: 1px solid var(--line); padding-top: 28px; position: relative; }
+.cal-add-box h5 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); margin-bottom: 14px; }
+.cal-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.cal-btn { background: var(--cream-alt); border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; transition: all 150ms ease; }
+.cal-btn:hover { background: var(--forest); color: #fff; border-color: var(--forest); }
+.cal-btn svg { width: 14px; height: 14px; }
+
+/* ============ FOOTER ============ */
+footer { padding: 48px 0 32px; position: relative; z-index: 1; border-top: 1px solid var(--line); }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--ink-muted); flex-wrap: wrap; gap: 12px; }
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="nav-shell">
+      <a href="/" class="logo">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <a href="/patient-dashboard.html" class="header-link">Patient Portal →</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    
+    <div class="success-card">
+      
+      <div class="icon-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+
+      <span class="pill" style="margin-bottom: 16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Appointment Confirmed
+      </span>
+      
+      <h1>Your Visit Is Booked!</h1>
+      <p class="lead">We have reserved your appointment with <strong>Dr. Sarah Jenkins</strong>. A confirmation email and SMS reminder have been sent to your registered contact.</p>
+
+      <!-- REFERENCE CODE BOX -->
+      <div class="code-box">
+        <label>Appointment Reference Code</label>
+        <div class="code-val">
+          <span id="refCode">MDF-89240</span>
+          <button class="copy-btn" onclick="copyReferenceCode()" title="Copy code" id="copyBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- APPOINTMENT TILES -->
+      <div class="summary-grid">
+        <div class="summary-tile">
+          <label>Physician</label>
+          <p>Dr. Sarah Jenkins</p>
+          <span>Cardiology Dept</span>
+        </div>
+        <div class="summary-tile">
+          <label>Date & Time</label>
+          <p id="succDateTime">Friday, Aug 7</p>
+          <span id="succTime">10:00 AM</span>
+        </div>
+        <div class="summary-tile">
+          <label>Location / Mode</label>
+          <p id="succMode">In-Person Visit</p>
+          <span>120 Harbor Ave, Suite 300</span>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="action-buttons">
+        <a href="/patient-dashboard.html" class="btn btn-primary">Go to Patient Dashboard</a>
+        <button onclick="window.print()" class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print Summary
+        </button>
+      </div>
+
+      <!-- CALENDAR ADD SHORTCUTS -->
+      <div class="cal-add-box">
+        <h5>Add to your personal calendar</h5>
+        <div class="cal-links">
+          <a href="#" class="cal-btn" onclick="alert('Added to Google Calendar!')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Google Calendar
+          </a>
+          <a href="#" class="cal-btn" onclick="alert('iCal file downloaded!')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Apple iCal / Outlook (.ics)
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>© 2026 MediFlow.</span>
+      <span>Portfolio project — placeholder imagery, not a real hospital.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// LOAD SESSION VALUES IF PRESENT
+document.addEventListener('DOMContentLoaded', () => {
+  const date = sessionStorage.getItem('booking_date') || 'Friday, Aug 7';
+  const time = sessionStorage.getItem('booking_time') || '10:00 AM';
+  const mode = sessionStorage.getItem('booking_mode') || 'In-Person Visit';
+
+  document.getElementById('succDateTime').textContent = date;
+  document.getElementById('succTime').textContent = time;
+  document.getElementById('succMode').textContent = mode;
+});
+
+// COPY CODE FUNCTION
+function copyReferenceCode() {
+  const code = document.getElementById('refCode').textContent;
+  navigator.clipboard.writeText(code);
+  const btn = document.getElementById('copyBtn');
+  btn.style.color = '#15803D';
+  btn.style.borderColor = '#15803D';
+  setTimeout(() => {
+    btn.style.color = 'var(--ink-muted)';
+    btn.style.borderColor = 'var(--line)';
+  }, 2000);
+}
+</script>
+
+</body>
+</html>

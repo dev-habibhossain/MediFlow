@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Appointments — MediFlow</title>
+<meta name="description" content="View, filter, and manage your upcoming, past, and cancelled medical consultations at MediFlow Hospital.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+input, select { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left h1 { font-size: 20px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+.top-left p { font-size: 12.5px; color: var(--ink-muted); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; color: var(--ink-muted); position: relative; transition: all 150ms ease; }
+.icon-btn:hover { border-color: var(--forest); color: var(--forest); }
+.icon-btn .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: #EF4444; position: absolute; top: 8px; right: 8px; border: 2px solid var(--card); }
+
+.btn-book-quick { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 18px; border-radius: 999px; background: var(--forest); color: #fff; font-size: 13.5px; font-weight: 600; box-shadow: var(--shadow-sm); transition: background-color 150ms ease; }
+.btn-book-quick:hover { background: var(--forest-2); }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1280px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* TABS HEADER BAR */
+.tab-controls-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+
+.tabs-group { display: flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; box-shadow: var(--shadow-sm); }
+.tab-btn { padding: 8px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; display: inline-flex; align-items: center; gap: 8px; }
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { background: var(--forest); color: #fff; }
+.tab-count { font-family: var(--font-mono); font-size: 11.5px; padding: 2px 7px; border-radius: 999px; background: rgba(22,24,15,0.08); color: inherit; }
+.tab-btn.active .tab-count { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* FILTERS TOOLBAR */
+.filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; width: 100%; }
+.search-input-wrap { position: relative; flex: 1; min-width: 260px; }
+.search-input-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-muted); }
+.search-input-wrap input { width: 100%; height: 42px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); padding: 0 16px 0 40px; font-size: 13.5px; color: var(--ink); transition: border-color 150ms ease; }
+.search-input-wrap input:focus { border-color: var(--forest); }
+
+.filter-select { height: 42px; padding: 0 16px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); font-size: 13.5px; font-weight: 500; color: var(--ink); cursor: pointer; transition: border-color 150ms ease; }
+.filter-select:focus { border-color: var(--forest); }
+
+/* APPOINTMENT CARDS LIST */
+.appointments-list { display: flex; flex-direction: column; gap: 16px; }
+
+.appointment-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); transition: transform 150ms ease, box-shadow 150ms ease; display: grid; grid-template-columns: 280px 1fr auto; gap: 24px; align-items: center; }
+.appointment-card:hover { box-shadow: var(--shadow-lift); }
+@media (max-width: 1024px) { .appointment-card { grid-template-columns: 1fr; gap: 16px; } }
+
+/* DOCTOR SUMMARY COLUMN */
+.doc-card-info { display: flex; align-items: center; gap: 16px; }
+.doc-avatar { width: 64px; height: 64px; border-radius: var(--radius-md); object-fit: cover; background: var(--cream-alt); flex-shrink: 0; }
+.doc-details h3 { font-size: 16px; font-weight: 800; color: var(--forest); margin-bottom: 2px; }
+.doc-details p { font-size: 13px; color: var(--ink-muted); font-weight: 500; }
+.dept-tag { display: inline-block; font-size: 11.5px; font-weight: 600; background: var(--lime-soft); color: var(--lime-text); padding: 2px 8px; border-radius: 999px; margin-top: 6px; }
+
+/* SCHEDULE & MODE COLUMN */
+.schedule-block { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 18px; }
+@media (max-width: 600px) { .schedule-block { grid-template-columns: 1fr; } }
+.meta-item label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 2px; }
+.meta-item span { font-size: 13.5px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.meta-item span svg { width: 14px; height: 14px; color: var(--forest); }
+
+/* STATUS & ACTIONS COLUMN */
+.action-column { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+@media (max-width: 1024px) { .action-column { align-items: flex-start; flex-direction: row; justify-content: space-between; width: 100%; border-top: 1px solid var(--line); padding-top: 16px; } }
+
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge-confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.badge-pending { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.badge-completed { background: var(--cream-alt); color: var(--ink-muted); border: 1px solid var(--line); }
+.badge-cancelled { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
+
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-action-sm { height: 38px; padding: 0 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--line); background: var(--card); color: var(--ink); transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-action-sm:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+.btn-action-sm.btn-review { background: var(--lime); color: var(--lime-text); border-color: #c4dc3c; }
+.btn-action-sm.btn-review:hover { background: #d2e85a; }
+
+/* EMPTY STATE */
+.empty-state { background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius-xl); padding: 60px 24px; text-align: center; display: none; }
+.empty-state.show { display: block; }
+.empty-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--cream); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.empty-icon svg { width: 28px; height: 28px; }
+.empty-state h3 { font-size: 18px; font-weight: 800; color: var(--forest); margin-bottom: 6px; }
+.empty-state p { font-size: 14px; color: var(--ink-muted); max-width: 40ch; margin: 0 auto 20px; }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Main Menu</div>
+      <!-- ROUTE 23: /patient/dashboard -->
+      <a href="/patient/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <!-- ROUTE 24: /patient/appointments (ACTIVE) -->
+      <a href="/patient/appointments" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 27: /patient/medical-records -->
+      <a href="/patient/medical-records" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Medical History
+      </a>
+      <!-- ROUTE 29: /patient/prescriptions -->
+      <a href="/patient/prescriptions" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Prescriptions
+      </a>
+      <!-- ROUTE 36: /patient/payments -->
+      <a href="/patient/payments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment History
+      </a>
+
+      <div class="menu-label">Settings</div>
+      <!-- ROUTE 32: /patient/notifications -->
+      <a href="/patient/notifications" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </a>
+      <!-- ROUTE 33: /patient/settings/profile -->
+      <a href="/patient/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar">HH</div>
+        <div class="user-meta">
+          <b>Habib Hossain</b>
+          <span>Patient ID: #MDF-9021</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div class="top-left">
+          <h1>My Appointments</h1>
+          <p>Track, reschedule, or review your medical consultations</p>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <!-- ROUTE 32: /patient/notifications -->
+        <a href="/patient/notifications" class="icon-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="badge-dot"></span>
+        </a>
+        <a href="/booking.html" class="btn-book-quick">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Appointment
+        </a>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- TAB CONTROLS & FILTER TOOLBAR -->
+      <div class="tab-controls-row">
+        
+        <!-- TABS (Upcoming / Past / Cancelled) -->
+        <div class="tabs-group" aria-label="Appointment category tabs">
+          <button class="tab-btn active" onclick="switchTab('upcoming', this)">
+            Upcoming <span class="tab-count">2</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('past', this)">
+            Past Visits <span class="tab-count">3</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('cancelled', this)">
+            Cancelled <span class="tab-count">1</span>
+          </button>
+        </div>
+
+        <!-- SEARCH & TYPE FILTER -->
+        <div class="filter-bar">
+          <div class="search-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="appointmentSearch" placeholder="Search doctor name or specialty..." oninput="filterAppointments()">
+          </div>
+
+          <select class="filter-select" id="modeFilter" onchange="filterAppointments()">
+            <option value="all">All Modes</option>
+            <option value="In-Person">In-Person Visit</option>
+            <option value="Telehealth">Telehealth Call</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- UPCOMING APPOINTMENTS LIST -->
+      <div class="appointments-list" id="tab-upcoming">
+        
+        <!-- CARD 1: CONFIRMED UPCOMING -->
+        <!-- Laravel Route 25: /patient/appointments/{id} -->
+        <div class="appointment-card" data-doctor="Dr. Sarah Jenkins Cardiology" data-mode="In-Person">
+          <div class="doc-card-info">
+            <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="doc-avatar">
+            <div class="doc-details">
+              <h3>Dr. Sarah Jenkins</h3>
+              <p>Senior Cardiologist</p>
+              <span class="dept-tag">Cardiology</span>
+            </div>
+          </div>
+
+          <div class="schedule-block">
+            <div class="meta-item">
+              <label>Date & Time</label>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                Friday, Aug 7 at 10:00 AM
+              </span>
+            </div>
+            <div class="meta-item">
+              <label>Consultation Mode</label>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16"/></svg>
+                In-Person (120 Harbor Ave)
+              </span>
+            </div>
+          </div>
+
+          <div class="action-column">
+            <span class="badge badge-confirmed">Confirmed</span>
+            <div class="btn-group">
+              <!-- ROUTE 25: /patient/appointments/{id} -->
+              <a href="/patient/appointments/101" class="btn-action-sm">View Details</a>
+              <!-- ROUTE 26: /patient/appointments/{id}/reschedule -->
+              <a href="/patient/appointments/101/reschedule" class="btn-action-sm">Reschedule</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: PENDING UPCOMING -->
+        <div class="appointment-card" data-doctor="Dr. Marcus Vance Neurology" data-mode="Telehealth">
+          <div class="doc-card-info">
+            <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=150" alt="Dr. Marcus Vance" class="doc-avatar">
+            <div class="doc-details">
+              <h3>Dr. Marcus Vance</h3>
+              <p>Neurologist Specialist</p>
+              <span class="dept-tag">Neurology</span>
+            </div>
+          </div>
+
+          <div class="schedule-block">
+            <div class="meta-item">
+              <label>Date & Time</label>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                Tuesday, Aug 18 at 02:30 PM
+              </span>
+            </div>
+            <div class="meta-item">
+              <label>Consultation Mode</label>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                HD Telehealth Call
+              </span>
+            </div>
+          </div>
+
+          <div class="action-column">
+            <span class="badge badge-pending">Pending Approval</span>
+            <div class="btn-group">
+              <!-- ROUTE 25: /patient/appointments/{id} -->
+              <a href="/patient/appointments/102" class="btn-action-sm">View Details</a>
+              <!-- ROUTE 26: /patient/appointments/{id}/reschedule -->
+              <a href="/patient/appointments/102/reschedule" class="btn-action-sm">Reschedule</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PAST APPOINTMENTS LIST (HIDDEN BY DEFAULT) -->
+      <div class="appointments-list" id="tab-past" style="display:none;">
+        
+        <!-- CARD 1: COMPLETED WITH REVIEW CTA -->
+        <div class="appointment-card" data-doctor="Dr. Emily Watson Pediatrics" data-mode="In-Person">
+          <div class="doc-card-info">
+            <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=150" alt="Dr. Emily Watson" class="doc-avatar">
+            <div class="doc-details">
+              <h3>Dr. Emily Watson</h3>
+              <p>Pediatric Specialist</p>
+              <span class="dept-tag">Pediatrics</span>
+            </div>
+          </div>
+
+          <div class="schedule-block">
+            <div class="meta-item">
+              <label>Date & Time</label>
+              <span>July 14, 2026 at 11:15 AM</span>
+            </div>
+            <div class="meta-item">
+              <label>Consultation Mode</label>
+              <span>In-Person Visit</span>
+            </div>
+          </div>
+
+          <div class="action-column">
+            <span class="badge badge-completed">Completed</span>
+            <div class="btn-group">
+              <!-- ROUTE 25: /patient/appointments/{id} -->
+              <a href="/patient/appointments/90" class="btn-action-sm">View Summary</a>
+              <!-- ROUTE 31: /patient/appointments/{id}/review -->
+              <a href="/patient/appointments/90/review" class="btn-action-sm btn-review">★ Leave Review</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 2: COMPLETED -->
+        <div class="appointment-card" data-doctor="Dr. Sarah Jenkins Cardiology" data-mode="Telehealth">
+          <div class="doc-card-info">
+            <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="doc-avatar">
+            <div class="doc-details">
+              <h3>Dr. Sarah Jenkins</h3>
+              <p>Senior Cardiologist</p>
+              <span class="dept-tag">Cardiology</span>
+            </div>
+          </div>
+
+          <div class="schedule-block">
+            <div class="meta-item">
+              <label>Date & Time</label>
+              <span>June 20, 2026 at 09:30 AM</span>
+            </div>
+            <div class="meta-item">
+              <label>Consultation Mode</label>
+              <span>HD Telehealth Call</span>
+            </div>
+          </div>
+
+          <div class="action-column">
+            <span class="badge badge-completed">Completed</span>
+            <div class="btn-group">
+              <!-- ROUTE 25: /patient/appointments/{id} -->
+              <a href="/patient/appointments/82" class="btn-action-sm">View Summary</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CANCELLED APPOINTMENTS LIST (HIDDEN BY DEFAULT) -->
+      <div class="appointments-list" id="tab-cancelled" style="display:none;">
+        
+        <div class="appointment-card" data-doctor="Dr. Alan Grant Orthopedics" data-mode="In-Person">
+          <div class="doc-card-info">
+            <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=150" alt="Dr. Alan Grant" class="doc-avatar">
+            <div class="doc-details">
+              <h3>Dr. Alan Grant</h3>
+              <p>Orthopedic Surgeon</p>
+              <span class="dept-tag">Orthopedics</span>
+            </div>
+          </div>
+
+          <div class="schedule-block">
+            <div class="meta-item">
+              <label>Scheduled Date</label>
+              <span>May 10, 2026 at 03:00 PM</span>
+            </div>
+            <div class="meta-item">
+              <label>Reason for Cancellation</label>
+              <span>Cancelled by Patient</span>
+            </div>
+          </div>
+
+          <div class="action-column">
+            <span class="badge badge-cancelled">Cancelled</span>
+            <div class="btn-group">
+              <a href="/booking.html" class="btn-action-sm">Rebook Visit</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EMPTY STATE (SHOWS IF SEARCH HAS NO MATCHES) -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <h3>No Appointments Found</h3>
+        <p>There are no appointments matching your search query or selected mode filter.</p>
+        <button onclick="resetFilters()" class="btn-action-sm" style="margin: 0 auto;">Clear Filters</button>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// TAB SWITCHER HANDLER
+function switchTab(tabKey, btnEl) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+
+  const tabs = ['upcoming', 'past', 'cancelled'];
+  tabs.forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.style.display = (t === tabKey) ? 'flex' : 'none';
+  });
+
+  filterAppointments();
+}
+
+// CLIENT-SIDE SEARCH & MODE FILTER DEMO
+function filterAppointments() {
+  const query = document.getElementById('appointmentSearch').value.toLowerCase().trim();
+  const mode = document.getElementById('modeFilter').value;
+  
+  const activeTab = document.querySelector('.tab-btn.active').textContent.toLowerCase();
+  let activeContainerId = 'tab-upcoming';
+  if (activeTab.includes('past')) activeContainerId = 'tab-past';
+  if (activeTab.includes('cancelled')) activeContainerId = 'tab-cancelled';
+
+  const container = document.getElementById(activeContainerId);
+  const cards = container.querySelectorAll('.appointment-card');
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const docData = card.getAttribute('data-doctor').toLowerCase();
+    const cardMode = card.getAttribute('data-mode');
+
+    const matchesQuery = !query || docData.includes(query);
+    const matchesMode = (mode === 'all') || cardMode === mode;
+
+    if (matchesQuery && matchesMode) {
+      card.style.display = 'grid';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const emptyState = document.getElementById('emptyState');
+  if (visibleCount === 0) {
+    emptyState.classList.add('show');
+  } else {
+    emptyState.classList.remove('show');
+  }
+}
+
+function resetFilters() {
+  document.getElementById('appointmentSearch').value = '';
+  document.getElementById('modeFilter').value = 'all';
+  filterAppointments();
+}
+</script>
+
+</body>
+</html>

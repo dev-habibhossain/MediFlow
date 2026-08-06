@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reschedule Appointment #MDF-101 — MediFlow</title>
+<meta name="description" content="Select a new date and time slot for your upcoming consultation at MediFlow Hospital.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left-nav { display: flex; align-items: center; gap: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; transition: all 150ms ease; }
+.back-btn:hover { background: var(--card); border-color: var(--forest); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; color: var(--ink-muted); position: relative; transition: all 150ms ease; }
+.icon-btn:hover { border-color: var(--forest); color: var(--forest); }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1200px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* RESCHEDULE HEADER BANNER */
+.reschedule-header-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 24px 32px; box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.ref-badge { font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; background: var(--cream); border: 1px solid var(--line); color: var(--forest); padding: 4px 10px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 4px; }
+.reschedule-header-card h1 { font-size: 22px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+
+/* MAIN SPLIT GRID */
+.reschedule-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+@media (max-width: 1024px) { .reschedule-grid { grid-template-columns: 1fr; } }
+
+/* LEFT SLOT PICKER CARD */
+.picker-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card); }
+.section-title { font-size: 16px; font-weight: 800; color: var(--forest); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.section-title svg { width: 18px; height: 18px; color: var(--forest); }
+
+/* CALENDAR SELECTOR */
+.calendar-box { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 28px; }
+.calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.calendar-header h3 { font-size: 15px; font-weight: 800; color: var(--forest); }
+.cal-nav-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; transition: background-color 150ms ease; }
+.cal-nav-btn:hover { background: var(--cream-alt); }
+
+.days-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 8px; }
+.dates-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+
+.date-btn { height: 42px; border-radius: var(--radius-sm); border: 1px solid transparent; background: var(--card); font-size: 13.5px; font-weight: 600; color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 150ms ease; position: relative; }
+.date-btn:hover:not(:disabled) { border-color: var(--forest); }
+.date-btn.active { background: var(--forest); color: #fff; border-color: var(--forest); }
+.date-btn:disabled { opacity: 0.3; cursor: not-allowed; background: transparent; }
+.date-btn .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--lime); position: absolute; bottom: 4px; }
+
+/* TIME SLOTS GRID */
+.slot-group-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); margin: 16px 0 10px; display: flex; align-items: center; gap: 6px; }
+.slot-group-title svg { width: 14px; height: 14px; }
+
+.slots-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 500px) { .slots-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.slot-btn { height: 42px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--cream); font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--ink); transition: all 150ms ease; display: flex; align-items: center; justify-content: center; }
+.slot-btn:hover:not(:disabled) { border-color: var(--forest); background: var(--card); }
+.slot-btn.active { background: var(--lime); color: var(--lime-text); border-color: #c4dc3c; font-weight: 700; box-shadow: var(--shadow-sm); }
+.slot-btn:disabled { opacity: 0.35; cursor: not-allowed; background: transparent; text-decoration: line-through; }
+
+/* RIGHT SIDEBAR SUMMARY & CONFIRM */
+.sidebar-summary-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 20px; position: sticky; top: 92px; }
+
+.doc-mini-profile { display: flex; gap: 14px; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.doc-avatar { width: 56px; height: 56px; border-radius: var(--radius-md); object-fit: cover; background: var(--cream-alt); }
+.doc-info h3 { font-size: 15px; font-weight: 800; color: var(--forest); margin-bottom: 2px; }
+.doc-info p { font-size: 12.5px; color: var(--ink-muted); font-weight: 500; }
+
+.comparison-box { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.comp-item label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 2px; }
+.comp-item span { font-size: 13.5px; font-weight: 700; color: var(--ink); display: block; }
+.comp-item.new span { color: #15803D; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 999px; font-size: 14.5px; font-weight: 600; transition: all 150ms ease; width: 100%; }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--forest-2); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Main Menu</div>
+      <!-- ROUTE 23: /patient/dashboard -->
+      <a href="/patient/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <!-- ROUTE 24: /patient/appointments (ACTIVE PARENT) -->
+      <a href="/patient/appointments" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 27: /patient/medical-records -->
+      <a href="/patient/medical-records" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Medical History
+      </a>
+      <!-- ROUTE 29: /patient/prescriptions -->
+      <a href="/patient/prescriptions" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Prescriptions
+      </a>
+      <!-- ROUTE 36: /patient/payments -->
+      <a href="/patient/payments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment History
+      </a>
+
+      <div class="menu-label">Settings</div>
+      <!-- ROUTE 32: /patient/notifications -->
+      <a href="/patient/notifications" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </a>
+      <!-- ROUTE 33: /patient/settings/profile -->
+      <a href="/patient/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar">HH</div>
+        <div class="user-meta">
+          <b>Habib Hossain</b>
+          <span>Patient ID: #MDF-9021</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div class="top-left-nav">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <!-- ROUTE 25 LINK -->
+        <a href="/patient/appointments/101" class="back-btn">← Back to Appointment Detail</a>
+      </div>
+
+      <div class="top-right">
+        <a href="/patient/notifications" class="icon-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- HEADER CARD -->
+      <div class="reschedule-header-card">
+        <div>
+          <span class="ref-badge">Rescheduling Visit #MDF-101</span>
+          <h1>Select New Appointment Date & Time</h1>
+        </div>
+      </div>
+
+      <!-- MAIN RESCHEDULE GRID -->
+      <div class="reschedule-grid">
+        
+        <!-- LEFT: INTERACTIVE SLOT PICKER -->
+        <div class="picker-card">
+          
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            1. Select New Date
+          </div>
+
+          <!-- CALENDAR SELECTOR -->
+          <div class="calendar-box">
+            <div class="calendar-header">
+              <h3>August 2026</h3>
+              <div style="display:flex; gap:6px;">
+                <button class="cal-nav-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M15 18l-6-6 6-6"/></svg></button>
+                <button class="cal-nav-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 18l6-6-6-6"/></svg></button>
+              </div>
+            </div>
+
+            <div class="days-row">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+
+            <div class="dates-grid">
+              <button class="date-btn" disabled>2</button>
+              <button class="date-btn" disabled>3</button>
+              <button class="date-btn" disabled>4</button>
+              <button class="date-btn" disabled>5</button>
+              <button class="date-btn" disabled>6</button>
+              <button class="date-btn" disabled>7<span style="font-size:9px; color:var(--ink-muted);">Current</span></button>
+              <button class="date-btn" onclick="selectDate(this, 'Saturday, Aug 8')">8<span class="dot"></span></button>
+              <button class="date-btn" onclick="selectDate(this, 'Sunday, Aug 9')">9<span class="dot"></span></button>
+              <button class="date-btn active" onclick="selectDate(this, 'Monday, Aug 10')">10<span class="dot"></span></button>
+              <button class="date-btn" onclick="selectDate(this, 'Tuesday, Aug 11')">11<span class="dot"></span></button>
+              <button class="date-btn" onclick="selectDate(this, 'Wednesday, Aug 12')">12<span class="dot"></span></button>
+              <button class="date-btn" onclick="selectDate(this, 'Thursday, Aug 13')">13<span class="dot"></span></button>
+              <button class="date-btn" onclick="selectDate(this, 'Friday, Aug 14')">14<span class="dot"></span></button>
+              <button class="date-btn" onclick="selectDate(this, 'Saturday, Aug 15')">15<span class="dot"></span></button>
+            </div>
+          </div>
+
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            2. Choose Available Time Slot
+          </div>
+
+          <!-- TIME SLOTS -->
+          <div>
+            <div class="slot-group-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              Morning Slots
+            </div>
+            <div class="slots-grid">
+              <button class="slot-btn" disabled>09:00 AM</button>
+              <button class="slot-btn" onclick="selectSlot(this, '09:30 AM')">09:30 AM</button>
+              <button class="slot-btn active" onclick="selectSlot(this, '11:00 AM')">11:00 AM</button>
+              <button class="slot-btn" onclick="selectSlot(this, '11:30 AM')">11:30 AM</button>
+            </div>
+
+            <div class="slot-group-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              Afternoon Slots
+            </div>
+            <div class="slots-grid">
+              <button class="slot-btn" onclick="selectSlot(this, '02:00 PM')">02:00 PM</button>
+              <button class="slot-btn" onclick="selectSlot(this, '02:30 PM')">02:30 PM</button>
+              <button class="slot-btn" onclick="selectSlot(this, '03:30 PM')">03:30 PM</button>
+              <button class="slot-btn" disabled>04:00 PM</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: SIDEBAR SUMMARY & CONFIRMATION -->
+        <div class="sidebar-summary-card">
+          
+          <div class="doc-mini-profile">
+            <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="doc-avatar">
+            <div class="doc-info">
+              <h3>Dr. Sarah Jenkins</h3>
+              <p>Cardiology Specialist</p>
+            </div>
+          </div>
+
+          <div class="comparison-box">
+            <div class="comp-item">
+              <label>Current Appointment</label>
+              <span style="text-decoration:line-through; opacity:0.6;">Friday, Aug 7 at 10:00 AM</span>
+            </div>
+            <div class="comp-item new">
+              <label>New Selected Schedule</label>
+              <span id="newScheduleText">Monday, Aug 10 at 11:00 AM</span>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <button onclick="handleConfirmReschedule()" class="btn btn-primary">
+              Confirm Reschedule
+            </button>
+            <!-- ROUTE 25 LINK -->
+            <a href="/patient/appointments/101" class="btn btn-outline">
+              Cancel & Keep Original
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+let newDate = 'Monday, Aug 10';
+let newTime = '11:00 AM';
+
+function selectDate(btn, dateStr) {
+  document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  newDate = dateStr;
+  updateSummary();
+}
+
+function selectSlot(btn, timeStr) {
+  document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  newTime = timeStr;
+  updateSummary();
+}
+
+function updateSummary() {
+  document.getElementById('newScheduleText').textContent = `${newDate} at ${newTime}`;
+}
+
+function handleConfirmReschedule() {
+  alert(`Appointment #MDF-101 has been rescheduled to ${newDate} at ${newTime}.`);
+  window.location.href = '/patient/appointments/101';
+}
+</script>
+
+</body>
+</html>

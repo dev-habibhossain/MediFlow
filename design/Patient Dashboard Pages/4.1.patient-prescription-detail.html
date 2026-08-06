@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prescription #RX-401 — MediFlow</title>
+<meta name="description" content="View digital prescription details, dosage instructions, and download official PDF for Rx #RX-401 at MediFlow Hospital.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left-nav { display: flex; align-items: center; gap: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; transition: all 150ms ease; }
+.back-btn:hover { background: var(--card); border-color: var(--forest); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; color: var(--ink-muted); position: relative; transition: all 150ms ease; }
+.icon-btn:hover { border-color: var(--forest); color: var(--forest); }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1100px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* HEADER BANNER */
+.rx-header-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 24px 32px; box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.ref-badge { font-family: var(--font-mono); font-size: 13px; font-weight: 700; background: var(--cream); border: 1px solid var(--line); color: var(--forest); padding: 4px 10px; border-radius: var(--radius-sm); }
+.status-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.rx-header-card h1 { font-size: 22px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; margin-top: 4px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 22px; border-radius: 999px; font-size: 13.5px; font-weight: 600; transition: all 150ms ease; }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--forest-2); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+
+/* FORMAL RX DOCUMENT SHEET */
+.rx-document-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 40px; box-shadow: var(--shadow-card); position: relative; }
+@media (max-width: 640px) { .rx-document-card { padding: 24px; } }
+
+/* HOSPITAL & CLINICAL HEADER */
+.doc-header-strip { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 2px solid var(--line); margin-bottom: 28px; flex-wrap: wrap; gap: 20px; }
+.hospital-brand b { font-size: 20px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 8px; }
+.hospital-brand span { font-size: 13px; color: var(--ink-muted); display: block; margin-top: 2px; }
+
+.rx-symbol { font-family: var(--font-mono); font-size: 32px; font-weight: 800; color: var(--forest); line-height: 1; }
+
+/* DOCTOR & PATIENT METADATA GRID */
+.meta-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; }
+@media (max-width: 640px) { .meta-info-grid { grid-template-columns: 1fr; } }
+
+.meta-block label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 4px; }
+.meta-block b { font-size: 15px; font-weight: 800; color: var(--ink); display: block; }
+.meta-block span { font-size: 13px; color: var(--ink-muted); display: block; }
+
+/* ITEMIZATION REGIMEN TABLE */
+.meds-table-wrap { overflow-x: auto; margin-bottom: 32px; }
+.meds-table { width: 100%; border-collapse: collapse; text-align: left; }
+.meds-table th { background: var(--cream); padding: 12px 16px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
+.meds-table td { padding: 18px 16px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+.meds-table tr:last-child td { border-bottom: none; }
+
+.med-name-cell b { font-size: 15px; font-weight: 800; color: var(--forest); display: block; }
+.med-name-cell span { font-size: 12.5px; color: var(--ink-muted); display: block; }
+
+.freq-pill { font-family: var(--font-mono); font-size: 12px; font-weight: 700; background: var(--lime-soft); color: var(--lime-text); padding: 3px 8px; border-radius: var(--radius-sm); display: inline-block; }
+
+/* SPECIAL INSTRUCTIONS & PRECAUTIONS */
+.notes-section { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-lg); padding: 20px; color: #1E3A8A; margin-bottom: 32px; }
+.notes-section h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.notes-section p { font-size: 13.5px; line-height: 1.5; }
+
+/* SIGNATURE FOOTER */
+.signature-strip { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 24px; border-top: 1px dashed var(--line); flex-wrap: wrap; gap: 20px; }
+.pharma-note { font-size: 12px; color: var(--ink-muted); max-width: 38ch; line-height: 1.4; }
+.signature-box { text-align: right; }
+.signature-box img { width: 140px; height: auto; margin-left: auto; margin-bottom: 4px; opacity: 0.85; }
+.signature-box b { font-size: 14px; font-weight: 700; color: var(--forest); display: block; }
+.signature-box span { font-size: 12px; color: var(--ink-muted); display: block; }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Main Menu</div>
+      <!-- ROUTE 23: /patient/dashboard -->
+      <a href="/patient/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <!-- ROUTE 24: /patient/appointments -->
+      <a href="/patient/appointments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 27: /patient/medical-records -->
+      <a href="/patient/medical-records" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Medical History
+      </a>
+      <!-- ROUTE 29: /patient/prescriptions (ACTIVE PARENT) -->
+      <a href="/patient/prescriptions" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Prescriptions
+      </a>
+      <!-- ROUTE 36: /patient/payments -->
+      <a href="/patient/payments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment History
+      </a>
+
+      <div class="menu-label">Settings</div>
+      <!-- ROUTE 32: /patient/notifications -->
+      <a href="/patient/notifications" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </a>
+      <!-- ROUTE 33: /patient/settings/profile -->
+      <a href="/patient/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar">HH</div>
+        <div class="user-meta">
+          <b>Habib Hossain</b>
+          <span>Patient ID: #MDF-9021</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div class="top-left-nav">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <!-- ROUTE 29 LINK -->
+        <a href="/patient/prescriptions" class="back-btn">← Back to Prescriptions List</a>
+      </div>
+
+      <div class="top-right">
+        <a href="/patient/notifications" class="icon-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- TOP ACTION BAR -->
+      <div class="rx-header-card">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="ref-badge">#RX-401</span>
+            <span class="status-tag">Active Prescription</span>
+          </div>
+          <h1>Digital Prescription Specification</h1>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+          <button onclick="window.print()" class="btn btn-outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print
+          </button>
+          <button onclick="alert('Downloading official Rx #RX-401 PDF...')" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download Official PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- FORMAL RX SHEET CONTAINER -->
+      <div class="rx-document-card">
+        
+        <!-- CLINIC BRAND STRIP -->
+        <div class="doc-header-strip">
+          <div class="hospital-brand">
+            <b>
+              <span style="width:24px; height:24px; border-radius:6px; background:var(--forest); display:inline-flex; align-items:center; justify-content:center; color:var(--lime);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+              MediFlow Hospital & Clinics
+            </b>
+            <span>120 Harbor Ave, Suite 300 · Tel: (555) 019-2831</span>
+          </div>
+
+          <div class="rx-symbol">℞</div>
+        </div>
+
+        <!-- METADATA BLOCK -->
+        <div class="meta-info-grid">
+          <div class="meta-block">
+            <label>Prescribing Physician</label>
+            <b>Dr. Sarah Jenkins</b>
+            <span>Senior Cardiologist (Lic #MD-90412)</span>
+          </div>
+
+          <div class="meta-block">
+            <label>Patient Details</label>
+            <b>Habib Hossain</b>
+            <span>Age: 28 · Gender: Male · ID: #MDF-9021</span>
+          </div>
+
+          <div class="meta-block">
+            <label>Issue Date & Validity</label>
+            <b>July 14, 2026</b>
+            <span>Valid Until: October 14, 2026</span>
+          </div>
+
+          <div class="meta-block">
+            <label>Linked Consultation</label>
+            <!-- ROUTE 25: /patient/appointments/{id} -->
+            <b><a href="/patient/appointments/101" style="text-decoration:underline; color:var(--forest);">Appointment #MDF-101</a></b>
+            <span>Cardiology Follow-Up</span>
+          </div>
+        </div>
+
+        <!-- REGIMEN TABLE -->
+        <div class="meds-table-wrap">
+          <table class="meds-table">
+            <thead>
+              <tr>
+                <th>Medication & Form</th>
+                <th>Dosage & Frequency</th>
+                <th>Duration / Refills</th>
+                <th>Instructions & Timing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="med-name-cell">
+                  <b>Amlodipine Besylate</b>
+                  <span>5 mg Oral Tablet</span>
+                </td>
+                <td>
+                  <span class="freq-pill">1x Daily</span>
+                </td>
+                <td>
+                  <b>90 Days Supply</b>
+                  <span style="font-size:12px; color:var(--ink-muted);">2 Refills Authorized</span>
+                </td>
+                <td>
+                  <strong>Take in the morning with food.</strong> Monitor resting blood pressure weekly.
+                </td>
+              </tr>
+
+              <tr>
+                <td class="med-name-cell">
+                  <b>Atorvastatin Calcium</b>
+                  <span>20 mg Oral Tablet</span>
+                </td>
+                <td>
+                  <span class="freq-pill">1x Daily</span>
+                </td>
+                <td>
+                  <b>90 Days Supply</b>
+                  <span style="font-size:12px; color:var(--ink-muted);">2 Refills Authorized</span>
+                </td>
+                <td>
+                  <strong>Take at bedtime.</strong> Avoid grapefruit juice during duration of treatment.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- SPECIAL INSTRUCTIONS -->
+        <div class="notes-section">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Special Physician Notes & Precautions
+          </h4>
+          <p>Maintain consistent daily administration times. If you experience dizziness or muscle pain, contact the MediFlow Cardiology Desk immediately. Do not discontinue Amlodipine abruptly without consulting your physician.</p>
+        </div>
+
+        <!-- SIGNATURE FOOTER -->
+        <div class="signature-strip">
+          <div class="pharma-note">
+            This is an authenticated electronic prescription issued under MediFlow Security Protocol v4.2. Dispensing pharmacy may verify token online.
+          </div>
+
+          <div class="signature-box">
+            <!-- PLACEHOLDER DIGITAL SIGNATURE -->
+            <div style="font-family:'Courier New', monospace; font-size:18px; font-weight:bold; color:var(--forest); letter-spacing:-1px; margin-bottom:2px;">S. Jenkins, MD</div>
+            <b>Dr. Sarah Jenkins</b>
+            <span>Digitally Signed via MediFlow Portal</span>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

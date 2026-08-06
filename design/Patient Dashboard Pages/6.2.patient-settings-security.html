@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile Settings — Security — MediFlow</title>
+<meta name="description" content="Manage your password, enable Two-Factor Authentication (2FA), and view active login sessions for your MediFlow account.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+input { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left h1 { font-size: 20px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+.top-left p { font-size: 12.5px; color: var(--ink-muted); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; color: var(--ink-muted); position: relative; transition: all 150ms ease; }
+.icon-btn:hover { border-color: var(--forest); color: var(--forest); }
+.icon-btn .badge-dot { width: 8px; height: 8px; border-radius: 50%; background: #EF4444; position: absolute; top: 8px; right: 8px; border: 2px solid var(--card); }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1080px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* SETTINGS SUB NAVIGATION TABS */
+.settings-tabs-row { border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+.settings-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.settings-link { padding: 10px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; display: inline-flex; align-items: center; gap: 8px; }
+.settings-link:hover { color: var(--ink); background: var(--card); }
+.settings-link.active { background: var(--forest); color: #fff; }
+
+/* CARD SHELL */
+.settings-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 36px; box-shadow: var(--shadow-card); }
+@media (max-width: 600px) { .settings-card { padding: 24px; } }
+
+.card-title { font-size: 17px; font-weight: 800; color: var(--forest); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+.card-title svg { width: 20px; height: 20px; color: var(--forest); }
+
+/* FORM ELEMENTS */
+.form-group { margin-bottom: 20px; }
+.form-group label { font-size: 13px; font-weight: 700; color: var(--ink); display: block; margin-bottom: 6px; }
+.form-control-wrap { position: relative; }
+.form-control { width: 100%; height: 46px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); padding: 0 44px 0 16px; font-size: 14px; color: var(--ink); transition: border-color 150ms ease, background-color 150ms ease; }
+.form-control:focus { border-color: var(--forest); background: var(--card); }
+
+.toggle-pwd { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-muted); font-size: 12px; font-weight: 600; cursor: pointer; }
+.toggle-pwd:hover { color: var(--forest); }
+
+/* PASSWORD STRENGTH BAR */
+.pwd-strength-bar { display: flex; gap: 6px; margin-top: 8px; }
+.pwd-step { flex: 1; height: 4px; border-radius: 999px; background: var(--line); transition: background-color 200ms ease; }
+.pwd-step.active { background: #10B981; }
+
+/* 2FA ROW & TOGGLE SWITCH */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px; background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.toggle-info h4 { font-size: 15px; font-weight: 800; color: var(--forest); margin-bottom: 4px; }
+.toggle-info p { font-size: 13px; color: var(--ink-muted); }
+
+.switch { position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: var(--line); border-radius: 999px; transition: .2s; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .2s; box-shadow: var(--shadow-sm); }
+input:checked + .slider { background-color: var(--forest); }
+input:checked + .slider:before { transform: translateX(22px); }
+
+/* ACTIVE SESSIONS LIST */
+.session-list { display: flex; flex-direction: column; gap: 12px; }
+.session-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); gap: 16px; }
+.session-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--card); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--forest); flex-shrink: 0; }
+.session-meta b { font-size: 14px; font-weight: 700; color: var(--ink); display: block; }
+.session-meta span { font-size: 12px; color: var(--ink-muted); font-family: var(--font-mono); display: block; }
+.current-badge { font-size: 11px; font-weight: 700; background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; padding: 2px 8px; border-radius: 999px; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 28px; border-radius: 999px; font-size: 14.5px; font-weight: 600; transition: all 150ms ease; }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--forest-2); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+.btn-sm-danger { font-size: 12.5px; font-weight: 600; color: #DC2626; padding: 6px 14px; border-radius: 999px; border: 1px solid #FCA5A5; background: #FEE2E2; transition: all 150ms ease; }
+.btn-sm-danger:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
+
+/* TOAST NOTIFICATION */
+.toast-notice { position: fixed; bottom: 24px; right: 24px; background: var(--forest); color: #fff; padding: 14px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lift); display: none; align-items: center; gap: 10px; z-index: 100; animation: slideUp 200ms ease-out; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Main Menu</div>
+      <!-- ROUTE 23: /patient/dashboard -->
+      <a href="/patient/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <!-- ROUTE 24: /patient/appointments -->
+      <a href="/patient/appointments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 27: /patient/medical-records -->
+      <a href="/patient/medical-records" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Medical History
+      </a>
+      <!-- ROUTE 29: /patient/prescriptions -->
+      <a href="/patient/prescriptions" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Prescriptions
+      </a>
+      <!-- ROUTE 36: /patient/payments -->
+      <a href="/patient/payments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment History
+      </a>
+
+      <div class="menu-label">Settings</div>
+      <!-- ROUTE 32: /patient/notifications -->
+      <a href="/patient/notifications" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </a>
+      <!-- ROUTE 34: /patient/settings/security (ACTIVE) -->
+      <a href="/patient/settings/security" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar">HH</div>
+        <div class="user-meta">
+          <b>Habib Hossain</b>
+          <span>Patient ID: #MDF-9021</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div class="top-left">
+          <h1>Security & Password</h1>
+          <p>Protect your account credentials, enable 2FA, and monitor active sessions</p>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <!-- ROUTE 32: /patient/notifications -->
+        <a href="/patient/notifications" class="icon-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="badge-dot"></span>
+        </a>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- SETTINGS NAVIGATION TABS -->
+      <div class="settings-tabs-row">
+        <nav class="settings-nav">
+          <!-- ROUTE 33: /patient/settings/profile -->
+          <a href="/patient/settings/profile" class="settings-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Personal Info
+          </a>
+          <!-- ROUTE 34: /patient/settings/security (ACTIVE) -->
+          <a href="/patient/settings/security" class="settings-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Security & Password
+          </a>
+          <!-- ROUTE 35: /patient/settings/notifications -->
+          <a href="/patient/settings/notifications" class="settings-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Notification Preferences
+          </a>
+        </nav>
+      </div>
+
+      <!-- CARD 1: CHANGE PASSWORD FORM -->
+      <div class="settings-card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Change Account Password
+        </div>
+
+        <form id="passwordForm" onsubmit="handleChangePassword(event)">
+          
+          <div class="form-group" style="max-width:480px;">
+            <label for="currentPassword">Current Password</label>
+            <div class="form-control-wrap">
+              <input type="password" id="currentPassword" class="form-control" required placeholder="••••••••">
+              <span class="toggle-pwd" onclick="toggleVisibility('currentPassword')">Show</span>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; max-width:800px;">
+            <div class="form-group">
+              <label for="newPassword">New Password</label>
+              <div class="form-control-wrap">
+                <input type="password" id="newPassword" class="form-control" required placeholder="Min. 8 characters" oninput="checkStrength(this.value)">
+                <span class="toggle-pwd" onclick="toggleVisibility('newPassword')">Show</span>
+              </div>
+              <div class="pwd-strength-bar">
+                <div class="pwd-step" id="st1"></div>
+                <div class="pwd-step" id="st2"></div>
+                <div class="pwd-step" id="st3"></div>
+                <div class="pwd-step" id="st4"></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPassword">Confirm New Password</label>
+              <div class="form-control-wrap">
+                <input type="password" id="confirmPassword" class="form-control" required placeholder="Re-type new password">
+                <span class="toggle-pwd" onclick="toggleVisibility('confirmPassword')">Show</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button type="submit" class="btn btn-primary">Update Password</button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- CARD 2: TWO-FACTOR AUTHENTICATION (2FA) -->
+      <div class="settings-card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Two-Factor Authentication (2FA)
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <h4>Authenticator App (TOTP)</h4>
+            <p>Require a 6-digit verification code from Google Authenticator or Authy when signing in.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="2faToggle" onchange="handle2FAToggle(this)">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- CARD 3: ACTIVE SIGN-IN SESSIONS -->
+      <div class="settings-card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Active Sessions & Recognized Devices
+        </div>
+
+        <div class="session-list">
+          
+          <div class="session-item">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div class="session-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              </div>
+              <div class="session-meta">
+                <b>Chrome on Linux (Ubuntu) <span class="current-badge">Current Device</span></b>
+                <span>Dighali, Chittagong · IP: 103.14.22.81 · Active now</span>
+              </div>
+            </div>
+            <span style="font-size:12.5px; color:var(--ink-muted); font-weight:600;">This Device</span>
+          </div>
+
+          <div class="session-item">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <div class="session-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div class="session-meta">
+                <b>MediFlow App on iPhone 14 Pro</b>
+                <span>Dhaka, Bangladesh · IP: 103.95.12.04 · 3 days ago</span>
+              </div>
+            </div>
+            <button onclick="terminateSession(this)" class="btn-sm-danger">Revoke Session</button>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast-notice" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Security settings updated!</span>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function toggleVisibility(id) {
+  const el = document.getElementById(id);
+  if (el.type === 'password') {
+    el.type = 'text';
+  } else {
+    el.type = 'password';
+  }
+}
+
+function checkStrength(val) {
+  const steps = [document.getElementById('st1'), document.getElementById('st2'), document.getElementById('st3'), document.getElementById('st4')];
+  steps.forEach(s => s.classList.remove('active'));
+
+  if (val.length >= 4) steps[0].classList.add('active');
+  if (val.length >= 8) steps[1].classList.add('active');
+  if (val.length >= 10 && /[A-Z]/.test(val)) steps[2].classList.add('active');
+  if (val.length >= 12 && /[0-9!@#$%^&*]/.test(val)) steps[3].classList.add('active');
+}
+
+function handleChangePassword(e) {
+  e.preventDefault();
+  const np = document.getElementById('newPassword').value;
+  const cp = document.getElementById('confirmPassword').value;
+
+  if (np !== cp) {
+    alert('New passwords do not match!');
+    return;
+  }
+
+  showToast('Password successfully changed!');
+  document.getElementById('passwordForm').reset();
+  checkStrength('');
+}
+
+function handle2FAToggle(chk) {
+  if (chk.checked) {
+    alert('2FA enabled! A confirmation code has been sent to your email.');
+    showToast('Two-Factor Authentication Enabled');
+  } else {
+    showToast('Two-Factor Authentication Disabled');
+  }
+}
+
+function terminateSession(btn) {
+  const item = btn.closest('.session-item');
+  item.style.opacity = '0.5';
+  btn.textContent = 'Terminated';
+  btn.disabled = true;
+  showToast('Session revoked successfully');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.style.display = 'flex';
+  setTimeout(() => { toast.style.display = 'none'; }, 3000);
+}
+</script>
+
+</body>
+</html>
