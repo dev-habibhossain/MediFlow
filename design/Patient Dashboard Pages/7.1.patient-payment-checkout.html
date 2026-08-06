@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment Checkout — MediFlow</title>
+<meta name="description" content="Secure online payment checkout for consultation fees at MediFlow Hospital via Stripe.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+input { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left-nav { display: flex; align-items: center; gap: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; transition: all 150ms ease; }
+.back-btn:hover { background: var(--card); border-color: var(--forest); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+.secure-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #15803D; background: #DCFCE7; border: 1px solid #BBF7D0; padding: 6px 14px; border-radius: 999px; }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1100px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* CHECKOUT GRID LAYOUT */
+.checkout-grid { display: grid; grid-template-columns: 1fr 380px; gap: 28px; align-items: start; }
+@media (max-width: 1024px) { .checkout-grid { grid-template-columns: 1fr; } }
+
+/* FORM CARD */
+.checkout-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-card); }
+@media (max-width: 600px) { .checkout-card { padding: 20px; } }
+
+.card-title { font-size: 18px; font-weight: 800; color: var(--forest); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+
+/* EXPRESS PAY BUTTONS */
+.express-pay-box { margin-bottom: 24px; }
+.express-pay-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); margin-bottom: 10px; }
+.express-btn { width: 100%; height: 48px; border-radius: var(--radius-md); background: #000; color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; transition: opacity 150ms ease; }
+.express-btn:hover { opacity: 0.9; }
+
+.divider-or { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--ink-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.divider-or::before, .divider-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+/* STRIPE CREDIT CARD FORM */
+.form-group { margin-bottom: 18px; }
+.form-group label { font-size: 12.5px; font-weight: 700; color: var(--ink); display: block; margin-bottom: 6px; }
+
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap svg { position: absolute; left: 14px; color: var(--ink-muted); pointer-events: none; }
+.form-control { width: 100%; height: 46px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); padding: 0 16px; font-size: 14px; color: var(--ink); font-family: var(--font); transition: border-color 150ms ease, background-color 150ms ease; }
+.form-control.has-icon { padding-left: 42px; }
+.form-control:focus { border-color: var(--forest); background: var(--card); }
+
+.card-input { font-family: var(--font-mono); letter-spacing: 0.05em; }
+
+.form-row-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* BILLING SUMMARY SIDEBAR */
+.summary-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card); position: sticky; top: 92px; }
+.summary-card h3 { font-size: 17px; font-weight: 800; color: var(--forest); margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+
+.doctor-item { display: flex; gap: 14px; align-items: center; padding-bottom: 18px; border-bottom: 1px dashed var(--line); margin-bottom: 18px; }
+.doctor-item img { width: 56px; height: 56px; border-radius: var(--radius-md); object-fit: cover; background: var(--cream-alt); }
+.doctor-item b { font-size: 15px; font-weight: 800; color: var(--forest); display: block; }
+.doctor-item span { font-size: 12.5px; color: var(--ink-muted); }
+
+.price-breakdown { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.price-row { display: flex; justify-content: space-between; font-size: 13.5px; }
+.price-row.total { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 6px; font-weight: 800; font-size: 16px; }
+.price-row.total b { font-family: var(--font-mono); font-size: 20px; color: var(--forest); }
+
+.btn-submit-pay { width: 100%; height: 52px; border-radius: 999px; background: var(--forest); color: #fff; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-sm); transition: background-color 150ms ease; }
+.btn-submit-pay:hover { background: var(--forest-2); }
+
+.guarantee-note { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: var(--ink-muted); margin-top: 14px; text-align: center; }
+
+/* SUCCESS MODAL OVERLAY */
+.modal-overlay { position: fixed; inset: 0; background: rgba(22,24,15,0.6); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 36px; max-width: 440px; width: 100%; text-align: center; box-shadow: var(--shadow-lift); animation: popUp 200ms ease-out; }
+@keyframes popUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-icon { width: 60px; height: 60px; border-radius: 50%; background: #DCFCE7; color: #15803D; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+.modal-icon svg { width: 30px; height: 30px; }
+
+.modal-card h3 { font-size: 22px; font-weight: 800; color: var(--forest); margin-bottom: 8px; }
+.modal-card p { font-size: 14px; color: var(--ink-muted); line-height: 1.5; margin-bottom: 24px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 28px; border-radius: 999px; font-size: 14.5px; font-weight: 600; transition: all 150ms ease; width: 100%; }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--forest-2); }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Main Menu</div>
+      <!-- ROUTE 23: /patient/dashboard -->
+      <a href="/patient/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
+      </a>
+      <!-- ROUTE 24: /patient/appointments -->
+      <a href="/patient/appointments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 27: /patient/medical-records -->
+      <a href="/patient/medical-records" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Medical History
+      </a>
+      <!-- ROUTE 29: /patient/prescriptions -->
+      <a href="/patient/prescriptions" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Prescriptions
+      </a>
+      <!-- ROUTE 36: /patient/payments (ACTIVE PARENT) -->
+      <a href="/patient/payments" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Payment History
+      </a>
+
+      <div class="menu-label">Settings</div>
+      <!-- ROUTE 32: /patient/notifications -->
+      <a href="/patient/notifications" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </a>
+      <!-- ROUTE 33: /patient/settings/profile -->
+      <a href="/patient/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar">HH</div>
+        <div class="user-meta">
+          <b>Habib Hossain</b>
+          <span>Patient ID: #MDF-9021</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div class="top-left-nav">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <!-- ROUTE 36 LINK -->
+        <a href="/patient/payments" class="back-btn">← Back to Payment History</a>
+      </div>
+
+      <div class="top-right">
+        <span class="secure-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          256-Bit SSL Encrypted
+        </span>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <div class="checkout-grid">
+        
+        <!-- LEFT: STRIPE PAYMENT FORM -->
+        <div class="checkout-card">
+          
+          <div class="card-title">
+            <span>Pay Consultation Fee</span>
+            <span style="font-size:12px; font-weight:600; color:var(--ink-muted);">Powered by <strong>Stripe</strong></span>
+          </div>
+
+          <!-- EXPRESS PAY BUTTON -->
+          <div class="express-pay-box">
+            <div class="express-pay-title">Express Checkout</div>
+            <button class="express-btn" onclick="triggerExpressPay()">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.35c.66-.82 1.11-1.96.99-3.1-.96.04-2.13.64-2.81 1.44-.61.71-1.14 1.87-1 2.99 1.08.08 2.17-.51 2.82-1.33z"/></svg>
+              Pay with Apple Pay / Google Pay
+            </button>
+          </div>
+
+          <div class="divider-or">Or pay with card</div>
+
+          <!-- CREDIT CARD FORM -->
+          <form id="paymentForm" onsubmit="handlePaymentSubmit(event)">
+            
+            <div class="form-group">
+              <label for="cardName">Name on Card</label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" id="cardName" class="form-control has-icon" value="Habib Hossain" required placeholder="Full Name">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="cardNumber">Card Number</label>
+              <div class="input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <input type="text" id="cardNumber" class="form-control has-icon card-input" placeholder="4242 •••• •••• 4242" maxlength="19" oninput="formatCardNumber(this)" required>
+              </div>
+            </div>
+
+            <div class="form-row-dual">
+              <div class="form-group">
+                <label for="cardExpiry">Expiration Date</label>
+                <input type="text" id="cardExpiry" class="form-control card-input" placeholder="MM / YY" maxlength="5" oninput="formatExpiry(this)" required>
+              </div>
+
+              <div class="form-group">
+                <label for="cardCvc">CVC / CVC2</label>
+                <input type="password" id="cardCvc" class="form-control card-input" placeholder="123" maxlength="4" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="zipCode">Billing Postal Code</label>
+              <input type="text" id="zipCode" class="form-control" value="4100" required>
+            </div>
+
+            <div style="margin-top:24px;">
+              <button type="submit" class="btn-submit-pay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                Pay $120.00 Now
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+
+        <!-- RIGHT: ORDER SUMMARY -->
+        <div class="summary-card">
+          <h3>Order Summary</h3>
+
+          <div class="doctor-item">
+            <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=150" alt="Dr. Marcus Vance">
+            <div>
+              <b>Dr. Marcus Vance</b>
+              <span>Neurology Telehealth Visit</span>
+            </div>
+          </div>
+
+          <div class="price-breakdown">
+            <div class="price-row">
+              <span style="color:var(--ink-muted);">Consultation Fee</span>
+              <span style="font-weight:600;">$120.00</span>
+            </div>
+            <div class="price-row">
+              <span style="color:var(--ink-muted);">Platform Booking Fee</span>
+              <span style="color:#15803D; font-weight:700;">FREE</span>
+            </div>
+            <div class="price-row">
+              <span style="color:var(--ink-muted);">Taxes & Processing</span>
+              <span style="font-weight:600;">$0.00</span>
+            </div>
+
+            <div class="price-row total">
+              <span>Total Amount Due</span>
+              <b>$120.00</b>
+            </div>
+          </div>
+
+          <div class="guarantee-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            100% Money Back Guarantee if cancelled 2h prior
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<!-- PAYMENT SUCCESS MODAL -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal-card">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h3>Payment Successful!</h3>
+    <p>We have processed your <strong>$120.00</strong> payment via Stripe. A formal invoice receipt has been sent to your email.</p>
+    
+    <!-- ROUTE 24 LINK -->
+    <a href="/patient/appointments" class="btn btn-primary">Go to My Appointments</a>
+  </div>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function formatCardNumber(input) {
+  let v = input.value.replace(/\D/g, '').substring(0, 16);
+  let parts = [];
+  for (let i = 0; i < v.length; i += 4) {
+    parts.push(v.substring(i, i + 4));
+  }
+  input.value = parts.join(' ');
+}
+
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g, '').substring(0, 4);
+  if (v.length >= 3) {
+    input.value = v.substring(0, 2) + '/' + v.substring(2, 4);
+  } else {
+    input.value = v;
+  }
+}
+
+function triggerExpressPay() {
+  document.getElementById('payModal').style.display = 'flex';
+}
+
+function handlePaymentSubmit(e) {
+  e.preventDefault();
+  const btn = document.querySelector('.btn-submit-pay');
+  btn.textContent = 'Processing Payment...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    document.getElementById('payModal').style.display = 'flex';
+  }, 1000);
+}
+</script>
+
+</body>
+</html>

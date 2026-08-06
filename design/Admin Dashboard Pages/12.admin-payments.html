@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transactions & Financial Hub — Admin Portal — MediFlow</title>
+<meta name="description" content="Hospital-wide transactions registry, payment filtering, details, and refund management at MediFlow Hospital.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, select, input { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--forest); color: var(--lime); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left h1 { font-size: 20px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+.top-left p { font-size: 12.5px; color: var(--ink-muted); }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1280px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+/* TOOLBAR & FILTERS */
+.toolbar-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+
+.search-box { position: relative; width: 280px; }
+.search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-muted); }
+.search-input { width: 100%; height: 40px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); padding: 0 16px 0 40px; font-size: 13.5px; color: var(--ink); transition: border-color 150ms ease; }
+.search-input:focus { border-color: var(--forest); }
+
+/* DATA TABLE CARD */
+.card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+
+.table-responsive { width: 100%; overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; text-align: left; }
+.data-table th { background: var(--cream); padding: 14px 24px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
+.data-table td { padding: 16px 24px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+
+.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
+.status-success { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.status-refunded { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+
+.btn-action-icon { width: 34px; height: 34px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--cream); display: inline-flex; align-items: center; justify-content: center; color: var(--forest); transition: all 150ms ease; cursor: pointer; }
+.btn-action-icon:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+
+/* MODAL OVERLAY FOR TRANSACTION DETAIL (ROUTE 74) */
+.modal-overlay { position: fixed; inset: 0; background: rgba(22,24,15,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+.modal-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); width: 100%; max-width: 600px; box-shadow: var(--shadow-lift); overflow: hidden; animation: scaleUp 200ms ease-out; }
+@keyframes scaleUp { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
+.modal-header h3 { font-size: 17px; font-weight: 800; color: var(--forest); }
+.modal-close { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink-muted); transition: all 150ms ease; }
+.modal-close:hover { color: var(--ink); border-color: var(--forest); }
+
+.modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+.detail-label { font-weight: 600; color: var(--ink-muted); }
+.detail-value { font-weight: 700; color: var(--forest); font-family: var(--font-mono); }
+
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--line); background: var(--cream); display: flex; justify-content: space-between; align-items: center; }
+.btn-refund { height: 40px; padding: 0 20px; border-radius: 999px; background: #FEF2F2; border: 1px solid #FCA5A5; color: #DC2626; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: all 150ms ease; }
+.btn-refund:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
+
+/* TOAST */
+.toast-notice { position: fixed; bottom: 24px; right: 24px; background: var(--forest); color: #fff; padding: 14px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lift); display: none; align-items: center; gap: 10px; z-index: 100; animation: slideUp 200ms ease-out; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow Admin
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Main Console</div>
+      <a href="/admin/dashboard" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard Home
+      </a>
+
+      <div class="menu-label">Management</div>
+      <a href="/admin/doctors" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Doctors List
+      </a>
+      <a href="/admin/patients" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Patients List
+      </a>
+      <a href="/admin/departments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 3h12a2 2 0 0 1 2 2v2H4V5a2 2 0 0 1 2-2z"/></svg>
+        Departments
+      </a>
+      <a href="/admin/appointments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        All Appointments
+      </a>
+
+      <div class="menu-label">Analytics & Access</div>
+      <a href="/admin/reports" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Reports Overview
+      </a>
+      <a href="/admin/users" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        User Accounts
+      </a>
+      <a href="/admin/roles" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Roles & Permissions
+      </a>
+      <a href="/admin/activity-logs" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Activity Logs
+      </a>
+
+      <div class="menu-label">Reviews & Announcements</div>
+      <a href="/admin/reviews" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Reviews Moderation
+      </a>
+      <a href="/admin/announcements" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Announcements
+      </a>
+
+      <!-- PAYMENTS (PHASE 3) -->
+      <div class="menu-label">Payments (Phase 3)</div>
+      <!-- ROUTE 73: /admin/payments (ACTIVE) -->
+      <a href="/admin/payments" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Transactions List
+      </a>
+
+      <div class="menu-label">System Settings</div>
+      <a href="/admin/settings/general" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        General Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar">ADM</div>
+        <div class="user-meta">
+          <b>System Admin</b>
+          <span>Super Administrator</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div class="top-left">
+          <h1>Transactions & Financial Registry</h1>
+          <p>Monitor patient consultation payments, Stripe invoices, and refund actions</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS (ROUTE 73: Transactions List) -->
+    <main class="dashboard-container">
+      
+      <div class="toolbar-row">
+        <div style="font-size:13.5px; font-weight:700; color:var(--forest);">
+          Showing all processed payment records
+        </div>
+
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" id="txSearch" placeholder="Search invoice or patient..." oninput="filterTransactions()">
+        </div>
+      </div>
+
+      <!-- DATA TABLE CARD -->
+      <div class="card-shell">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Invoice ID</th>
+                <th>Patient Name</th>
+                <th>Service Details</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody">
+              
+              <tr data-search="#inv-89201 habib hossain cardiology">
+                <td style="font-family:var(--font-mono); font-weight:700;">#INV-89201</td>
+                <td><b>Habib Hossain</b></td>
+                <td>Cardiology Consultation (#MDF-101)</td>
+                <td style="font-family:var(--font-mono); font-weight:700;">$120.00</td>
+                <td><span class="status-badge status-success">● Paid (Stripe)</span></td>
+                <td>
+                  <!-- ROUTE 74 TRIGGER -->
+                  <button class="btn-action-icon" onclick="openTransactionDetail('#INV-89201', 'Habib Hossain', '$120.00', 'Cardiology Consultation (#MDF-101)', 'Aug 7, 2026 · 02:10 AM', 'Paid (Stripe)')" title="View Transaction Detail">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </td>
+              </tr>
+
+              <tr data-search="#inv-89198 tanjila ahmed neurology">
+                <td style="font-family:var(--font-mono); font-weight:700;">#INV-89198</td>
+                <td><b>Tanjila Ahmed</b></td>
+                <td>Neurology Consultation (#MDF-102)</td>
+                <td style="font-family:var(--font-mono); font-weight:700;">$140.00</td>
+                <td><span class="status-badge status-success">● Paid (Stripe)</span></td>
+                <td>
+                  <button class="btn-action-icon" onclick="openTransactionDetail('#INV-89198', 'Tanjila Ahmed', '$140.00', 'Neurology Consultation (#MDF-102)', 'Aug 7, 2026 · 01:15 AM', 'Paid (Stripe)')" title="View Transaction Detail">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<!-- ROUTE 74: TRANSACTION DETAIL MODAL -->
+<div class="modal-overlay" id="txDetailModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle">Transaction Detail (#INV-89201)</h3>
+      <button class="modal-close" onclick="closeTransactionDetail()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="detail-row">
+        <span class="detail-label">Invoice Number</span>
+        <span class="detail-value" id="detInvoice">#INV-89201</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Patient Name</span>
+        <span class="detail-value" id="detPatient">Habib Hossain</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Service / Consultation</span>
+        <span class="detail-value" id="detService">Cardiology Consultation</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Transaction Amount</span>
+        <span class="detail-value" id="detAmount" style="font-size:16px; color:#15803D;">$120.00</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Timestamp</span>
+        <span class="detail-value" id="detTime">Aug 7, 2026 · 02:10 AM</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Payment Status</span>
+        <span class="detail-value" id="detStatus">Paid (Stripe)</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-refund" onclick="triggerRefund()">Issue Full Refund</button>
+      <button class="btn-action-icon" style="width:auto; padding:0 16px; border-radius:999px; height:40px; font-weight:700; font-size:13.5px;" onclick="closeTransactionDetail()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-notice" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">Transaction refunded successfully!</span>
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function openTransactionDetail(inv, patient, amount, service, time, status) {
+  document.getElementById('modalTitle').textContent = 'Transaction Detail (' + inv + ')';
+  document.getElementById('detInvoice').textContent = inv;
+  document.getElementById('detPatient').textContent = patient;
+  document.getElementById('detService').textContent = service;
+  document.getElementById('detAmount').textContent = amount;
+  document.getElementById('detTime').textContent = time;
+  document.getElementById('detStatus').textContent = status;
+  document.getElementById('txDetailModal').style.display = 'flex';
+}
+
+function closeTransactionDetail() {
+  document.getElementById('txDetailModal').style.display = 'none';
+}
+
+function triggerRefund() {
+  if (confirm('Are you sure you want to issue a full refund for this transaction?')) {
+    document.getElementById('detStatus').textContent = 'Refunded';
+    document.getElementById('detStatus').style.color = '#B45309';
+    closeTransactionDetail();
+    
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = 'Full refund processed successfully via Stripe.';
+    toast.style.display = 'flex';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  }
+}
+
+function filterTransactions() {
+  const query = document.getElementById('txSearch').value.toLowerCase().trim();
+  const rows = document.querySelectorAll('#txTableBody tr');
+
+  rows.forEach(row => {
+    const searchData = row.getAttribute('data-search').toLowerCase();
+    if (!query || searchData.includes(query)) {
+      row.style.display = 'table-row';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+</script>
+
+</body>
+</html>

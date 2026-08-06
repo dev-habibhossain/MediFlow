@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doctor Dashboard — MediFlow</title>
+<meta name="description" content="MediFlow Physician Portal - Manage today's schedule, patient consultations, prescriptions, and clinical metrics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(22,24,15,0.04);
+  --shadow-card: 0 1px 3px rgba(22,24,15,0.05), 0 6px 16px rgba(22,24,15,0.04);
+  --shadow-lift: 0 4px 12px rgba(22,24,15,0.08);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+}
+
+a:focus-visible, button:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+
+/* ============ LAYOUT SHELL ============ */
+.app-shell { display: flex; width: 100%; min-height: 100vh; }
+
+/* SIDEBAR NAVIGATION */
+.sidebar { width: 260px; background: var(--card); border-right: 1px solid var(--line); display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 30; transition: transform 200ms ease; }
+.sidebar-brand { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: var(--forest); }
+.logo-mark { width: 32px; height: 32px; border-radius: 8px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 16px; height: 16px; color: var(--lime); }
+
+.sidebar-menu { padding: 20px 16px; flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+.menu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); padding: 8px 12px; margin-top: 12px; }
+.menu-label:first-child { margin-top: 0; }
+
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; }
+.nav-item svg { width: 18px; height: 18px; color: var(--ink-muted); transition: color 150ms ease; }
+.nav-item:hover { background: var(--cream); color: var(--ink); }
+.nav-item:hover svg { color: var(--forest); }
+.nav-item.active { background: var(--forest); color: #fff; }
+.nav-item.active svg { color: var(--lime); }
+
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--line); }
+.user-pill { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: var(--radius-sm); background: var(--cream); }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--cream-alt); }
+.user-meta { flex: 1; overflow: hidden; }
+.user-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+/* MAIN CONTENT CONTAINER */
+.main-content { flex: 1; margin-left: 260px; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 992px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .sidebar.open { transform: translateX(0); } }
+
+/* TOP HEADER BAR */
+.top-bar { height: 68px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; position: sticky; top: 0; z-index: 20; }
+.mobile-toggle { display: none; width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--line); align-items: center; justify-content: center; }
+@media (max-width: 992px) { .mobile-toggle { display: flex; } }
+
+.top-left h1 { font-size: 20px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+.top-left p { font-size: 12.5px; color: var(--ink-muted); }
+
+.top-right { display: flex; align-items: center; gap: 12px; }
+.status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #15803D; background: #DCFCE7; border: 1px solid #BBF7D0; padding: 6px 14px; border-radius: 999px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #16A34A; }
+
+/* DASHBOARD CANVAS CONTAINER */
+.dashboard-container { padding: 32px; max-width: 1280px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+/* BANNER HERO */
+.welcome-banner { background: var(--forest); color: #fff; border-radius: var(--radius-xl); padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; box-shadow: var(--shadow-card); }
+.welcome-banner::after { content: ""; position: absolute; right: -40px; top: -40px; width: 220px; height: 220px; border-radius: 50%; background: var(--lime); opacity: 0.15; filter: blur(20px); }
+.welcome-text { max-width: 540px; z-index: 1; }
+.welcome-text h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.01em; }
+.welcome-text p { font-size: 14px; opacity: 0.85; line-height: 1.5; }
+.banner-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(221,241,92,0.15); border: 1px solid rgba(221,241,92,0.3); color: var(--lime); font-size: 12.5px; font-weight: 600; padding: 4px 12px; border-radius: 999px; margin-bottom: 12px; }
+
+/* METRICS STATS GRID */
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 540px) { .metrics-grid { grid-template-columns: 1fr; } }
+
+.stat-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: flex-start; }
+.stat-meta span { font-size: 12.5px; font-weight: 600; color: var(--ink-muted); display: block; margin-bottom: 6px; }
+.stat-meta b { font-family: var(--font-mono); font-size: 26px; font-weight: 800; color: var(--forest); line-height: 1; display: block; }
+.stat-icon { width: 42px; height: 42px; border-radius: var(--radius-md); background: var(--cream); color: var(--forest); display: flex; align-items: center; justify-content: center; }
+.stat-icon svg { width: 20px; height: 20px; }
+
+/* MAIN DASHBOARD SPLIT GRID */
+.dashboard-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
+@media (max-width: 1100px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+/* CONTENT SHADCN-STYLE CARD */
+.card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+.card-header { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.card-header h3 { font-size: 16px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 8px; }
+.card-header h3 svg { width: 18px; height: 18px; color: var(--forest); }
+.card-header a { font-size: 13px; font-weight: 700; color: var(--forest); text-decoration: underline; }
+
+/* APPOINTMENTS QUEUE TABLE */
+.table-responsive { width: 100%; overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; text-align: left; }
+.data-table th { background: var(--cream); padding: 12px 24px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
+.data-table td { padding: 16px 24px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+
+.patient-cell { display: flex; align-items: center; gap: 12px; }
+.patient-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.patient-meta b { display: block; font-size: 14px; font-weight: 700; color: var(--ink); }
+.patient-meta span { display: block; font-size: 12px; color: var(--ink-muted); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge-confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.badge-in-progress { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+
+.btn-table-action { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--ink); transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; }
+.btn-table-action:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+.btn-table-action.primary { background: var(--forest); color: #fff; }
+.btn-table-action.primary:hover { background: var(--forest-2); }
+
+/* QUICK ACTIONS LIST */
+.quick-action-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+.action-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); transition: all 150ms ease; }
+.action-item:hover { border-color: var(--forest); background: var(--card); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.action-icon { width: 38px; height: 38px; border-radius: var(--radius-sm); background: var(--lime-soft); color: var(--lime-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.action-icon svg { width: 18px; height: 18px; }
+.action-info h4 { font-size: 14px; font-weight: 700; color: var(--ink); }
+.action-info p { font-size: 12px; color: var(--ink-muted); }
+
+/* RECENT ACTIVITY FEED */
+.feed-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.feed-item { display: flex; gap: 12px; align-items: flex-start; }
+.feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 6px; flex-shrink: 0; }
+.feed-content p { font-size: 13px; color: var(--ink); line-height: 1.4; margin-bottom: 2px; }
+.feed-content span { font-size: 11.5px; color: var(--ink-muted); font-family: var(--font-mono); }
+
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="/" class="logo">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-label">Physician Menu</div>
+      <!-- ROUTE 38: /doctor/dashboard (ACTIVE) -->
+      <a href="/doctor/dashboard" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard Home
+      </a>
+      <!-- ROUTE 39: /doctor/appointments -->
+      <a href="/doctor/appointments" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Appointments
+      </a>
+      <!-- ROUTE 46: /doctor/schedule -->
+      <a href="/doctor/schedule" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Availability & Schedule
+      </a>
+      <!-- ROUTE 48: /doctor/performance -->
+      <a href="/doctor/performance" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        My Performance
+      </a>
+
+      <div class="menu-label">Account</div>
+      <!-- ROUTE 49: /doctor/settings/profile -->
+      <a href="/doctor/settings/profile" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Doctor Profile Settings
+      </a>
+      <a href="/login.html" class="nav-item" style="color:#DC2626;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#DC2626;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="user-avatar">
+        <div class="user-meta">
+          <b>Dr. Sarah Jenkins</b>
+          <span>Cardiology Dept</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <div class="main-content">
+    
+    <!-- TOP HEADER -->
+    <header class="top-bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+        <div class="top-left">
+          <h1>Doctor Dashboard</h1>
+          <p>Welcome back, Dr. Sarah Jenkins 👋</p>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <span class="status-pill">
+          <span class="status-dot"></span> On Shift Today
+        </span>
+      </div>
+    </header>
+
+    <!-- DASHBOARD CANVAS -->
+    <main class="dashboard-container">
+      
+      <!-- HERO BANNER -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <span class="banner-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Next Scheduled Consultation</span>
+          <h2>Habib Hossain (Cardiology Follow-Up)</h2>
+          <p>Today at 10:00 AM · In-Person Visit · Room 302, Harbor Ave Clinic</p>
+        </div>
+        <!-- ROUTE 40: /doctor/appointments/{id} -->
+        <a href="/doctor/appointments/101" class="btn-table-action primary" style="background:var(--lime); color:var(--lime-text); height:40px; padding:0 20px; font-weight:700;">Start Consultation</a>
+      </div>
+
+      <!-- METRICS GRID -->
+      <div class="metrics-grid">
+        <div class="stat-card">
+          <div class="stat-meta">
+            <span>Appointments Today</span>
+            <b>6</b>
+          </div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-meta">
+            <span>Total Patients Treated</span>
+            <b>1,240</b>
+          </div>
+          <div class="stat-icon" style="background:#DCFCE7; color:#15803D;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-meta">
+            <span>Average Rating</span>
+            <b>4.9 / 5</b>
+          </div>
+          <div class="stat-icon" style="background:#FEF3C7; color:#B45309;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-meta">
+            <span>Pending Medical Notes</span>
+            <b>2</b>
+          </div>
+          <div class="stat-icon" style="background:#E0F2FE; color:#0369A1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        </div>
+      </div>
+
+      <!-- MAIN DASHBOARD SPLIT GRID -->
+      <div class="dashboard-grid">
+        
+        <!-- LEFT: TODAY'S APPOINTMENT QUEUE -->
+        <div class="card-shell">
+          <div class="card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> Today's Schedule Queue</h3>
+            <!-- ROUTE 39: /doctor/appointments -->
+            <a href="/doctor/appointments">View full schedule</a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Time Slot</th>
+                  <th>Patient Name</th>
+                  <th>Type & Mode</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- ROW 1 -->
+                <tr>
+                  <td><b style="font-family:var(--font-mono); font-size:13px;">10:00 AM</b></td>
+                  <td>
+                    <div class="patient-cell">
+                      <div class="patient-avatar">HH</div>
+                      <div class="patient-meta">
+                        <b>Habib Hossain</b>
+                        <span>28 Yrs · Male · #MDF-9021</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>In-Person Visit</td>
+                  <td><span class="badge badge-confirmed">Confirmed</span></td>
+                  <td>
+                    <!-- ROUTE 40: /doctor/appointments/{id} -->
+                    <a href="/doctor/appointments/101" class="btn-table-action primary">Manage</a>
+                  </td>
+                </tr>
+
+                <!-- ROW 2 -->
+                <tr>
+                  <td><b style="font-family:var(--font-mono); font-size:13px;">11:30 AM</b></td>
+                  <td>
+                    <div class="patient-cell">
+                      <div class="patient-avatar" style="background:#E0F2FE; color:#0369A1;">TA</div>
+                      <div class="patient-meta">
+                        <b>Tanjila Ahmed</b>
+                        <span>34 Yrs · Female · #MDF-8812</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Telehealth Call</td>
+                  <td><span class="badge badge-in-progress">Waiting Room</span></td>
+                  <td>
+                    <!-- ROUTE 40: /doctor/appointments/{id} -->
+                    <a href="/doctor/appointments/102" class="btn-table-action primary">Join Call</a>
+                  </td>
+                </tr>
+
+                <!-- ROW 3 -->
+                <tr>
+                  <td><b style="font-family:var(--font-mono); font-size:13px;">02:00 PM</b></td>
+                  <td>
+                    <div class="patient-cell">
+                      <div class="patient-avatar" style="background:#FEF3C7; color:#B45309;">KA</div>
+                      <div class="patient-meta">
+                        <b>Karim Alam</b>
+                        <span>52 Yrs · Male · #MDF-7419</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>In-Person Visit</td>
+                  <td><span class="badge badge-confirmed">Confirmed</span></td>
+                  <td>
+                    <!-- ROUTE 40: /doctor/appointments/{id} -->
+                    <a href="/doctor/appointments/103" class="btn-table-action">View</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR: QUICK ACTIONS & RECENT ACTIVITY -->
+        <div style="display:flex; flex-direction:column; gap:28px;">
+          
+          <!-- QUICK ACTIONS CARD -->
+          <div class="card-shell">
+            <div class="card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> Quick Actions</h3>
+            </div>
+            <div class="quick-action-list">
+              <!-- ROUTE 46: /doctor/schedule -->
+              <a href="/doctor/schedule" class="action-item">
+                <div class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <div class="action-info">
+                  <h4>Edit Availability</h4>
+                  <p>Manage working slots & hours</p>
+                </div>
+              </a>
+
+              <!-- ROUTE 47: /doctor/schedule/exceptions -->
+              <a href="/doctor/schedule/exceptions" class="action-item">
+                <div class="action-icon" style="background:#FEF3C7; color:#B45309;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+                <div class="action-info">
+                  <h4>Schedule Leave Day</h4>
+                  <p>Block out vacation / exception days</p>
+                </div>
+              </a>
+
+              <!-- ROUTE 48: /doctor/performance -->
+              <a href="/doctor/performance" class="action-item">
+                <div class="action-icon" style="background:#E0F2FE; color:#0369A1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+                <div class="action-info">
+                  <h4>View Performance</h4>
+                  <p>Check ratings & completion rate</p>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- RECENT PATIENT ACTIVITY CARD -->
+          <div class="card-shell">
+            <div class="card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Recent Clinical Activity</h3>
+            </div>
+            <div class="feed-list">
+              <div class="feed-item">
+                <div class="feed-dot"></div>
+                <div class="feed-content">
+                  <p>Prescription #RX-401 issued for Habib Hossain (Amlodipine 5mg).</p>
+                  <span>2 hours ago</span>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-dot" style="background:#0369A1;"></div>
+                <div class="feed-content">
+                  <p>Medical Record #REC-301 finalized for Habib Hossain.</p>
+                  <span>Yesterday</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
