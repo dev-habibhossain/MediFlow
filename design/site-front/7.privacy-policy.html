@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — MediFlow</title>
+<meta name="description" content="MediFlow Hospital Privacy Policy. Learn how we handle patient data, protected health information (PHI), medical records, and digital security.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; padding: 0; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-card: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06);
+  --shadow-lift: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 1320px; margin-inline: auto; padding-inline: 32px; position: relative; }
+@media (max-width: 640px) { .wrap { padding-inline: 20px; } }
+
+a:focus-visible, button:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; border-radius: 4px; }
+
+/* ============ PILLS / BUTTONS ============ */
+.pill { display: inline-flex; align-items: center; gap: 6px; background: var(--lime); color: var(--lime-text); font-size: 13px; font-weight: 600; padding: 7px 16px 7px 12px; border-radius: 999px; }
+.pill svg { width: 14px; height: 14px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 54px; padding: 0 28px; border-radius: 999px; font-size: 15.5px; font-weight: 600; transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-card); }
+.btn-primary:hover { background: var(--forest-2); box-shadow: var(--shadow-lift); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid rgba(22,24,15,0.16); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-sm { height: 44px; padding: 0 20px; font-size: 13.5px; }
+
+/* ============ HEADER ============ */
+.site-header { position: sticky; top: 0; z-index: 40; padding-top: 20px; }
+.nav-shell { display: flex; align-items: center; justify-content: space-between; background: rgba(248,246,239,0.9); backdrop-filter: blur(12px); border: 1px solid rgba(22,24,15,0.06); border-radius: 999px; padding: 8px 8px 8px 22px; box-shadow: var(--shadow-card); }
+.logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+.logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 17px; height: 17px; color: var(--lime); }
+.main-nav { display: flex; align-items: center; gap: 4px; }
+.main-nav a { font-size: 14px; font-weight: 500; color: var(--ink-muted); padding: 10px 15px; border-radius: 999px; transition: background-color 150ms ease, color 150ms ease; }
+.main-nav a:hover { background: rgba(22,24,15,0.05); color: var(--ink); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.phone-block { display: flex; align-items: center; gap: 8px; padding: 0 6px; font-size: 13px; }
+.phone-block svg { width: 16px; height: 16px; color: var(--ink-muted); }
+.phone-block b { display: block; font-size: 13.5px; }
+.phone-block span { color: var(--ink-muted); font-size: 11.5px; }
+@media (max-width: 980px) { .main-nav, .phone-block { display: none; } }
+
+/* ============ PAGE HERO ============ */
+.legal-hero { padding: 52px 0 28px; }
+.legal-hero h1 { font-size: clamp(2.2rem, 1.6rem + 2vw, 3rem); font-weight: 800; letter-spacing: -0.02em; color: var(--forest); margin-bottom: 12px; line-height: 1.15; }
+.legal-hero p { font-size: 15px; color: var(--ink-muted); }
+
+/* ============ LEGAL SPLIT LAYOUT ============ */
+.legal-layout { display: grid; grid-template-columns: 280px 1fr; gap: 36px; padding: 32px 0 80px; align-items: start; }
+@media (max-width: 960px) { .legal-layout { grid-template-columns: 1fr; } }
+
+/* STICKY SIDEBAR NAV */
+.toc-sidebar { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card); position: sticky; top: 100px; }
+.toc-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); margin-bottom: 12px; padding-left: 8px; }
+
+.toc-link { display: block; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; color: var(--ink-muted); transition: all 150ms ease; margin-bottom: 2px; }
+.toc-link:hover { background: var(--cream); color: var(--ink); }
+.toc-link.active { background: var(--lime-soft); color: var(--lime-text); font-weight: 700; }
+
+/* MAIN ARTICLE CONTENT */
+.legal-article { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 40px; box-shadow: var(--shadow-card); }
+@media (max-width: 600px) { .legal-article { padding: 24px; } }
+
+.legal-section { margin-bottom: 40px; scroll-margin-top: 100px; }
+.legal-section:last-child { margin-bottom: 0; }
+
+.legal-section h2 { font-size: 20px; font-weight: 800; color: var(--forest); margin-bottom: 14px; letter-spacing: -0.01em; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.legal-section h3 { font-size: 16px; font-weight: 700; color: var(--ink); margin: 18px 0 8px; }
+.legal-section p { font-size: 14.5px; color: var(--ink-muted); line-height: 1.65; margin-bottom: 14px; }
+
+.legal-list { list-style: disc; padding-left: 20px; margin-bottom: 16px; }
+.legal-list li { font-size: 14.5px; color: var(--ink-muted); margin-bottom: 8px; line-height: 1.6; }
+
+.highlight-callout { background: var(--cream); border-left: 4px solid var(--forest); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 18px 20px; margin: 20px 0; }
+.highlight-callout h4 { font-size: 15px; font-weight: 700; color: var(--forest); margin-bottom: 4px; }
+.highlight-callout p { font-size: 13.5px; color: var(--ink-muted); margin: 0; line-height: 1.55; }
+
+/* ============ FOOTER ============ */
+footer { padding: 64px 0 32px; position: relative; z-index: 1; border-top: 1px solid var(--line); }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 36px; }
+@media (max-width: 800px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-grid p { font-size: 13.5px; color: var(--ink-muted); max-width: 260px; line-height: 1.6; margin-top: 12px; }
+footer h5 { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px; color: var(--ink-muted); }
+footer ul li { margin-bottom: 10px; }
+footer ul a { font-size: 14px; transition: opacity 150ms ease; }
+footer ul a:hover { opacity: 0.6; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; color: var(--ink-muted); flex-wrap: wrap; gap: 12px; }
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="nav-shell">
+      <a href="/" class="logo">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <nav class="main-nav" aria-label="Primary">
+        <a href="/about.html">About</a>
+        <a href="/departments.html">Departments</a>
+        <a href="/doctors.html">Doctors</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <div class="header-right">
+        <div class="phone-block">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span><b>(555) 340-2199</b><span>120 Harbor Ave</span></span>
+        </div>
+        <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="wrap">
+    
+    <!-- PAGE HERO -->
+    <section class="legal-hero">
+      <span class="pill" style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Legal & Privacy</span>
+      <h1>Privacy Policy & Patient Rights</h1>
+      <p>Last updated: August 2026 · Effective for all MediFlow patients, visitors, and digital account holders.</p>
+    </section>
+
+    <!-- LEGAL SPLIT LAYOUT -->
+    <div class="legal-layout">
+      
+      <!-- STICKY TABLE OF CONTENTS -->
+      <aside class="toc-sidebar">
+        <div class="toc-title">Table of Contents</div>
+        <a href="#overview" class="toc-link active">1. Policy Overview</a>
+        <a href="#phi" class="toc-link">2. Health Data (PHI)</a>
+        <a href="#data-collection" class="toc-link">3. Information We Collect</a>
+        <a href="#data-usage" class="toc-link">4. How We Use Data</a>
+        <a href="#security" class="toc-link">5. Encryption & Security</a>
+        <a href="#rights" class="toc-link">6. Your Patient Rights</a>
+        <a href="#contact-compliance" class="toc-link">7. Privacy Officer Contact</a>
+      </aside>
+
+      <!-- MAIN CONTENT ARTICLE -->
+      <article class="legal-article">
+        
+        <!-- SECTION 1 -->
+        <section class="legal-section" id="overview">
+          <h2>1. Policy Overview</h2>
+          <p>MediFlow Hospital ("MediFlow," "we," "us," or "our") is committed to maintaining the confidentiality, integrity, and security of your personal information and Protected Health Information (PHI).</p>
+          <p>This Privacy Policy outlines our clinical data practices across our physical medical facilities, outpatient suites, online booking platform, and patient record portal.</p>
+          
+          <div class="highlight-callout">
+            <h4>HIPAA & Regulatory Compliance</h4>
+            <p>MediFlow operates in full compliance with the Health Insurance Portability and Accountability Act (HIPAA), federal healthcare privacy laws, and international data protection standards.</p>
+          </div>
+        </section>
+
+        <!-- SECTION 2 -->
+        <section class="legal-section" id="phi">
+          <h2>2. Protected Health Information (PHI)</h2>
+          <p>Protected Health Information refers to individually identifiable health data created, received, or stored by MediFlow during your care. This includes:</p>
+          <ul class="legal-list">
+            <li>Clinical consultation notes, diagnoses, and treatment plans recorded by physicians.</li>
+            <li>Laboratory testing reports, biochemistry panels, and 3D imaging files.</li>
+            <li>E-prescriptions, pharmacy history, and physician discharge summaries.</li>
+            <li>Health insurance policy details, claim history, and billing records.</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 3 -->
+        <section class="legal-section" id="data-collection">
+          <h2>3. Information We Collect</h2>
+          <p>We collect information directly from you when you register an account, schedule a consultation, visit our clinics, or submit inquiries through our online forms:</p>
+
+          <h3>A. Personal Identifiers</h3>
+          <p>Full legal name, date of birth, residential address, telephone number, emergency contact details, and government-issued ID numbers.</p>
+
+          <h3>B. Digital & Portal Data</h3>
+          <p>IP address, browser session identifiers, login credentials, and cookie data strictly required for authenticated session management within the patient portal.</p>
+        </section>
+
+        <!-- SECTION 4 -->
+        <section class="legal-section" id="data-usage">
+          <h2>4. How We Use Your Data</h2>
+          <p>MediFlow utilizes collected information strictly for legitimate medical and administrative purposes, including:</p>
+          <ul class="legal-list">
+            <li>Coordinating appointment bookings and sending automated SMS/email reminders.</li>
+            <li>Enabling board-certified specialists to evaluate medical history prior to consultations.</li>
+            <li>Processing direct insurance claims and issuing transparent billing invoices.</li>
+            <li>Fulfilling legal and clinical auditing requirements mandated by health authorities.</li>
+          </ul>
+          <p><strong>We do not sell, rent, or trade patient personal data or health records to third-party advertisers under any circumstances.</strong></p>
+        </section>
+
+        <!-- SECTION 5 -->
+        <section class="legal-section" id="security">
+          <h2>5. Encryption & Digital Security</h2>
+          <p>MediFlow enforces rigorous technical and administrative safeguards to prevent unauthorized access, alteration, or disclosure of patient records:</p>
+          <ul class="legal-list">
+            <li><strong>Data Encryption:</strong> All portal traffic is encrypted in transit using TLS 1.3 and at rest using AES-256 encryption.</li>
+            <li><strong>Access Controls:</strong> Medical records are accessible only to credentialed physicians and authorized clinic staff directly involved in your treatment.</li>
+            <li><strong>Audit Logs:</strong> Every system access request to patient PHI is logged and audited by our compliance security team.</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 6 -->
+        <section class="legal-section" id="rights">
+          <h2>6. Your Patient Rights</h2>
+          <p>Under HIPAA and medical privacy laws, you hold explicit rights regarding your health data:</p>
+          <ul class="legal-list">
+            <li><strong>Right to Inspect & Copy:</strong> You can request and download a complete digital copy of your medical records and lab reports anytime via the patient portal.</li>
+            <li><strong>Right to Amend:</strong> You may request corrections to inaccurate personal or insurance information in your record.</li>
+            <li><strong>Right to Accounting of Disclosures:</strong> You may request a log detailing when and why your health information was disclosed to external entities (e.g., insurance claim audits).</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 7 -->
+        <section class="legal-section" id="contact-compliance">
+          <h2>7. Privacy Officer Contact</h2>
+          <p>If you have questions, concerns, or formal privacy requests regarding your data, please contact our Compliance Office:</p>
+          <p>
+            <strong>MediFlow Privacy & Compliance Office</strong><br>
+            120 Harbor Ave, Suite 300, Riverside<br>
+            Email: privacy-officer@mediflow.example<br>
+            Phone: (555) 340-2125 (Ext. 125)
+          </p>
+        </section>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a href="/" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>MediFlow</a>
+        <p>Online appointment booking and family care coordination — one account for every specialist your household needs.</p>
+      </div>
+      <div><h5>Product</h5><ul><li><a href="/departments.html">Departments</a></li><li><a href="/doctors.html">Doctors</a></li><li><a href="/register">Book an appointment</a></li></ul></div>
+      <div><h5>Hospital</h5><ul><li><a href="/about.html">About us</a></li><li><a href="/contact.html">Contact</a></li><li><a href="/faq.html">FAQ</a></li></ul></div>
+      <div><h5>Legal</h5><ul><li><a href="/privacy-policy.html">Privacy policy</a></li><li><a href="/terms-of-service.html">Terms of service</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 MediFlow.</span><span>Portfolio project — placeholder imagery, not a real hospital.</span></div>
+  </div>
+</footer>
+
+<script>
+// TOC HIGHLIGHT ON SCROLL
+const sections = document.querySelectorAll('.legal-section');
+const tocLinks = document.querySelectorAll('.toc-link');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => {
+    const sectionTop = sec.offsetTop - 120;
+    if (pageYOffset >= sectionTop) {
+      current = sec.getAttribute('id');
+    }
+  });
+
+  tocLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === `#${current}`) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

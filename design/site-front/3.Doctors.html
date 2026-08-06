@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doctors Directory — MediFlow</title>
+<meta name="description" content="Find and book appointments with board-certified specialists at MediFlow. Real-time availability, clear consultation fees, no phone calls.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; padding: 0; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+input, select { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-card: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06);
+  --shadow-lift: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 1320px; margin-inline: auto; padding-inline: 32px; position: relative; }
+@media (max-width: 640px) { .wrap { padding-inline: 20px; } }
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; border-radius: 4px; }
+
+/* ============ PILLS / TAGS / BUTTONS ============ */
+.pill { display: inline-flex; align-items: center; gap: 6px; background: var(--lime); color: var(--lime-text); font-size: 13px; font-weight: 600; padding: 7px 16px 7px 12px; border-radius: 999px; }
+.pill svg { width: 14px; height: 14px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 54px; padding: 0 28px; border-radius: 999px; font-size: 15.5px; font-weight: 600; transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-card); }
+.btn-primary:hover { background: var(--forest-2); box-shadow: var(--shadow-lift); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid rgba(22,24,15,0.16); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-sm { height: 44px; padding: 0 20px; font-size: 13.5px; }
+
+/* ============ STATUS / ACTIVE GREEN DOT ============ */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lime-text);
+  background: var(--lime-soft);
+  padding: 4px 12px 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 74, 18, 0.12);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22C55E;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.4);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  50% { transform: scale(1.4); opacity: 0; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+/* ============ HEADER ============ */
+.site-header { position: sticky; top: 0; z-index: 40; padding-top: 20px; }
+.nav-shell { display: flex; align-items: center; justify-content: space-between; background: rgba(248,246,239,0.9); backdrop-filter: blur(12px); border: 1px solid rgba(22,24,15,0.06); border-radius: 999px; padding: 8px 8px 8px 22px; box-shadow: var(--shadow-card); }
+.logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+.logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 17px; height: 17px; color: var(--lime); }
+.main-nav { display: flex; align-items: center; gap: 4px; }
+.main-nav a { font-size: 14px; font-weight: 500; color: var(--ink-muted); padding: 10px 15px; border-radius: 999px; transition: background-color 150ms ease, color 150ms ease; }
+.main-nav a:hover { background: rgba(22,24,15,0.05); color: var(--ink); }
+.main-nav a.active { background: var(--lime); color: var(--lime-text); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.icon-btn { width: 42px; height: 42px; border-radius: 999px; display: flex; align-items: center; justify-content: center; color: var(--ink-muted); transition: background-color 150ms ease; }
+.icon-btn:hover { background: rgba(22,24,15,0.06); }
+.icon-btn svg { width: 18px; height: 18px; }
+.phone-block { display: flex; align-items: center; gap: 8px; padding: 0 6px; font-size: 13px; }
+.phone-block svg { width: 16px; height: 16px; color: var(--ink-muted); }
+.phone-block b { display: block; font-size: 13.5px; }
+.phone-block span { color: var(--ink-muted); font-size: 11.5px; }
+@media (max-width: 980px) { .main-nav, .phone-block { display: none; } }
+
+/* ============ PAGE HERO ============ */
+.page-hero { padding: 60px 0 40px; }
+.page-hero .pill { margin-bottom: 20px; }
+.page-hero h1 { font-size: clamp(2.2rem, 1.6rem + 2vw, 3.2rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px; line-height: 1.15; }
+.page-hero p.lead { font-size: 17px; color: var(--ink-muted); max-width: 60ch; }
+
+/* ============ SEARCH & FILTER BAR ============ */
+.filter-bar { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 40px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 16px; }
+.filter-top-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
+.search-input-wrap { position: relative; flex: 1; min-width: 280px; }
+.search-input-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--ink-muted); pointer-events: none; }
+.search-input-wrap input { width: 100%; height: 48px; border-radius: 999px; border: 1px solid var(--line); background: var(--cream); padding-left: 44px; padding-right: 16px; font-size: 14.5px; transition: border-color 150ms ease; }
+.search-input-wrap input:focus { border-color: var(--forest); background: var(--card); }
+
+.select-wrap { position: relative; min-width: 200px; }
+.select-wrap select { width: 100%; height: 48px; border-radius: 999px; border: 1px solid var(--line); background: var(--cream); padding: 0 40px 0 18px; font-size: 14px; font-weight: 500; color: var(--ink); appearance: none; cursor: pointer; }
+.select-wrap svg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-muted); pointer-events: none; }
+
+.filter-tags-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.filter-tags-scroll::-webkit-scrollbar { display: none; }
+.filter-btn { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--cream-alt); color: var(--ink-muted); transition: all 150ms ease; flex-shrink: 0; }
+.filter-btn:hover { background: rgba(22,24,15,0.08); color: var(--ink); }
+.filter-btn.active { background: var(--forest); color: #fff; }
+
+/* ============ DOCTORS GRID ============ */
+.doctors-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 80px; }
+@media (max-width: 980px) { .doctors-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .doctors-grid { grid-template-columns: 1fr; } }
+
+.doctor-card-full { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card); transition: box-shadow 150ms ease, transform 150ms ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+.doctor-card-full:hover { box-shadow: var(--shadow-lift); transform: translateY(-3px); }
+
+.doc-photo-wrap { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: var(--radius-md); background: linear-gradient(150deg, #EDEAD9, #C7CBB4); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; overflow: hidden; }
+.doc-photo-wrap svg.avatar-ph { width: 64px; height: 64px; color: #fff; opacity: 0.6; }
+
+.doc-status-pin { position: absolute; top: 12px; right: 12px; }
+.doc-dept-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(255,255,255,0.92); backdrop-filter: blur(6px); color: var(--ink); font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
+
+.doc-info h3 { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+.doc-exp { font-size: 13px; color: var(--ink-muted); margin-bottom: 12px; }
+
+.doc-meta-row { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; margin-bottom: 20px; font-size: 13.5px; }
+.doc-rating { display: flex; align-items: center; gap: 4px; font-weight: 700; }
+.doc-rating span.stars { color: var(--forest); font-size: 12px; }
+.doc-fee { font-family: var(--font-mono); font-weight: 600; color: var(--forest); }
+
+.doc-actions { display: flex; gap: 10px; }
+.doc-actions .btn { flex: 1; }
+
+.no-results { grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); display: none; }
+.no-results h4 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.no-results p { font-size: 14px; color: var(--ink-muted); }
+
+/* ============ MODAL ============ */
+.modal-overlay { position: fixed; inset: 0; background: rgba(22,24,15,0.5); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 200ms ease; }
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal-card { background: var(--card); border-radius: var(--radius-xl); max-width: 560px; width: 100%; padding: 32px; box-shadow: var(--shadow-lift); position: relative; transform: translateY(20px); transition: transform 200ms ease; }
+.modal-overlay.open .modal-card { transform: translateY(0); }
+.modal-close { position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 50%; background: var(--cream-alt); display: flex; align-items: center; justify-content: center; color: var(--ink-muted); }
+.modal-close:hover { background: var(--gray-card); color: var(--ink); }
+.modal-head { display: flex; gap: 20px; align-items: center; margin-bottom: 24px; }
+.modal-avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #16301F, #3a6b4c); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 28px; font-weight: 700; flex-shrink: 0; }
+.modal-body h4 { font-size: 15px; font-weight: 700; margin-top: 16px; margin-bottom: 6px; }
+.modal-body p { font-size: 14px; color: var(--ink-muted); line-height: 1.6; }
+
+/* ============ CLOSING BANNER ============ */
+.closing { background: var(--forest); border-radius: var(--radius-xl); padding: 60px 44px; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; color: #fff; position: relative; overflow: hidden; margin-bottom: 80px; }
+.closing::before { content: ""; position: absolute; top: -80px; right: -60px; width: 260px; height: 260px; border-radius: 50%; background: var(--lime); opacity: 0.15; filter: blur(10px); }
+.closing h2 { font-size: 29px; font-weight: 800; letter-spacing: -0.015em; max-width: 24ch; position: relative; }
+.closing p { color: rgba(255,255,255,0.65); font-size: 14.5px; margin-top: 8px; position: relative; }
+.closing .btn-primary { background: var(--lime); color: var(--lime-text); position: relative; }
+.closing .btn-primary:hover { background: #ecf99c; }
+
+/* ============ FOOTER ============ */
+footer { padding: 72px 0 32px; position: relative; z-index: 1; border-top: 1px solid var(--line); }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 40px; }
+@media (max-width: 800px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-grid p { font-size: 13.5px; color: var(--ink-muted); max-width: 260px; line-height: 1.6; margin-top: 12px; }
+footer h5 { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px; color: var(--ink-muted); }
+footer ul li { margin-bottom: 10px; }
+footer ul a { font-size: 14px; transition: opacity 150ms ease; }
+footer ul a:hover { opacity: 0.6; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; color: var(--ink-muted); flex-wrap: wrap; gap: 12px; }
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="nav-shell">
+      <a href="/" class="logo">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <nav class="main-nav" aria-label="Primary">
+        <a href="/about.html">About</a>
+        <a href="/departments.html">Departments</a>
+        <a href="/doctors.html" class="active">Doctors</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <div class="header-right">
+        <button class="icon-btn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+        <div class="phone-block">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span><b>(555) 340-2199</b><span>120 Harbor Ave</span></span>
+        </div>
+        <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="wrap">
+    
+    <!-- PAGE HERO -->
+    <section class="page-hero">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Board-Certified Physicians</span>
+      <h1>Find Your Medical Specialist</h1>
+      <p class="lead">Browse our team of credentialed doctors. See real-time availability, clear consultation fees, and book directly online without waiting for a phone callback.</p>
+    </section>
+
+    <!-- SEARCH AND FILTER CONTROL BAR -->
+    <div class="filter-bar">
+      <div class="filter-top-row">
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="docSearch" placeholder="Search by doctor name, specialty, or condition..." aria-label="Search doctors">
+        </div>
+        
+        <div class="select-wrap">
+          <select id="sortBy">
+            <option value="featured">Sort by: Featured</option>
+            <option value="rating">Highest Rated</option>
+            <option value="fee-low">Fee: Low to High</option>
+            <option value="exp">Most Experienced</option>
+          </select>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- SPECIALTY SCROLL FILTER -->
+      <div class="filter-tags-scroll">
+        <button class="filter-btn active" data-dept="all">All Specialties</button>
+        <button class="filter-btn" data-dept="cardiology">Cardiology</button>
+        <button class="filter-btn" data-dept="pediatrics">Pediatrics</button>
+        <button class="filter-btn" data-dept="dermatology">Dermatology</button>
+        <button class="filter-btn" data-dept="orthopedics">Orthopedics</button>
+        <button class="filter-btn" data-dept="neurology">Neurology</button>
+        <button class="filter-btn" data-dept="ophthalmology">Ophthalmology</button>
+        <button class="filter-btn" data-dept="radiology">Radiology</button>
+      </div>
+    </div>
+
+    <!-- DOCTORS GRID -->
+    <div class="doctors-grid" id="doctorsGrid">
+
+      <!-- Doctor 1 -->
+      <div class="doctor-card-full" data-dept="cardiology" data-name="dr. nadia islam cardiology heart vascular" data-rating="4.9" data-fee="120" data-exp="14">
+        <div>
+          <div class="doc-photo-wrap">
+            <span class="status-indicator doc-status-pin"><span class="status-dot"></span> Available Today</span>
+            <svg class="avatar-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span class="doc-dept-badge">Cardiology</span>
+          </div>
+          <div class="doc-info">
+            <h3>Dr. Nadia Islam</h3>
+            <p class="doc-exp">Senior Cardiologist · 14 yrs experience</p>
+          </div>
+          <div class="doc-meta-row">
+            <div class="doc-rating">4.9 <span class="stars">★★★★★</span> <span style="color:var(--ink-muted);font-weight:400;">(128)</span></div>
+            <div class="doc-fee">$120 / visit</div>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <button class="btn btn-outline btn-sm view-profile-btn" data-doc="Dr. Nadia Islam" data-spec="Cardiologist" data-bio="Dr. Nadia Islam specializes in preventive cardiology, echocardiography, and hypertension management. She earned her medical degree from Johns Hopkins University.">Profile</button>
+          <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+        </div>
+      </div>
+
+      <!-- Doctor 2 -->
+      <div class="doctor-card-full" data-dept="pediatrics" data-name="dr. sara rahman pediatrics children infant" data-rating="5.0" data-fee="100" data-exp="10">
+        <div>
+          <div class="doc-photo-wrap">
+            <span class="status-indicator doc-status-pin"><span class="status-dot"></span> Available Tomorrow</span>
+            <svg class="avatar-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span class="doc-dept-badge">Pediatrics</span>
+          </div>
+          <div class="doc-info">
+            <h3>Dr. Sara Rahman</h3>
+            <p class="doc-exp">Pediatric Specialist · 10 yrs experience</p>
+          </div>
+          <div class="doc-meta-row">
+            <div class="doc-rating">5.0 <span class="stars">★★★★★</span> <span style="color:var(--ink-muted);font-weight:400;">(94)</span></div>
+            <div class="doc-fee">$100 / visit</div>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <button class="btn btn-outline btn-sm view-profile-btn" data-doc="Dr. Sara Rahman" data-spec="Pediatrician" data-bio="Dr. Sara Rahman provides gentle, comprehensive care for newborns through teens, focusing on developmental wellness and immunizations.">Profile</button>
+          <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+        </div>
+      </div>
+
+      <!-- Doctor 3 -->
+      <div class="doctor-card-full" data-dept="dermatology" data-name="dr. tariq farooq dermatology skin acne laser" data-rating="4.8" data-fee="130" data-exp="12">
+        <div>
+          <div class="doc-photo-wrap">
+            <span class="status-indicator doc-status-pin"><span class="status-dot"></span> Available Today</span>
+            <svg class="avatar-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span class="doc-dept-badge">Dermatology</span>
+          </div>
+          <div class="doc-info">
+            <h3>Dr. Tariq Farooq</h3>
+            <p class="doc-exp">Dermatologist & Laser Specialist · 12 yrs exp</p>
+          </div>
+          <div class="doc-meta-row">
+            <div class="doc-rating">4.8 <span class="stars">★★★★★</span> <span style="color:var(--ink-muted);font-weight:400;">(112)</span></div>
+            <div class="doc-fee">$130 / visit</div>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <button class="btn btn-outline btn-sm view-profile-btn" data-doc="Dr. Tariq Farooq" data-spec="Dermatologist" data-bio="Expert in medical dermatology, acne management, and cosmetic skin restoration using advanced laser therapy.">Profile</button>
+          <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+        </div>
+      </div>
+
+      <!-- Doctor 4 -->
+      <div class="doctor-card-full" data-dept="orthopedics" data-name="dr. imran kabir orthopedics bones joints fracture" data-rating="4.9" data-fee="140" data-exp="16">
+        <div>
+          <div class="doc-photo-wrap">
+            <span class="status-indicator doc-status-pin"><span class="status-dot"></span> Available Today</span>
+            <svg class="avatar-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span class="doc-dept-badge">Orthopedics</span>
+          </div>
+          <div class="doc-info">
+            <h3>Dr. Imran Kabir</h3>
+            <p class="doc-exp">Orthopedic Surgeon · 16 yrs experience</p>
+          </div>
+          <div class="doc-meta-row">
+            <div class="doc-rating">4.9 <span class="stars">★★★★★</span> <span style="color:var(--ink-muted);font-weight:400;">(156)</span></div>
+            <div class="doc-fee">$140 / visit</div>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <button class="btn btn-outline btn-sm view-profile-btn" data-doc="Dr. Imran Kabir" data-spec="Orthopedic Surgeon" data-bio="Specializes in joint replacements, sports injuries, and complex fracture management. Head of Orthopedic Surgery at MediFlow.">Profile</button>
+          <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+        </div>
+      </div>
+
+      <!-- Doctor 5 -->
+      <div class="doctor-card-full" data-dept="neurology" data-name="dr. farida noor neurology brain spine migraine" data-rating="4.9" data-fee="150" data-exp="18">
+        <div>
+          <div class="doc-photo-wrap">
+            <span class="status-indicator doc-status-pin"><span class="status-dot"></span> Available Tomorrow</span>
+            <svg class="avatar-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span class="doc-dept-badge">Neurology</span>
+          </div>
+          <div class="doc-info">
+            <h3>Dr. Farida Noor</h3>
+            <p class="doc-exp">Consultant Neurologist · 18 yrs experience</p>
+          </div>
+          <div class="doc-meta-row">
+            <div class="doc-rating">4.9 <span class="stars">★★★★★</span> <span style="color:var(--ink-muted);font-weight:400;">(88)</span></div>
+            <div class="doc-fee">$150 / visit</div>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <button class="btn btn-outline btn-sm view-profile-btn" data-doc="Dr. Farida Noor" data-spec="Neurologist" data-bio="Pioneer in chronic migraine therapies and spinal nerve diagnostics. Dedicated to compassionate neurological care.">Profile</button>
+          <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+        </div>
+      </div>
+
+      <!-- Doctor 6 -->
+      <div class="doctor-card-full" data-dept="ophthalmology" data-name="dr. arif hossain ophthalmology vision eye cataract" data-rating="4.7" data-fee="110" data-exp="11">
+        <div>
+          <div class="doc-photo-wrap">
+            <span class="status-indicator doc-status-pin"><span class="status-dot"></span> Available Today</span>
+            <svg class="avatar-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            <span class="doc-dept-badge">Ophthalmology</span>
+          </div>
+          <div class="doc-info">
+            <h3>Dr. Arif Hossain</h3>
+            <p class="doc-exp">Ophthalmologist & Surgeon · 11 yrs exp</p>
+          </div>
+          <div class="doc-meta-row">
+            <div class="doc-rating">4.7 <span class="stars">★★★★★</span> <span style="color:var(--ink-muted);font-weight:400;">(72)</span></div>
+            <div class="doc-fee">$110 / visit</div>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <button class="btn btn-outline btn-sm view-profile-btn" data-doc="Dr. Arif Hossain" data-spec="Ophthalmologist" data-bio="Expert in laser vision correction, cataract surgery, and routine ocular health evaluations.">Profile</button>
+          <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+        </div>
+      </div>
+
+      <!-- No Search Results Container -->
+      <div class="no-results" id="noResults">
+        <h4>No matching doctors found</h4>
+        <p>Try clearing your search query or choosing another department filter.</p>
+      </div>
+
+    </div>
+
+    <!-- CLOSING CTA BANNER -->
+    <div class="closing">
+      <div>
+        <h2>Need help selecting the right specialist?</h2>
+        <p>Our patient coordination team is available to assist you in matching with the best physician for your needs.</p>
+      </div>
+      <a href="/contact.html" class="btn btn-primary">Contact Assistant Desk</a>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- DOCTOR PROFILE QUICK MODAL -->
+<div class="modal-overlay" id="profileModal" aria-hidden="true">
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose" aria-label="Close modal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div class="modal-head">
+      <div class="modal-avatar" id="modalInitials">NI</div>
+      <div>
+        <h3 id="modalName" style="font-size: 20px; font-weight: 800;">Dr. Nadia Islam</h3>
+        <span class="pill" id="modalSpec" style="font-size: 11.5px; padding: 4px 10px; margin-top: 6px;">Cardiologist</span>
+      </div>
+    </div>
+    <div class="modal-body">
+      <h4>About the Doctor</h4>
+      <p id="modalBio">Specialist biography details will display here...</p>
+      <h4>Consultation & Location</h4>
+      <p>120 Harbor Ave, Suite 300 · In-person & Telehealth options available.</p>
+    </div>
+    <div style="margin-top: 28px; display: flex; gap: 12px;">
+      <a href="/register" class="btn btn-primary btn-block">Proceed to Schedule</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a href="/" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>MediFlow</a>
+        <p>Online appointment booking and family care coordination — one account for every specialist your household needs.</p>
+      </div>
+      <div><h5>Product</h5><ul><li><a href="/departments.html">Departments</a></li><li><a href="/doctors.html">Doctors</a></li><li><a href="/register">Book an appointment</a></li></ul></div>
+      <div><h5>Hospital</h5><ul><li><a href="/about.html">About us</a></li><li><a href="/contact.html">Contact</a></li><li><a href="/#faq">FAQ</a></li></ul></div>
+      <div><h5>Legal</h5><ul><li><a href="/privacy-policy">Privacy policy</a></li><li><a href="/terms-of-service">Terms of service</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 MediFlow.</span><span>Portfolio project — placeholder imagery, not a real hospital.</span></div>
+  </div>
+</footer>
+
+<script>
+// Filter, Search, and Sorting Logic
+const searchInput = document.getElementById('docSearch');
+const filterBtns = document.querySelectorAll('.filter-btn');
+const sortSelect = document.getElementById('sortBy');
+const doctorsGrid = document.getElementById('doctorsGrid');
+const doctorCards = Array.from(document.querySelectorAll('.doctor-card-full'));
+const noResults = document.getElementById('noResults');
+
+let currentDept = 'all';
+
+function updateGrid() {
+  const query = searchInput.value.toLowerCase().trim();
+  let visibleCards = [];
+
+  doctorCards.forEach(card => {
+    const dept = card.getAttribute('data-dept');
+    const nameData = card.getAttribute('data-name').toLowerCase();
+    
+    const matchesDept = (currentDept === 'all') || (dept === currentDept);
+    const matchesSearch = query === '' || nameData.includes(query);
+
+    if (matchesDept && matchesSearch) {
+      card.style.display = 'flex';
+      visibleCards.push(card);
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  // Sorting Visible Cards
+  const sortValue = sortSelect.value;
+  visibleCards.sort((a, b) => {
+    if (sortValue === 'rating') {
+      return parseFloat(b.getAttribute('data-rating')) - parseFloat(a.getAttribute('data-rating'));
+    } else if (sortValue === 'fee-low') {
+      return parseFloat(a.getAttribute('data-fee')) - parseFloat(b.getAttribute('data-fee'));
+    } else if (sortValue === 'exp') {
+      return parseInt(b.getAttribute('data-exp')) - parseInt(a.getAttribute('data-exp'));
+    }
+    return 0; // default featured order
+  });
+
+  visibleCards.forEach(card => doctorsGrid.appendChild(card));
+  noResults.style.display = visibleCards.length === 0 ? 'block' : 'none';
+}
+
+searchInput.addEventListener('input', updateGrid);
+sortSelect.addEventListener('change', updateGrid);
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentDept = btn.getAttribute('data-dept');
+    updateGrid();
+  });
+});
+
+// Profile Modal Interactions
+const modal = document.getElementById('profileModal');
+const modalClose = document.getElementById('modalClose');
+
+document.querySelectorAll('.view-profile-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const name = btn.getAttribute('data-doc');
+    const spec = btn.getAttribute('data-spec');
+    const bio = btn.getAttribute('data-bio');
+    
+    document.getElementById('modalName').textContent = name;
+    document.getElementById('modalSpec').textContent = spec;
+    document.getElementById('modalBio').textContent = bio;
+    document.getElementById('modalInitials').textContent = name.replace('Dr. ', '').split(' ').map(n => n[0]).join('');
+
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  });
+});
+
+modalClose.addEventListener('click', () => {
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+});
+
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+});
+</script>
+
+</body>
+</html>

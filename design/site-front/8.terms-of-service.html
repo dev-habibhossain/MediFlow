@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service — MediFlow</title>
+<meta name="description" content="MediFlow Hospital Terms of Service. Understand the rules, obligations, appointment policies, and medical disclaimers for using our services and platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; padding: 0; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-card: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06);
+  --shadow-lift: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 1320px; margin-inline: auto; padding-inline: 32px; position: relative; }
+@media (max-width: 640px) { .wrap { padding-inline: 20px; } }
+
+a:focus-visible, button:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; border-radius: 4px; }
+
+/* ============ PILLS / BUTTONS ============ */
+.pill { display: inline-flex; align-items: center; gap: 6px; background: var(--lime); color: var(--lime-text); font-size: 13px; font-weight: 600; padding: 7px 16px 7px 12px; border-radius: 999px; }
+.pill svg { width: 14px; height: 14px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 54px; padding: 0 28px; border-radius: 999px; font-size: 15.5px; font-weight: 600; transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-card); }
+.btn-primary:hover { background: var(--forest-2); box-shadow: var(--shadow-lift); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid rgba(22,24,15,0.16); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-sm { height: 44px; padding: 0 20px; font-size: 13.5px; }
+
+/* ============ HEADER ============ */
+.site-header { position: sticky; top: 0; z-index: 40; padding-top: 20px; }
+.nav-shell { display: flex; align-items: center; justify-content: space-between; background: rgba(248,246,239,0.9); backdrop-filter: blur(12px); border: 1px solid rgba(22,24,15,0.06); border-radius: 999px; padding: 8px 8px 8px 22px; box-shadow: var(--shadow-card); }
+.logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+.logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 17px; height: 17px; color: var(--lime); }
+.main-nav { display: flex; align-items: center; gap: 4px; }
+.main-nav a { font-size: 14px; font-weight: 500; color: var(--ink-muted); padding: 10px 15px; border-radius: 999px; transition: background-color 150ms ease, color 150ms ease; }
+.main-nav a:hover { background: rgba(22,24,15,0.05); color: var(--ink); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.phone-block { display: flex; align-items: center; gap: 8px; padding: 0 6px; font-size: 13px; }
+.phone-block svg { width: 16px; height: 16px; color: var(--ink-muted); }
+.phone-block b { display: block; font-size: 13.5px; }
+.phone-block span { color: var(--ink-muted); font-size: 11.5px; }
+@media (max-width: 980px) { .main-nav, .phone-block { display: none; } }
+
+/* ============ PAGE HERO ============ */
+.legal-hero { padding: 52px 0 28px; }
+.legal-hero h1 { font-size: clamp(2.2rem, 1.6rem + 2vw, 3rem); font-weight: 800; letter-spacing: -0.02em; color: var(--forest); margin-bottom: 12px; line-height: 1.15; }
+.legal-hero p { font-size: 15px; color: var(--ink-muted); }
+
+/* ============ LEGAL SPLIT LAYOUT ============ */
+.legal-layout { display: grid; grid-template-columns: 280px 1fr; gap: 36px; padding: 32px 0 80px; align-items: start; }
+@media (max-width: 960px) { .legal-layout { grid-template-columns: 1fr; } }
+
+/* STICKY SIDEBAR NAV */
+.toc-sidebar { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card); position: sticky; top: 100px; }
+.toc-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); margin-bottom: 12px; padding-left: 8px; }
+
+.toc-link { display: block; padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500; color: var(--ink-muted); transition: all 150ms ease; margin-bottom: 2px; }
+.toc-link:hover { background: var(--cream); color: var(--ink); }
+.toc-link.active { background: var(--lime-soft); color: var(--lime-text); font-weight: 700; }
+
+/* MAIN ARTICLE CONTENT */
+.legal-article { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 40px; box-shadow: var(--shadow-card); }
+@media (max-width: 600px) { .legal-article { padding: 24px; } }
+
+.legal-section { margin-bottom: 40px; scroll-margin-top: 100px; }
+.legal-section:last-child { margin-bottom: 0; }
+
+.legal-section h2 { font-size: 20px; font-weight: 800; color: var(--forest); margin-bottom: 14px; letter-spacing: -0.01em; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.legal-section h3 { font-size: 16px; font-weight: 700; color: var(--ink); margin: 18px 0 8px; }
+.legal-section p { font-size: 14.5px; color: var(--ink-muted); line-height: 1.65; margin-bottom: 14px; }
+
+.legal-list { list-style: disc; padding-left: 20px; margin-bottom: 16px; }
+.legal-list li { font-size: 14.5px; color: var(--ink-muted); margin-bottom: 8px; line-height: 1.6; }
+
+.highlight-callout { background: var(--cream); border-left: 4px solid var(--forest); border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 18px 20px; margin: 20px 0; }
+.highlight-callout h4 { font-size: 15px; font-weight: 700; color: var(--forest); margin-bottom: 4px; }
+.highlight-callout p { font-size: 13.5px; color: var(--ink-muted); margin: 0; line-height: 1.55; }
+
+/* ============ FOOTER ============ */
+footer { padding: 64px 0 32px; position: relative; z-index: 1; border-top: 1px solid var(--line); }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 36px; }
+@media (max-width: 800px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-grid p { font-size: 13.5px; color: var(--ink-muted); max-width: 260px; line-height: 1.6; margin-top: 12px; }
+footer h5 { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px; color: var(--ink-muted); }
+footer ul li { margin-bottom: 10px; }
+footer ul a { font-size: 14px; transition: opacity 150ms ease; }
+footer ul a:hover { opacity: 0.6; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; color: var(--ink-muted); flex-wrap: wrap; gap: 12px; }
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="nav-shell">
+      <a href="/" class="logo">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <nav class="main-nav" aria-label="Primary">
+        <a href="/about.html">About</a>
+        <a href="/departments.html">Departments</a>
+        <a href="/doctors.html">Doctors</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <div class="header-right">
+        <div class="phone-block">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span><b>(555) 340-2199</b><span>120 Harbor Ave</span></span>
+        </div>
+        <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="wrap">
+    
+    <!-- PAGE HERO -->
+    <section class="legal-hero">
+      <span class="pill" style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Legal & Agreements</span>
+      <h1>Terms of Service</h1>
+      <p>Last updated: August 2026 · Governing the use of MediFlow facilities, patient portal, and medical booking services.</p>
+    </section>
+
+    <!-- LEGAL SPLIT LAYOUT -->
+    <div class="legal-layout">
+      
+      <!-- STICKY TABLE OF CONTENTS -->
+      <aside class="toc-sidebar">
+        <div class="toc-title">Table of Contents</div>
+        <a href="#acceptance" class="toc-link active">1. Acceptance of Terms</a>
+        <a href="#medical-disclaimer" class="toc-link">2. Emergency Medical Disclaimer</a>
+        <a href="#account" class="toc-link">3. Patient Accounts</a>
+        <a href="#appointments" class="toc-link">4. Booking & Cancellations</a>
+        <a href="#telehealth" class="toc-link">5. Telehealth Consultations</a>
+        <a href="#payments" class="toc-link">6. Fees & Insurance Billing</a>
+        <a href="#conduct" class="toc-link">7. Code of Conduct</a>
+        <a href="#liability" class="toc-link">8. Limitation of Liability</a>
+      </aside>
+
+      <!-- MAIN CONTENT ARTICLE -->
+      <article class="legal-article">
+        
+        <!-- SECTION 1 -->
+        <section class="legal-section" id="acceptance">
+          <h2>1. Acceptance of Terms</h2>
+          <p>By accessing or using the website, patient portal, or clinical booking services provided by MediFlow Hospital ("MediFlow," "we," "us," or "our"), you agree to be legally bound by these Terms of Service.</p>
+          <p>If you do not agree to these terms, you must not create an account or book services through our digital platform.</p>
+        </section>
+
+        <!-- SECTION 2 -->
+        <section class="legal-section" id="medical-disclaimer">
+          <h2>2. Emergency Medical Disclaimer</h2>
+          
+          <div class="highlight-callout">
+            <h4>NOT FOR EMERGENCY USE</h4>
+            <p>Our website, digital booking tools, and patient portal are NOT designed for acute emergency care. If you are experiencing a life-threatening medical situation, chest pain, severe bleeding, or shortness of breath, CALL 911 OR VISIT THE NEAREST EMERGENCY ROOM IMMEDIATELY.</p>
+          </div>
+
+          <p>Information provided on the MediFlow platform (including blog posts, FAQ answers, and service descriptions) is for educational purposes only and does not constitute professional medical advice or diagnosis.</p>
+        </section>
+
+        <!-- SECTION 3 -->
+        <section class="legal-section" id="account">
+          <h2>3. Patient Accounts & Security</h2>
+          <p>To schedule consultations or access digital prescriptions, you must register a patient account. You agree to:</p>
+          <ul class="legal-list">
+            <li>Provide accurate, current, and complete legal personal and insurance information.</li>
+            <li>Maintain the security and confidentiality of your login credentials and password.</li>
+            <li>Promptly notify MediFlow of any unauthorized access or security breach involving your account.</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 4 -->
+        <section class="legal-section" id="appointments">
+          <h2>4. Appointment Booking & Cancellation Rules</h2>
+          <p>Our real-time scheduling system operates under strict operational parameters to ensure clinical punctuality for all patients:</p>
+
+          <h3>A. Real-Time Slot Reservation</h3>
+          <p>When you confirm an appointment online, that physician's time slot is reserved exclusively for you.</p>
+
+          <h3>B. Rescheduling & Cancellations</h3>
+          <p>Appointments may be rescheduled or cancelled free of charge up to <strong>2 hours prior</strong> to the scheduled consultation time via your patient portal.</p>
+
+          <h3>C. Late Cancellations & No-Shows</h3>
+          <p>Cancellations made less than 2 hours before the appointment or failing to attend a scheduled consultation without notice may result in a nominal late-cancellation fee billed to your account.</p>
+        </section>
+
+        <!-- SECTION 5 -->
+        <section class="legal-section" id="telehealth">
+          <h2>5. Telehealth Consultations</h2>
+          <p>Virtual appointments conducted via MediFlow's encrypted video portal are subject to the following conditions:</p>
+          <ul class="legal-list">
+            <li>You must be physically located in the jurisdiction where your consulting physician is licensed to practice at the time of the call.</li>
+            <li>Telehealth is suitable for non-emergency follow-ups and routine consultations; the physician reserves the right to request an in-person physical exam if clinically necessary.</li>
+          </ul>
+        </section>
+
+        <!-- SECTION 6 -->
+        <section class="legal-section" id="payments">
+          <h2>6. Fees & Insurance Billing</h2>
+          <p>Consultation fees are displayed transparently on physician profiles prior to confirmation. You agree to settle all out-of-pocket balances, co-pays, or non-covered service fees in accordance with our billing policy.</p>
+          <p>While MediFlow assists with insurance claim generation, ultimate financial responsibility for services rendered remains with the patient.</p>
+        </section>
+
+        <!-- SECTION 7 -->
+        <section class="legal-section" id="conduct">
+          <h2>7. Acceptable Code of Conduct</h2>
+          <p>Patients and users agree to interact respectfully with all MediFlow physicians, nursing staff, and administrative team members. Abusive language, harassment, fraudulent activity, or misuse of the portal will result in immediate account termination.</p>
+        </section>
+
+        <!-- SECTION 8 -->
+        <section class="legal-section" id="liability">
+          <h2>8. Limitation of Liability</h2>
+          <p>MediFlow shall not be liable for any indirect, incidental, or consequential damages resulting from technical portal downtime, third-party internet outages, or user failure to follow explicit medical instructions provided by physicians.</p>
+        </section>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a href="/" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>MediFlow</a>
+        <p>Online appointment booking and family care coordination — one account for every specialist your household needs.</p>
+      </div>
+      <div><h5>Product</h5><ul><li><a href="/departments.html">Departments</a></li><li><a href="/doctors.html">Doctors</a></li><li><a href="/register">Book an appointment</a></li></ul></div>
+      <div><h5>Hospital</h5><ul><li><a href="/about.html">About us</a></li><li><a href="/contact.html">Contact</a></li><li><a href="/faq.html">FAQ</a></li></ul></div>
+      <div><h5>Legal</h5><ul><li><a href="/privacy-policy.html">Privacy policy</a></li><li><a href="/terms-of-service.html">Terms of service</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 MediFlow.</span><span>Portfolio project — placeholder imagery, not a real hospital.</span></div>
+  </div>
+</footer>
+
+<script>
+// TOC HIGHLIGHT ON SCROLL
+const sections = document.querySelectorAll('.legal-section');
+const tocLinks = document.querySelectorAll('.toc-link');
+
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(sec => {
+    const sectionTop = sec.offsetTop - 120;
+    if (pageYOffset >= sectionTop) {
+      current = sec.getAttribute('id');
+    }
+  });
+
+  tocLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === `#${current}`) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>
+
+</body>
+</html>
