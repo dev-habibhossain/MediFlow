@@ -32,7 +32,7 @@
 
 ## Project Overview
 
-The **Hospital Appointment Management System (HAMS)** is a multi-tenant-ready, production-grade SaaS web application designed to digitize and streamline the entire lifecycle of hospital appointment management — from patient discovery of doctors and departments, to booking, consultation, medical record-keeping, prescription issuance, and administrative oversight.
+The **Hospital Appointment Management System (HAMS)** is a production-grade, SaaS-style web application designed to digitize and streamline the entire lifecycle of hospital appointment management for a single hospital — from patient discovery of doctors and departments, to booking, consultation, medical record-keeping, prescription issuance, and administrative oversight.
 
 Unlike a static hospital marketing website, HAMS is a **transactional, role-based platform** with real business logic: scheduling conflicts, availability windows, appointment states, payment processing, notification pipelines, and audit-grade medical record handling. It is built to demonstrate enterprise-level engineering practices — clean architecture, authorization boundaries, data integrity, and scalable module design — suitable for a professional software engineering portfolio.
 

@@ -17,6 +17,13 @@ class Setting extends Model
 {
     use HasFactory;
 
+    protected function casts(): array
+    {
+        return [
+            'value' => 'string',
+        ];
+    }
+
     public function updatedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');

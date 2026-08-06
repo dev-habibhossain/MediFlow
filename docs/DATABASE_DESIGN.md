@@ -575,7 +575,15 @@ Included for completeness; managed largely by framework defaults rather than cus
 
 ---
 
-## ER Diagram (Mermaid)
+## ER Diagram
+
+### Core Schema (Image)
+
+The diagram below covers the 11 tables most central to the application's transactional flow. Supporting tables (`roles`, `permissions`, `department_doctor`, `doctor_schedule_exceptions`, `transactions`, `notifications`, `attachments`, `activity_logs`, `settings`) are omitted here for readability and are fully specified in the [Complete Entity List](#complete-entity-list) above and the full Mermaid diagram below.
+
+![HAMS core database schema](database-schema.svg)
+
+### Full Schema (Mermaid)
 
 ```mermaid
 erDiagram

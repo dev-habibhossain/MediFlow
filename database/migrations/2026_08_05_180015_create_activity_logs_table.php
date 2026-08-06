@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('description', 500)->nullable();
             $table->json('properties')->nullable();
             $table->string('ip_address', 45)->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('created_at')->useCurrent()->index();
         });
     }
 

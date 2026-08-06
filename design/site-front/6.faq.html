@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ & Knowledge Base — MediFlow</title>
+<meta name="description" content="Find instant answers to common questions regarding appointments, prescriptions, insurance, and clinic visits at MediFlow.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; padding: 0; }
+button { font: inherit; cursor: pointer; background: none; border: 0; color: inherit; }
+input { font: inherit; }
+
+:root {
+  --cream:      #F8F6EF;
+  --cream-alt:  #F0EEE3;
+  --card:       #FFFFFF;
+  --lime:       #DDF15C;
+  --lime-soft:  #EEF7C4;
+  --lime-text:  #3B4A12;
+  --forest:     #16301F;
+  --forest-2:   #1E4029;
+  --ink:        #16180F;
+  --ink-muted:  #62655A;
+  --line:       #E7E3D3;
+  --gray-card:  #EFEDE4;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-card: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06);
+  --shadow-lift: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10);
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wrap { max-width: 1320px; margin-inline: auto; padding-inline: 32px; position: relative; }
+@media (max-width: 640px) { .wrap { padding-inline: 20px; } }
+
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--forest); outline-offset: 3px; border-radius: 4px; }
+
+/* ============ PILLS / BUTTONS ============ */
+.pill { display: inline-flex; align-items: center; gap: 6px; background: var(--lime); color: var(--lime-text); font-size: 13px; font-weight: 600; padding: 7px 16px 7px 12px; border-radius: 999px; }
+.pill svg { width: 14px; height: 14px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 54px; padding: 0 28px; border-radius: 999px; font-size: 15.5px; font-weight: 600; transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-card); }
+.btn-primary:hover { background: var(--forest-2); box-shadow: var(--shadow-lift); }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid rgba(22,24,15,0.16); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-sm { height: 44px; padding: 0 20px; font-size: 13.5px; }
+
+/* ============ HEADER ============ */
+.site-header { position: sticky; top: 0; z-index: 40; padding-top: 20px; }
+.nav-shell { display: flex; align-items: center; justify-content: space-between; background: rgba(248,246,239,0.9); backdrop-filter: blur(12px); border: 1px solid rgba(22,24,15,0.06); border-radius: 999px; padding: 8px 8px 8px 22px; box-shadow: var(--shadow-card); }
+.logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; letter-spacing: -0.01em; }
+.logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--forest); display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 17px; height: 17px; color: var(--lime); }
+.main-nav { display: flex; align-items: center; gap: 4px; }
+.main-nav a { font-size: 14px; font-weight: 500; color: var(--ink-muted); padding: 10px 15px; border-radius: 999px; transition: background-color 150ms ease, color 150ms ease; }
+.main-nav a:hover { background: rgba(22,24,15,0.05); color: var(--ink); }
+.main-nav a.active { background: var(--lime); color: var(--lime-text); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.phone-block { display: flex; align-items: center; gap: 8px; padding: 0 6px; font-size: 13px; }
+.phone-block svg { width: 16px; height: 16px; color: var(--ink-muted); }
+.phone-block b { display: block; font-size: 13.5px; }
+.phone-block span { color: var(--ink-muted); font-size: 11.5px; }
+@media (max-width: 980px) { .main-nav, .phone-block { display: none; } }
+
+/* ============ PAGE HERO SKELETON ============ */
+.faq-hero { padding: 52px 0 28px; }
+.faq-hero-box { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 40px; box-shadow: var(--shadow-card); display: grid; grid-template-columns: 1fr 380px; gap: 32px; align-items: center; }
+@media (max-width: 960px) { .faq-hero-box { grid-template-columns: 1fr; padding: 28px; } }
+
+.faq-hero-left h1 { font-size: clamp(2.2rem, 1.6rem + 2vw, 3rem); font-weight: 800; letter-spacing: -0.02em; color: var(--forest); margin-bottom: 12px; line-height: 1.15; }
+.faq-hero-left p { font-size: 16px; color: var(--ink-muted); max-width: 52ch; }
+
+.faq-search-widget { position: relative; width: 100%; }
+.faq-search-widget svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--ink-muted); pointer-events: none; }
+.faq-search-widget input { width: 100%; height: 52px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--cream); padding-left: 46px; padding-right: 18px; font-size: 14.5px; transition: border-color 150ms ease, background-color 150ms ease; }
+.faq-search-widget input:focus { border-color: var(--forest); background: var(--card); }
+
+/* ============ SKELETON 2-COLUMN SPLIT ============ */
+.faq-split-layout { display: grid; grid-template-columns: 280px 1fr; gap: 36px; padding: 40px 0 80px; align-items: start; }
+@media (max-width: 960px) { .faq-split-layout { grid-template-columns: 1fr; } }
+
+/* SIDEBAR SKELETON */
+.faq-sidebar { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-card); position: sticky; top: 100px; }
+.sidebar-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); margin-bottom: 14px; padding-left: 8px; }
+
+.nav-cat-link { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; margin-bottom: 4px; }
+.nav-cat-link:hover { background: var(--cream); color: var(--ink); }
+.nav-cat-link.active { background: var(--forest); color: #fff; }
+.nav-cat-link span.badge { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; background: rgba(22,24,15,0.06); padding: 2px 8px; border-radius: 999px; }
+.nav-cat-link.active span.badge { background: rgba(255,255,255,0.2); color: #fff; }
+
+.sidebar-contact-card { background: var(--cream-alt); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px; margin-top: 20px; text-align: center; }
+.sidebar-contact-card h5 { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--forest); }
+.sidebar-contact-card p { font-size: 12.5px; color: var(--ink-muted); margin-bottom: 12px; line-height: 1.45; }
+
+/* CONTENT AREA SKELETON */
+.faq-content-area { display: flex; flex-direction: column; gap: 32px; }
+
+.faq-topic-block { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-card); }
+.topic-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+.topic-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--lime-soft); color: var(--lime-text); display: flex; align-items: center; justify-content: center; }
+.topic-icon svg { width: 20px; height: 20px; }
+.topic-header h2 { font-size: 20px; font-weight: 800; color: var(--forest); }
+
+/* GRID CARDS FOR POPULAR QUICK READS */
+.popular-cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+@media (max-width: 600px) { .popular-cards-grid { grid-template-columns: 1fr; } }
+
+.quick-card { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 20px; transition: border-color 150ms ease; }
+.quick-card:hover { border-color: var(--forest); }
+.quick-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--ink); }
+.quick-card p { font-size: 13.5px; color: var(--ink-muted); line-height: 1.55; }
+
+/* PANEL PANELS */
+.panel-stack { display: flex; flex-direction: column; gap: 12px; }
+.panel-item { border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--card); overflow: hidden; transition: border-color 150ms ease; }
+.panel-item.open { border-color: var(--forest); }
+
+.panel-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; text-align: left; font-size: 15px; font-weight: 700; color: var(--ink); }
+.panel-q .icon-wrap { width: 28px; height: 28px; border-radius: 50%; background: var(--cream-alt); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform 200ms ease, background-color 200ms ease; }
+.panel-q .icon-wrap svg { width: 13px; height: 13px; }
+
+.panel-item.open .panel-q .icon-wrap { background: var(--lime); transform: rotate(180deg); }
+.panel-a { max-height: 0; overflow: hidden; transition: max-height 250ms ease; background: var(--cream); }
+.panel-a-inner { padding: 16px 20px; font-size: 14px; color: var(--ink-muted); line-height: 1.6; border-top: 1px solid var(--line); }
+
+.no-search-results { padding: 48px 20px; text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); display: none; }
+.no-search-results h4 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.no-search-results p { font-size: 14px; color: var(--ink-muted); }
+
+/* ============ CLOSING BANNER ============ */
+.closing { background: var(--forest); border-radius: var(--radius-xl); padding: 52px 40px; display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap; color: #fff; position: relative; overflow: hidden; margin-bottom: 80px; }
+.closing::before { content: ""; position: absolute; top: -80px; right: -60px; width: 240px; height: 240px; border-radius: 50%; background: var(--lime); opacity: 0.15; filter: blur(10px); }
+.closing h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.015em; max-width: 24ch; position: relative; }
+.closing p { color: rgba(255,255,255,0.65); font-size: 14px; margin-top: 6px; position: relative; }
+.closing .btn-primary { background: var(--lime); color: var(--lime-text); position: relative; }
+.closing .btn-primary:hover { background: #ecf99c; }
+
+/* ============ FOOTER ============ */
+footer { padding: 64px 0 32px; position: relative; z-index: 1; border-top: 1px solid var(--line); }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 32px; padding-bottom: 36px; }
+@media (max-width: 800px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+.footer-grid p { font-size: 13.5px; color: var(--ink-muted); max-width: 260px; line-height: 1.6; margin-top: 12px; }
+footer h5 { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px; color: var(--ink-muted); }
+footer ul li { margin-bottom: 10px; }
+footer ul a { font-size: 14px; transition: opacity 150ms ease; }
+footer ul a:hover { opacity: 0.6; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 24px; font-size: 13px; color: var(--ink-muted); flex-wrap: wrap; gap: 12px; }
+
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="nav-shell">
+      <a href="/" class="logo">
+        <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>
+        MediFlow
+      </a>
+      <nav class="main-nav" aria-label="Primary">
+        <a href="/about.html">About</a>
+        <a href="/departments.html">Departments</a>
+        <a href="/doctors.html">Doctors</a>
+        <a href="/faq.html" class="active">FAQ</a>
+        <a href="/contact.html">Contact</a>
+      </nav>
+      <div class="header-right">
+        <div class="phone-block">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <span><b>(555) 340-2199</b><span>120 Harbor Ave</span></span>
+        </div>
+        <a href="/register" class="btn btn-primary btn-sm">Book now</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="wrap">
+    
+    <!-- HERO SECTION WITH INTEGRATED SEARCH -->
+    <section class="faq-hero">
+      <div class="faq-hero-box">
+        <div class="faq-hero-left">
+          <span class="pill" style="margin-bottom:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>Knowledge Base</span>
+          <h1>How can we assist you today?</h1>
+          <p>Find quick answers regarding clinic procedures, online appointments, digital health records, and insurance coverage.</p>
+        </div>
+        <div class="faq-search-widget">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="liveSearchInput" placeholder="Search keywords (e.g. reschedule, lab, fee)..." aria-label="Search Knowledge Base">
+        </div>
+      </div>
+    </section>
+
+    <!-- 2-COLUMN SPLIT SKELETON LAYOUT -->
+    <div class="faq-split-layout">
+      
+      <!-- STICKY SIDEBAR CATEGORY NAVIGATION -->
+      <aside class="faq-sidebar">
+        <div class="sidebar-title">Categories</div>
+        <a href="#booking" class="nav-cat-link active" data-target="booking">
+          <span>Booking & Visits</span>
+          <span class="badge">3</span>
+        </a>
+        <a href="#records" class="nav-cat-link" data-target="records">
+          <span>Records & Reports</span>
+          <span class="badge">2</span>
+        </a>
+        <a href="#billing" class="nav-cat-link" data-target="billing">
+          <span>Fees & Insurance</span>
+          <span class="badge">2</span>
+        </a>
+        <a href="#policies" class="nav-cat-link" data-target="policies">
+          <span>Clinic Policies</span>
+          <span class="badge">2</span>
+        </a>
+
+        <div class="sidebar-contact-card">
+          <h5>Have a unique question?</h5>
+          <p>Our front desk assistance team is standing by.</p>
+          <a href="/contact.html" class="btn btn-outline btn-sm" style="width:100%;">Contact Desk</a>
+        </div>
+      </aside>
+
+      <!-- CONTENT AREA -->
+      <div class="faq-content-area" id="faqContentArea">
+
+        <!-- SECTION 1: BOOKING & VISITS -->
+        <div class="faq-topic-block" id="booking" data-section="booking">
+          <div class="topic-header">
+            <div class="topic-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+            <h2>Booking & Consultations</h2>
+          </div>
+
+          <!-- QUICK-READ HIGHLIGHT CARDS -->
+          <div class="popular-cards-grid">
+            <div class="quick-card" data-keywords="phone booking online schedule slot">
+              <h4>No Phone Call Needed</h4>
+              <p>Pick a doctor, choose a live time slot, and confirm instantly through our online booking system.</p>
+            </div>
+            <div class="quick-card" data-keywords="reschedule cancel change time slot">
+              <h4>Free Rescheduling</h4>
+              <p>Change or cancel your visit up to 2 hours before your scheduled appointment at no charge.</p>
+            </div>
+          </div>
+
+          <!-- DETAILED ACCORDION PANELS -->
+          <div class="panel-stack">
+            <div class="panel-item" data-keywords="same day urgent walk in visit consultation">
+              <button class="panel-q"><span>How do same-day consultations work?</span><span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></button>
+              <div class="panel-a"><div class="panel-a-inner">Open slots appear on doctor schedules in real time when cancellations occur. You can reserve available same-day slots through the Doctors directory or visit our 24/7 Urgent Unit.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: RECORDS & REPORTS -->
+        <div class="faq-topic-block" id="records" data-section="records">
+          <div class="topic-header">
+            <div class="topic-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <h2>Records & Prescriptions</h2>
+          </div>
+
+          <div class="panel-stack">
+            <div class="panel-item" data-keywords="prescriptions notes history diagnosis download pdf portal">
+              <button class="panel-q"><span>Where can I download my prescription PDF?</span><span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></button>
+              <div class="panel-a"><div class="panel-a-inner">All doctor notes, diagnosis summaries, and digital prescriptions are attached to your visit history inside your patient account immediately after your consultation.</div></div>
+            </div>
+
+            <div class="panel-item" data-keywords="lab results blood test x-ray report turnaround time portal">
+              <button class="panel-q"><span>How long does it take to receive lab test results?</span><span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></button>
+              <div class="panel-a"><div class="panel-a-inner">Standard blood panels and express diagnostics are processed within 4 to 12 hours. Reports are delivered directly to your portal with an automated notification.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: FEES & INSURANCE -->
+        <div class="faq-topic-block" id="billing" data-section="billing">
+          <div class="topic-header">
+            <div class="topic-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+            <h2>Fees & Insurance</h2>
+          </div>
+
+          <div class="panel-stack">
+            <div class="panel-item" data-keywords="consultation fee pricing transparent cost upfront surprise billing">
+              <button class="panel-q"><span>Are consultation fees shown before booking?</span><span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></button>
+              <div class="panel-a"><div class="panel-a-inner">Yes. Every physician profile displays their exact consultation fee upfront before you confirm your appointment. MediFlow charges zero extra administrative fees.</div></div>
+            </div>
+
+            <div class="panel-item" data-keywords="insurance health coverage claim reimbursement direct billing health card">
+              <button class="panel-q"><span>How do health insurance claims work?</span><span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></button>
+              <div class="panel-a"><div class="panel-a-inner">We support direct billing with major partner insurance networks. Present your card during check-in or enter policy details online to generate pre-formatted claim receipts.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 4: CLINIC POLICIES -->
+        <div class="faq-topic-block" id="policies" data-section="policies">
+          <div class="topic-header">
+            <div class="topic-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h2>Clinic Policies</h2>
+          </div>
+
+          <div class="panel-stack">
+            <div class="panel-item" data-keywords="first visit ID arrival documents check in front desk">
+              <button class="panel-q"><span>What should I bring for my first clinic visit?</span><span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></button>
+              <div class="panel-a"><div class="panel-a-inner">Please bring a government-issued photo ID, your insurance card, and any relevant past medical records. Arriving 10 minutes prior allows for quick reception check-in.</div></div>
+            </div>
+
+            <div class="panel-item" data-keywords="telehealth online consultation video call virtual doctor">
+              <button class="panel-q"><span>Do you offer virtual/telehealth consultations?</span><span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></span></button>
+              <div class="panel-a"><div class="panel-a-inner">Yes. Many of our specialists offer video consultations. Look for the "Telehealth" badge on the doctor directory to book a virtual appointment.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-search-results" id="noSearchResults">
+          <h4>No matching articles found</h4>
+          <p>Try searching with another keyword or reach out directly to our patient support desk.</p>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- CLOSING CTA BANNER -->
+    <div class="closing">
+      <div>
+        <h2>Still need assistance?</h2>
+        <p>Our patient care desk is available to match you with the right specialist.</p>
+      </div>
+      <a href="/contact.html" class="btn btn-primary">Contact Support Desk</a>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a href="/" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/></svg></span>MediFlow</a>
+        <p>Online appointment booking and family care coordination — one account for every specialist your household needs.</p>
+      </div>
+      <div><h5>Product</h5><ul><li><a href="/departments.html">Departments</a></li><li><a href="/doctors.html">Doctors</a></li><li><a href="/register">Book an appointment</a></li></ul></div>
+      <div><h5>Hospital</h5><ul><li><a href="/about.html">About us</a></li><li><a href="/contact.html">Contact</a></li><li><a href="/faq.html">FAQ</a></li></ul></div>
+      <div><h5>Legal</h5><ul><li><a href="/privacy-policy">Privacy policy</a></li><li><a href="/terms-of-service">Terms of service</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2026 MediFlow.</span><span>Portfolio project — placeholder imagery, not a real hospital.</span></div>
+  </div>
+</footer>
+
+<script>
+// PANEL TOGGLE LOGIC
+document.querySelectorAll('.panel-item').forEach(item => {
+  const btn = item.querySelector('.panel-q');
+  const body = item.querySelector('.panel-a');
+  
+  btn.addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.panel-item.open').forEach(p => {
+      p.classList.remove('open');
+      p.querySelector('.panel-a').style.maxHeight = '0px';
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      body.style.maxHeight = body.scrollHeight + 'px';
+    }
+  });
+});
+
+// SIDEBAR SMOOTH NAV
+const navLinks = document.querySelectorAll('.nav-cat-link');
+navLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    navLinks.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+
+// REAL-TIME SEARCH LOGIC
+const searchInput = document.getElementById('liveSearchInput');
+const topicBlocks = document.querySelectorAll('.faq-topic-block');
+const noResults = document.getElementById('noSearchResults');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  let totalMatch = 0;
+
+  topicBlocks.forEach(block => {
+    let blockMatch = 0;
+
+    const cards = block.querySelectorAll('.quick-card');
+    cards.forEach(card => {
+      const keys = card.getAttribute('data-keywords').toLowerCase();
+      const txt = card.textContent.toLowerCase();
+      if (q === '' || keys.includes(q) || txt.includes(q)) {
+        card.style.display = 'block';
+        blockMatch++;
+        totalMatch++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    const panels = block.querySelectorAll('.panel-item');
+    panels.forEach(panel => {
+      const keys = panel.getAttribute('data-keywords').toLowerCase();
+      const txt = panel.textContent.toLowerCase();
+      if (q === '' || keys.includes(q) || txt.includes(q)) {
+        panel.style.display = 'block';
+        blockMatch++;
+        totalMatch++;
+      } else {
+        panel.style.display = 'none';
+      }
+    });
+
+    block.style.display = blockMatch > 0 ? 'block' : 'none';
+  });
+
+  noResults.style.display = totalMatch === 0 ? 'block' : 'none';
+});
+</script>
+
+</body>
+</html>
