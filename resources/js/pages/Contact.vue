@@ -3,6 +3,12 @@ import PublicLayout from '@/layouts/PublicLayout.vue'
 import { useForm, usePage } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
+interface Department {
+    id: number
+    name: string
+    slug: string
+}
+
 defineProps<{
     contactDetails: {
         address: string
@@ -10,11 +16,14 @@ defineProps<{
         email: string
         hours: string
     }
+    departments?: Department[]
 }>()
 
 const form = useForm({
     name: '',
     email: '',
+    phone: '',
+    department_id: '',
     subject: '',
     message: '',
 })
@@ -74,7 +83,7 @@ function submit() {
                     <!-- CONTACT FORM -->
                     <div class="lg:col-span-2 bg-white border border-[#E7E3D3] rounded-3xl p-8 md:p-10 shadow-card">
                         <h3 class="text-2xl font-bold mb-2 text-[#16301F]">Send Us a <b>Direct Message</b></h3>
-                        <p class="text-sm text-[#62655A] mb-6">Fill out the form below and our administrative desk will get back to you within 24 hours.</p>
+                        <p class="text-sm text-[#62655A] mb-6">Fill out the form below and our administrative desk will save your inquiry in our system.</p>
 
                         <div v-if="flashSuccess" class="mb-6 p-4 rounded-xl bg-[#EEF7C4] text-[#3B4A12] text-sm font-semibold">
                             <b>{{ flashSuccess }}</b>
@@ -83,32 +92,51 @@ function submit() {
                         <form @submit.prevent="submit" class="space-y-5">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Your Name</label>
+                                    <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Your Name *</label>
                                     <input v-model="form.name" type="text" required placeholder="John Doe" class="w-full h-12 rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] px-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all">
                                     <span v-if="form.errors.name" class="text-xs text-red-600 mt-1 block">{{ form.errors.name }}</span>
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Email Address</label>
+                                    <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Email Address *</label>
                                     <input v-model="form.email" type="email" required placeholder="john@example.com" class="w-full h-12 rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] px-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all">
                                     <span v-if="form.errors.email" class="text-xs text-red-600 mt-1 block">{{ form.errors.email }}</span>
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Phone Number</label>
+                                    <input v-model="form.phone" type="tel" placeholder="+1 (555) 000-0000" class="w-full h-12 rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] px-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all">
+                                    <span v-if="form.errors.phone" class="text-xs text-red-600 mt-1 block">{{ form.errors.phone }}</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Department (Optional)</label>
+                                    <select v-model="form.department_id" class="w-full h-12 rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] px-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all">
+                                        <option value="">General Support Desk</option>
+                                        <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+                                            {{ dept.name }} Department
+                                        </option>
+                                    </select>
+                                    <span v-if="form.errors.department_id" class="text-xs text-red-600 mt-1 block">{{ form.errors.department_id }}</span>
+                                </div>
+                            </div>
+
                             <div>
-                                <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Subject</label>
-                                <input v-model="form.subject" type="text" required placeholder="General inquiry, feedback..." class="w-full h-12 rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] px-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all">
+                                <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Subject *</label>
+                                <input v-model="form.subject" type="text" required placeholder="Appointment inquiry, general feedback..." class="w-full h-12 rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] px-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all">
                                 <span v-if="form.errors.subject" class="text-xs text-red-600 mt-1 block">{{ form.errors.subject }}</span>
                             </div>
 
                             <div>
-                                <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Message</label>
-                                <textarea v-model="form.message" rows="5" required placeholder="How can we assist you today?" class="w-full rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] p-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all resize-none"></textarea>
+                                <label class="block text-xs font-semibold text-[#62655A] mb-1.5">Message *</label>
+                                <textarea v-model="form.message" rows="5" required placeholder="How can our care team assist you today?" class="w-full rounded-xl border border-[#E7E3D3] bg-[#F8F6EF] p-4 text-sm focus:border-[#16301F] focus:bg-white outline-none transition-all resize-none"></textarea>
                                 <span v-if="form.errors.message" class="text-xs text-red-600 mt-1 block">{{ form.errors.message }}</span>
                             </div>
 
                             <button type="submit" :disabled="form.processing" class="w-full md:w-auto px-8 py-3.5 rounded-full bg-[#16301F] text-white hover:bg-[#1E4029] font-semibold text-sm transition-colors disabled:opacity-50 cursor-pointer">
-                                {{ form.processing ? 'Sending Message...' : 'Send Message' }}
+                                {{ form.processing ? 'Saving Message...' : 'Send Message' }}
                             </button>
                         </form>
                     </div>

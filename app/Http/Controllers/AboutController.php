@@ -12,7 +12,7 @@ use Inertia\Response;
 class AboutController extends Controller
 {
     /**
-     * Display the About Us page with hospital metrics and mission highlights.
+     * Display the About Us page with hospital metrics, departments, and doctors.
      */
     public function __invoke(): Response
     {
@@ -23,8 +23,14 @@ class AboutController extends Controller
             'appointments_count' => Appointment::count(),
         ];
 
+        $featuredDoctors = Doctor::with(['user:id,name,avatar_path', 'department:id,name,slug'])
+            ->where('status', 'active')
+            ->take(4)
+            ->get();
+
         return Inertia::render('About', [
             'stats' => $stats,
+            'featuredDoctors' => $featuredDoctors,
         ]);
     }
 }

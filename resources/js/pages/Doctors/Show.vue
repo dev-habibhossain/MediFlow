@@ -89,7 +89,8 @@ function selectSlot(slotStr: string) {
                                 <span class="status-dot"></span> Available Today
                             </span>
                             <div class="avatar-large">
-                                {{ doctor.user.name.charAt(0) }}
+                                <img v-if="doctor.user.avatar_path" :src="doctor.user.avatar_path" :alt="doctor.user.name" class="w-full h-full object-cover rounded-2xl" />
+                                <template v-else>{{ doctor.user.name.charAt(0) }}</template>
                             </div>
                         </div>
 

@@ -162,7 +162,8 @@ const sortedDoctors = computed(() => {
                                 </span>
 
                                 <div class="avatar-ph">
-                                    {{ doc.user.name.charAt(0) }}
+                                    <img v-if="doc.user.avatar_path" :src="doc.user.avatar_path" :alt="doc.user.name" class="w-full h-full object-cover rounded-2xl" />
+                                    <template v-else>{{ doc.user.name.charAt(0) }}</template>
                                 </div>
 
                                 <span class="doc-dept-badge"><b>{{ doc.department.name }}</b></span>

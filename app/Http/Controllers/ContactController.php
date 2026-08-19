@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContactMessage;
+use App\Models\Department;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,23 +24,39 @@ class ContactController extends Controller
             'hours' => 'Mon–Fri: 8:00 AM – 8:00 PM · Sat: 9:00 AM – 4:00 PM',
         ];
 
+        $departments = Department::where('is_active', true)->select('id', 'name', 'slug')->get();
+
         return Inertia::render('Contact', [
             'contactDetails' => $contactDetails,
+            'departments' => $departments,
         ]);
     }
 
     /**
-     * Process a contact form submission inquiry.
+     * Process a contact form submission inquiry and store in database.
      */
     public function submit(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'department_id' => 'nullable|exists:departments,id',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:2000',
         ]);
 
-        return back()->with('success', 'Thank you! Your message has been received and our desk team will contact you shortly.');
+        ContactMessage::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'department_id' => $validated['department_id'] ?? null,
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'status' => 'unread',
+            'ip_address' => $request->ip(),
+        ]);
+
+        return back()->with('success', 'Thank you! Your message has been saved into our system and our care desk team will respond shortly.');
     }
 }

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\ActivityLog;
 use App\Models\Appointment;
 use App\Models\Attachment;
+use App\Models\ContactMessage;
 use App\Models\Department;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
@@ -86,11 +87,14 @@ class DatabaseSeeder extends Seeder
 
         // 4. Create Doctors & Schedules
         $doctorsData = [
-            ['name' => 'Dr. Sarah Jenkins', 'email' => 'sarah.jenkins@mediflow.com', 'spec' => 'Consultant Cardiologist', 'fee' => 120.00, 'exp' => 12],
-            ['name' => 'Dr. Michael Chen', 'email' => 'michael.chen@mediflow.com', 'spec' => 'Pediatric Specialist', 'fee' => 90.00, 'exp' => 8],
-            ['name' => 'Dr. Elena Rostova', 'email' => 'elena.rostova@mediflow.com', 'spec' => 'Senior Neurologist', 'fee' => 150.00, 'exp' => 16],
-            ['name' => 'Dr. James Wilson', 'email' => 'james.wilson@mediflow.com', 'spec' => 'Orthopedic Surgeon', 'fee' => 130.00, 'exp' => 14],
-            ['name' => 'Dr. Emily Watson', 'email' => 'emily.watson@mediflow.com', 'spec' => 'General Physician', 'fee' => 70.00, 'exp' => 6],
+            ['name' => 'Dr. Sarah Jenkins', 'email' => 'sarah.jenkins@mediflow.com', 'spec' => 'Consultant Cardiologist', 'fee' => 120.00, 'exp' => 12, 'avatar' => 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=600&q=80'],
+            ['name' => 'Dr. Michael Chen', 'email' => 'michael.chen@mediflow.com', 'spec' => 'Pediatric Specialist', 'fee' => 90.00, 'exp' => 8, 'avatar' => 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80'],
+            ['name' => 'Dr. Elena Rostova', 'email' => 'elena.rostova@mediflow.com', 'spec' => 'Senior Neurologist', 'fee' => 150.00, 'exp' => 16, 'avatar' => 'https://images.unsplash.com/photo-1594824813566-78a0c4f74d0e?auto=format&fit=crop&w=600&q=80'],
+            ['name' => 'Dr. James Wilson', 'email' => 'james.wilson@mediflow.com', 'spec' => 'Orthopedic Surgeon', 'fee' => 130.00, 'exp' => 14, 'avatar' => 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80'],
+            ['name' => 'Dr. Emily Watson', 'email' => 'emily.watson@mediflow.com', 'spec' => 'General Physician', 'fee' => 70.00, 'exp' => 6, 'avatar' => 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=600&q=80'],
+            ['name' => 'Dr. Nadia Islam', 'email' => 'nadia.islam@mediflow.com', 'spec' => 'Preventive Cardiologist', 'fee' => 125.00, 'exp' => 10, 'avatar' => 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80'],
+            ['name' => 'Dr. Rashid Khan', 'email' => 'rashid.khan@mediflow.com', 'spec' => 'Cardiac Electrophysiologist', 'fee' => 140.00, 'exp' => 11, 'avatar' => 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&w=600&q=80'],
+            ['name' => 'Dr. Sophia Martinez', 'email' => 'sophia.martinez@mediflow.com', 'spec' => 'Child Health Specialist', 'fee' => 95.00, 'exp' => 9, 'avatar' => 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&w=600&q=80'],
         ];
 
         $doctors = collect();
@@ -98,6 +102,7 @@ class DatabaseSeeder extends Seeder
             $user = User::factory()->create([
                 'name' => $docInfo['name'],
                 'email' => $docInfo['email'],
+                'avatar_path' => $docInfo['avatar'],
                 'phone' => '+1555100000'.($index + 1),
                 'is_active' => true,
             ]);
@@ -361,5 +366,28 @@ class DatabaseSeeder extends Seeder
         Setting::create(['key' => 'support_email', 'value' => 'support@mediflow.com', 'type' => 'string', 'updated_by' => $adminUser->id]);
         Setting::create(['key' => 'currency', 'value' => 'USD', 'type' => 'string', 'updated_by' => $adminUser->id]);
         Setting::create(['key' => 'default_slot_duration', 'value' => '30', 'type' => 'integer', 'updated_by' => $adminUser->id]);
+
+        // 10. Sample Contact Messages
+        ContactMessage::create([
+            'name' => 'Alexander Wright',
+            'email' => 'alex.wright@example.com',
+            'phone' => '+15554321098',
+            'department_id' => $departments->first()?->id,
+            'subject' => 'Inquiry regarding Cardiology Screening',
+            'message' => 'Hello MediFlow Desk, I would like to know if Dr. Sarah Jenkins is accepting new patients for cardiac risk evaluation next week.',
+            'status' => 'unread',
+            'ip_address' => '127.0.0.1',
+        ]);
+
+        ContactMessage::create([
+            'name' => 'Maria Garcia',
+            'email' => 'm.garcia@example.com',
+            'phone' => '+15559876543',
+            'department_id' => $departments->skip(1)->first()?->id,
+            'subject' => 'Pediatric Consultation Hours',
+            'message' => 'Hi team, could you please confirm Saturday consultation hours for Dr. Michael Chen?',
+            'status' => 'read',
+            'ip_address' => '127.0.0.1',
+        ]);
     }
 }

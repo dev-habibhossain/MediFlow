@@ -331,7 +331,8 @@ function handleNewsletterSubmit() {
                 <div class="doctor-scroll">
                     <div v-for="doc in doctors" :key="doc.id" class="doctor-card">
                         <div class="doctor-photo">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                            <img v-if="doc.user.avatar_path" :src="doc.user.avatar_path" :alt="doc.user.name" class="w-full h-full object-cover rounded-2xl" />
+                            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
                             <span class="spec-tag">{{ doc.department?.name || doc.specialization }}</span>
                         </div>
                         <h4>{{ doc.user.name }}</h4>

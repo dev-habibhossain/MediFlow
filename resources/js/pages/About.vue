@@ -9,8 +9,23 @@ interface Stats {
     appointments_count: number
 }
 
+interface Doctor {
+    id: number
+    specialization: string
+    license_number: string
+    user: {
+        name: string
+        avatar_path?: string
+    }
+    department: {
+        name: string
+        slug: string
+    }
+}
+
 defineProps<{
     stats: Stats
+    featuredDoctors?: Doctor[]
 }>()
 </script>
 
@@ -137,7 +152,9 @@ defineProps<{
 
                     <div class="leadership-grid">
                         <div class="leader-card">
-                            <div class="leader-avatar">AM</div>
+                            <div class="leader-avatar overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=600&q=80" alt="Dr. Arthur Miller" class="w-full h-full object-cover" />
+                            </div>
                             <div class="leader-info">
                                 <h4>Dr. Arthur Miller</h4>
                                 <span>Chief Medical Officer</span>
@@ -146,7 +163,9 @@ defineProps<{
                         </div>
 
                         <div class="leader-card">
-                            <div class="leader-avatar">SL</div>
+                            <div class="leader-avatar overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1594824813566-78a0c4f74d0e?auto=format&fit=crop&w=600&q=80" alt="Dr. Sophia Lin" class="w-full h-full object-cover" />
+                            </div>
                             <div class="leader-info">
                                 <h4>Dr. Sophia Lin</h4>
                                 <span>Head of Diagnostics</span>
@@ -155,7 +174,9 @@ defineProps<{
                         </div>
 
                         <div class="leader-card">
-                            <div class="leader-avatar">DH</div>
+                            <div class="leader-avatar overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=80" alt="Daniel Hays" class="w-full h-full object-cover" />
+                            </div>
                             <div class="leader-info">
                                 <h4>Daniel Hays</h4>
                                 <span>Director of Operations</span>
