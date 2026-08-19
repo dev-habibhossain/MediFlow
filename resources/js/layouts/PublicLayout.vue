@@ -41,6 +41,7 @@ function isActive(path: string): boolean {
                     </Link>
 
                     <nav class="main-nav" aria-label="Primary">
+                        <Link href="/" :class="{ active: isActive('/') }">Home</Link>
                         <Link href="/about" :class="{ active: isActive('/about') }">About</Link>
                         <Link href="/departments" :class="{ active: isActive('/departments') }">Departments</Link>
                         <Link href="/doctors" :class="{ active: isActive('/doctors') }">Doctors</Link>
