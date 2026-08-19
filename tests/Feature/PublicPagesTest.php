@@ -91,6 +91,14 @@ test('contact page loads and accepts contact submission', function () {
 
     $response->assertRedirect();
     $response->assertSessionHas('success');
+
+    $this->assertDatabaseHas('contact_messages', [
+        'name' => 'Jane Doe',
+        'email' => 'jane@example.com',
+        'subject' => 'General Information',
+        'message' => 'Hello MediFlow team!',
+        'status' => 'unread',
+    ]);
 });
 
 test('faq and legal pages load successfully', function () {
