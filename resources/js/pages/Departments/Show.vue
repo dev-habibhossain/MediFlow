@@ -152,11 +152,9 @@ function getProcedureCards(slug: string) {
                                     <span class="status-indicator doc-status-pin">
                                         <span class="status-dot"></span> Available Today
                                     </span>
-                                    <div class="avatar-ph">
-                                        <img v-if="doc.user.avatar_path" :src="doc.user.avatar_path" :alt="doc.user.name" class="w-full h-full object-cover rounded-2xl" />
-                                        <div v-else class="initials-avatar">
-                                            {{ doc.user.name.charAt(0) }}
-                                        </div>
+                                    <img v-if="doc.user.avatar_path" :src="doc.user.avatar_path" :alt="doc.user.name" class="doc-img" />
+                                    <div v-else class="avatar-ph">
+                                        {{ doc.user.name.charAt(0) }}
                                     </div>
                                     <span class="doc-dept-badge">{{ doc.specialization }}</span>
                                 </div>
@@ -316,8 +314,9 @@ b { font-weight: 700; color: inherit; }
 .doctor-card-full { background: #FFFFFF; border: 1px solid #E7E3D3; border-radius: 24px; padding: 24px; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); transition: box-shadow 150ms ease, transform 150ms ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; }
 .doctor-card-full:hover { box-shadow: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10); transform: translateY(-3px); }
 
-.doc-photo-wrap { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; background: linear-gradient(150deg, #EDEAD9, #C7CBB4); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; overflow: hidden; }
-.initials-avatar { font-size: 2.5rem; font-weight: 800; color: #16301F; }
+.doc-photo-wrap { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; background: linear-gradient(150deg, #16301F, #3a6b4c); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; overflow: hidden; }
+.doc-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 16px; }
+.avatar-ph { width: 68px; height: 68px; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; }
 
 .doc-status-pin { position: absolute; top: 12px; right: 12px; z-index: 2; }
 .doc-dept-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(255,255,255,0.92); backdrop-filter: blur(6px); color: #16180F; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; z-index: 2; }

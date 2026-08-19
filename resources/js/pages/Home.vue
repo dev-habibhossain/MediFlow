@@ -618,7 +618,8 @@ section { padding: 80px 0; position: relative; z-index: 1; }
 .doctor-scroll { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
 @media (max-width: 1080px) { .doctor-scroll { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 640px) { .doctor-scroll { grid-template-columns: repeat(2, 1fr); } }
-.doctor-photo { border-radius: 24px; aspect-ratio: 3/4; background: linear-gradient(150deg, #EDEAD9, #C7CBB4); box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; position: relative; overflow: hidden; }
+.doctor-photo { border-radius: 24px; aspect-ratio: 3/4; background: linear-gradient(150deg, #16301F, #3a6b4c); box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; position: relative; overflow: hidden; }
+.doctor-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 24px; }
 .doctor-photo svg { width: 44px; height: 44px; color: #fff; opacity: 0.55; }
 .doctor-photo .spec-tag { position: absolute; bottom: 12px; left: 12px; background: #FFFFFF; font-size: 11.5px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
 .doctor-card h4 { font-size: 14.5px; font-weight: 600; line-height: 1.35; }

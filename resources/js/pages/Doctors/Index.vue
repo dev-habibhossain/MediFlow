@@ -161,9 +161,9 @@ const sortedDoctors = computed(() => {
                                     <span class="status-dot"></span> Available {{ idx % 2 === 0 ? 'Today' : 'Tomorrow' }}
                                 </span>
 
-                                <div class="avatar-ph">
-                                    <img v-if="doc.user.avatar_path" :src="doc.user.avatar_path" :alt="doc.user.name" class="w-full h-full object-cover rounded-2xl" />
-                                    <template v-else>{{ doc.user.name.charAt(0) }}</template>
+                                <img v-if="doc.user.avatar_path" :src="doc.user.avatar_path" :alt="doc.user.name" class="doc-img" />
+                                <div v-else class="avatar-ph">
+                                    {{ doc.user.name.charAt(0) }}
                                 </div>
 
                                 <span class="doc-dept-badge"><b>{{ doc.department.name }}</b></span>
@@ -331,6 +331,7 @@ b { font-weight: 700; color: inherit; }
 .doctor-card-full:hover { box-shadow: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10); transform: translateY(-3px); }
 
 .doc-photo-wrap { position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; background: linear-gradient(150deg, #16301F, #3a6b4c); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; overflow: hidden; }
+.doc-img { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 16px; }
 .avatar-ph { width: 68px; height: 68px; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 800; }
 .doc-status-pin { position: absolute; top: 12px; right: 12px; }
 .doc-dept-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(255,255,255,0.92); backdrop-filter: blur(6px); color: #16301F; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }

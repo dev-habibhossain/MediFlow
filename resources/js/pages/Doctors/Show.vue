@@ -88,9 +88,9 @@ function selectSlot(slotStr: string) {
                             <span class="status-indicator">
                                 <span class="status-dot"></span> Available Today
                             </span>
-                            <div class="avatar-large">
-                                <img v-if="doctor.user.avatar_path" :src="doctor.user.avatar_path" :alt="doctor.user.name" class="w-full h-full object-cover rounded-2xl" />
-                                <template v-else>{{ doctor.user.name.charAt(0) }}</template>
+                            <img v-if="doctor.user.avatar_path" :src="doctor.user.avatar_path" :alt="doctor.user.name" class="doc-img-large" />
+                            <div v-else class="avatar-large">
+                                {{ doctor.user.name.charAt(0) }}
                             </div>
                         </div>
 
@@ -243,6 +243,7 @@ b { font-weight: 700; color: inherit; }
 
 .profile-card-sticky { background: #FFFFFF; border: 1px solid #E7E3D3; border-radius: 32px; padding: 32px; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); position: sticky; top: 100px; }
 .doc-photo-large { position: relative; width: 100%; aspect-ratio: 1; border-radius: 24px; background: linear-gradient(150deg, #16301F, #3a6b4c); display: flex; align-items: center; justify-content: center; margin-bottom: 24px; overflow: hidden; }
+.doc-img-large { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 24px; }
 .avatar-large { width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 800; }
 
 .doc-main-info h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 4px; color: #16301F; }
