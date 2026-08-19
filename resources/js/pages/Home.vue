@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import PublicLayout from '@/layouts/PublicLayout.vue'
 import { Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 interface Department {
     id: number
@@ -72,6 +74,113 @@ function handleNewsletterSubmit() {
         newsletterEmail.value = ''
     }
 }
+
+// Location System State & Leaflet Map
+interface Campus {
+    id: string
+    name: string
+    badge: string
+    address: string
+    phone: string
+    hours: string
+    coords: [number, number]
+}
+
+const campuses: Campus[] = [
+    {
+        id: 'main',
+        name: 'MediFlow Main Campus',
+        badge: 'Main Hospital',
+        address: '120 Harbor Ave, Suite 300, Riverside',
+        phone: '(555) 340-2199',
+        hours: 'Mon–Fri: 8:00 AM – 8:00 PM · Sat: 9:00 AM – 4:00 PM',
+        coords: [40.7128, -74.0060]
+    },
+    {
+        id: 'downtown',
+        name: 'MediFlow Downtown Specialty Center',
+        badge: 'Outpatient Clinic',
+        address: '450 Healthcare Blvd, Suite 102, Metro City',
+        phone: '(555) 340-2200',
+        hours: 'Mon–Fri: 9:00 AM – 6:00 PM',
+        coords: [40.7589, -73.9851]
+    },
+    {
+        id: 'westside',
+        name: 'MediFlow Westside Care & Pediatrics',
+        badge: 'Pediatric & Family',
+        address: '88 West Park Rd, Floor 2, Riverside',
+        phone: '(555) 340-2205',
+        hours: 'Mon–Sat: 8:00 AM – 6:00 PM',
+        coords: [40.7306, -73.9352]
+    }
+]
+
+const activeCampus = ref<Campus>(campuses[0])
+const mapContainer = ref<HTMLElement | null>(null)
+let mapInstance: L.Map | null = null
+let markerInstance: L.Marker | null = null
+
+onMounted(() => {
+    if (mapContainer.value) {
+        mapInstance = L.map(mapContainer.value, {
+            center: activeCampus.value.coords,
+            zoom: 14,
+            zoomControl: true
+        })
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(mapInstance)
+
+        const customPinIcon = L.divIcon({
+            className: 'mediflow-map-pin',
+            html: `
+                <div class="pin-wrap">
+                    <div class="pin-pulse"></div>
+                    <div class="pin-body">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                </div>
+            `,
+            iconSize: [44, 44],
+            iconAnchor: [22, 44]
+        })
+
+        markerInstance = L.marker(activeCampus.value.coords, { icon: customPinIcon }).addTo(mapInstance)
+        markerInstance.bindPopup(`
+            <div style="font-family: sans-serif; padding: 4px; min-width: 180px;">
+                <b style="color:#16301F; font-size:14px; font-weight:700;">${activeCampus.value.name}</b><br/>
+                <span style="font-size:12px; color:#62655A;">${activeCampus.value.address}</span><br/>
+                <span style="display:inline-block; margin-top:6px; font-size:11px; font-weight:600; color:#3B4A12; background:#EEF7C4; padding:3px 8px; border-radius:99px;">● Open Today</span>
+            </div>
+        `).openPopup()
+    }
+})
+
+onUnmounted(() => {
+    if (mapInstance) {
+        mapInstance.remove()
+        mapInstance = null
+    }
+})
+
+function selectCampus(campus: Campus) {
+    activeCampus.value = campus
+    if (mapInstance && markerInstance) {
+        mapInstance.flyTo(campus.coords, 14, { duration: 1.2 })
+        markerInstance.setLatLng(campus.coords)
+        markerInstance.getPopup()?.setContent(`
+            <div style="font-family: sans-serif; padding: 4px; min-width: 180px;">
+                <b style="color:#16301F; font-size:14px; font-weight:700;">${campus.name}</b><br/>
+                <span style="font-size:12px; color:#62655A;">${campus.address}</span><br/>
+                <span style="display:inline-block; margin-top:6px; font-size:11px; font-weight:600; color:#3B4A12; background:#EEF7C4; padding:3px 8px; border-radius:99px;">● Open Today</span>
+            </div>
+        `).openPopup()
+    }
+}
 </script>
 
 <template>
@@ -95,9 +204,9 @@ function handleNewsletterSubmit() {
                     </div>
                     <div class="hero-proof">
                         <div class="avatar-stack" aria-hidden="true">
-                            <span class="av"></span>
-                            <span class="av" style="background:linear-gradient(135deg,#3a6b4c,#84a468)"></span>
-                            <span class="av" style="background:linear-gradient(135deg,#84a468,#DDF15C)"></span>
+                            <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80" class="av object-cover" alt="Doctor" />
+                            <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=120&q=80" class="av object-cover" alt="Doctor" />
+                            <img src="https://images.unsplash.com/photo-1594824813566-78a0c4f74d0e?auto=format&fit=crop&w=120&q=80" class="av object-cover" alt="Doctor" />
                             <span class="count">{{ stats?.specialists_count || 68 }}+</span>
                         </div>
                         <p>Board-certified specialists across 25 fields of medicine</p>
@@ -105,10 +214,9 @@ function handleNewsletterSubmit() {
                 </div>
 
                 <div class="hero-photo">
+                    <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1400&q=80" alt="MediFlow Modern General Hospital" class="hero-img-bg" />
+                    <div class="hero-img-overlay"></div>
                     <span class="ph-caption">MediFlow General Hospital</span>
-                    <span class="ph-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 21c0-4 3-6.5 6.5-6.5s6.5 2.5 6.5 6.5"/><circle cx="17.5" cy="9" r="2.6"/><path d="M14.8 21c.3-3 2.4-5 5.2-5 2.5 0 4.4 1.6 5 4"/></svg>
-                    </span>
                     <div class="rating-float">
                         <span class="pin" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -231,10 +339,9 @@ function handleNewsletterSubmit() {
                         </div>
                     </div>
                     <div class="services-photo">
-                        <span class="ph-caption">Advanced Medical Center</span>
-                        <span class="ph-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4.5"/><path d="M4 21c0-4.5 3.5-8 8-8s8 3.5 8 8"/></svg>
-                        </span>
+                        <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=1200&q=80" alt="Advanced Outpatient Center" class="services-img-bg" />
+                        <div class="services-img-overlay"></div>
+                        <span class="ph-caption">Advanced Outpatient Center</span>
                     </div>
                 </div>
             </div>
@@ -300,7 +407,8 @@ function handleNewsletterSubmit() {
             <div class="wrap">
                 <div class="lab-grid">
                     <div class="lab-photo" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6.5L4 18a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9.5V2M9 2h6M8 15h8"/></svg>
+                        <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80" alt="Express Diagnostic Lab" class="lab-img-bg" />
+                        <div class="lab-img-overlay"></div>
                     </div>
                     <div class="lab-main">
                         <h3>Express lab testing</h3>
@@ -351,9 +459,13 @@ function handleNewsletterSubmit() {
                     <p>Share your experience after your visit through our feedback form.</p>
                 </div>
                 <div class="testimonial-grid">
-                    <div v-for="rev in reviews" :key="rev.id" class="review-card">
+                    <div v-for="(rev, idx) in reviews" :key="rev.id" class="review-card">
                         <div class="review-head">
-                            <div class="review-avatar" style="background:linear-gradient(135deg,#16301F,#4c7a5c)"></div>
+                            <img :src="[
+                                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+                                'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80'
+                            ][idx % 3]" class="review-avatar object-cover" :alt="rev.patient?.user?.name || 'Patient'" />
                             <div>
                                 <div class="review-name">{{ rev.patient?.user?.name || 'Patient' }}</div>
                                 <div class="review-stars">★★★★★</div>
@@ -411,33 +523,87 @@ function handleNewsletterSubmit() {
             </div>
         </section>
 
-        <!-- ===================== LOCATION ===================== -->
+        <!-- ===================== LOCATION SYSTEM ===================== -->
         <section id="location">
             <div class="wrap">
-                <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Visit us</span>
-                <div class="section-head"><h2>Find us and our hours</h2></div>
-                <div class="location-grid">
-                    <div class="location-info">
-                        <div class="location-row">
-                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
-                            <div><h5>Address</h5><p>120 Harbor Ave, Suite 300, Riverside</p></div>
-                        </div>
-                        <div class="location-row">
-                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
-                            <div><h5>Hours</h5><p>Mon–Fri: 8:00 AM – 8:00 PM · Sat: 9:00 AM – 4:00 PM</p></div>
-                        </div>
-                        <div class="location-row">
-                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
-                            <div><h5>Phone</h5><p>(555) 340-2199</p></div>
-                        </div>
-                        <div class="location-row">
-                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></div>
-                            <div><h5>Email</h5><p>front-desk@mediflow.example</p></div>
+                <div class="location-header-flex">
+                    <div>
+                        <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Visit Us</span>
+                        <div class="section-head mb-0 mt-3">
+                            <h2>Interactive Hospital Location System</h2>
+                            <p>Find your nearest MediFlow medical center, check operating hours, and get live turn-by-turn directions.</p>
                         </div>
                     </div>
-                    <div class="map-placeholder">
-                        <span class="ph-caption">Map — MediFlow Hospital Location</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    
+                    <!-- Campus Selector Tabs -->
+                    <div class="campus-selector-pills">
+                        <button
+                            v-for="campus in campuses"
+                            :key="campus.id"
+                            class="campus-pill-btn"
+                            :class="{ active: activeCampus.id === campus.id }"
+                            @click="selectCampus(campus)"
+                        >
+                            <span class="dot"></span>
+                            {{ campus.badge }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="location-grid">
+                    <div class="location-info">
+                        <div class="campus-title-box">
+                            <h4>{{ activeCampus.name }}</h4>
+                            <span class="open-badge">● Open 24/7 Care</span>
+                        </div>
+
+                        <div class="location-row">
+                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                            <div>
+                                <h5>Address</h5>
+                                <p>{{ activeCampus.address }}</p>
+                            </div>
+                        </div>
+
+                        <div class="location-row">
+                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+                            <div>
+                                <h5>Hours of Operation</h5>
+                                <p>{{ activeCampus.hours }}</p>
+                            </div>
+                        </div>
+
+                        <div class="location-row">
+                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+                            <div>
+                                <h5>Direct Phone Line</h5>
+                                <p>{{ activeCampus.phone }}</p>
+                            </div>
+                        </div>
+
+                        <div class="location-row">
+                            <div class="li-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></div>
+                            <div>
+                                <h5>Front Desk Email</h5>
+                                <p>reception@mediflow.org</p>
+                            </div>
+                        </div>
+
+                        <div class="location-actions">
+                            <a :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activeCampus.address)}`" target="_blank" class="btn btn-primary btn-sm">
+                                Get Directions
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Leaflet Map Container -->
+                    <div class="map-wrapper">
+                        <div ref="mapContainer" class="leaflet-map-frame"></div>
+                        <div class="map-overlay-badge">
+                            <span class="pulse-dot"></span>
+                            Live Map View
+                        </div>
                     </div>
                 </div>
             </div>
@@ -515,11 +681,11 @@ function handleNewsletterSubmit() {
 .avatar-stack .count { width: 46px; height: 46px; border-radius: 50%; border: 3px solid #F8F6EF; margin-left: -13px; background: #DDF15C; color: #3B4A12; font-size: 12.5px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .hero-proof p { font-size: 13.5px; color: #62655A; max-width: 22ch; }
 
-.hero-photo { position: relative; border-radius: 32px; overflow: hidden; min-height: 480px; background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5), transparent 40%), linear-gradient(150deg, #E4EED0 0%, #B9CFA0 45%, #7C8F6C 100%); display: flex; align-items: flex-end; justify-content: center; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); }
-.hero-photo .ph-icon { opacity: 0.35; margin-bottom: 44px; }
-.hero-photo .ph-icon svg { width: 100px; height: 100px; color: #fff; }
-.hero-photo .ph-caption { position: absolute; top: 22px; left: 22px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; color: rgba(255,255,255,0.85); background: rgba(22,24,15,0.25); padding: 6px 12px; border-radius: 999px; backdrop-filter: blur(6px); }
-.rating-float { position: absolute; bottom: 22px; right: 22px; background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10); padding: 15px 19px; display: flex; align-items: center; gap: 10px; }
+.hero-photo { position: relative; border-radius: 32px; overflow: hidden; min-height: 480px; background: #16301F; display: flex; align-items: flex-end; justify-content: center; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); }
+.hero-img-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.hero-img-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(22,48,31,0.7) 0%, rgba(22,48,31,0.15) 50%, rgba(0,0,0,0.1) 100%); pointer-events: none; }
+.hero-photo .ph-caption { position: absolute; top: 22px; left: 22px; z-index: 2; font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; color: rgba(255,255,255,0.95); background: rgba(22,48,31,0.65); padding: 6px 14px; border-radius: 999px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); }
+.rating-float { position: absolute; bottom: 22px; right: 22px; z-index: 2; background: #FFFFFF; border-radius: 16px; box-shadow: 0 4px 10px rgba(22,24,15,0.06), 0 16px 36px rgba(22,24,15,0.10); padding: 15px 19px; display: flex; align-items: center; gap: 10px; }
 .rating-float .pin { width: 36px; height: 36px; border-radius: 50%; background: #EEF7C4; color: #3B4A12; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .rating-float .pin svg { width: 18px; height: 18px; }
 .rating-float b { font-size: 15px; display: block; }
@@ -581,9 +747,10 @@ section { padding: 80px 0; position: relative; z-index: 1; }
 .service-card.dark .arrow { background: rgba(255,255,255,0.12); }
 .service-card .arrow svg { width: 13px; height: 13px; }
 .service-card h4 { font-size: 14.5px; font-weight: 600; line-height: 1.35; }
-.services-photo { border-radius: 32px; background: linear-gradient(150deg, #EEF3DD 0%, #C4D9A6 50%, #8CA378 100%); min-height: 360px; display: flex; align-items: flex-end; justify-content: center; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); position: relative; overflow: hidden; }
-.services-photo .ph-icon svg { width: 88px; height: 88px; color: #fff; opacity: 0.35; margin-bottom: 38px; }
-.services-photo .ph-caption { position: absolute; top: 20px; left: 20px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.85); background: rgba(22,24,15,0.25); padding: 6px 12px; border-radius: 999px; backdrop-filter: blur(6px); }
+.services-photo { border-radius: 32px; background: #16301F; min-height: 360px; display: flex; align-items: flex-end; justify-content: center; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); position: relative; overflow: hidden; }
+.services-img-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.services-img-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(22,48,31,0.65) 0%, transparent 60%); pointer-events: none; }
+.services-photo .ph-caption { position: absolute; top: 20px; left: 20px; z-index: 2; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.95); background: rgba(22,48,31,0.65); padding: 6px 14px; border-radius: 999px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); }
 
 .why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 @media (max-width: 960px) { .why-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -605,8 +772,9 @@ section { padding: 80px 0; position: relative; z-index: 1; }
 
 .lab-grid { display: grid; grid-template-columns: 0.8fr 1fr 0.9fr; gap: 16px; align-items: stretch; }
 @media (max-width: 900px) { .lab-grid { grid-template-columns: 1fr; } }
-.lab-photo { border-radius: 24px; min-height: 230px; background: linear-gradient(150deg, #E4EED0, #9BB37E); box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); display: flex; align-items: center; justify-content: center; }
-.lab-photo svg { width: 42px; height: 42px; color: #fff; opacity: 0.5; }
+.lab-photo { border-radius: 24px; min-height: 230px; background: #16301F; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.lab-img-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.lab-img-overlay { position: absolute; inset: 0; background: rgba(22,48,31,0.2); pointer-events: none; }
 .lab-main { background: #FFFFFF; border-radius: 24px; padding: 30px; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); display: flex; flex-direction: column; justify-content: center; }
 .lab-main h3 { font-size: 23px; font-weight: 700; margin-bottom: 10px; }
 .lab-main p { font-size: 14.5px; color: #62655A; margin-bottom: 22px; }
@@ -642,18 +810,40 @@ section { padding: 80px 0; position: relative; z-index: 1; }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height 250ms ease; }
 .faq-a p { font-size: 14.5px; color: #62655A; line-height: 1.65; padding: 0 4px 22px; max-width: 60ch; }
 
-.location-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 32px; align-items: stretch; }
+.location-header-flex { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+.campus-selector-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+.campus-pill-btn { display: inline-flex; align-items: center; gap: 8px; background: #FFFFFF; border: 1.5px solid #E7E3D3; border-radius: 999px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; color: #62655A; cursor: pointer; transition: all 150ms ease; }
+.campus-pill-btn:hover { border-color: #16301F; color: #16301F; }
+.campus-pill-btn.active { background: #16301F; border-color: #16301F; color: #FFFFFF; box-shadow: 0 4px 12px rgba(22,48,31,0.15); }
+.campus-pill-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: #9BB37E; }
+.campus-pill-btn.active .dot { background: #DDF15C; }
+
+.campus-title-box { margin-bottom: 16px; border-bottom: 1.5px solid #E7E3D3; padding-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.campus-title-box h4 { font-size: 18px; font-weight: 800; color: #16301F; }
+.open-badge { font-size: 12px; font-weight: 600; color: #3B4A12; background: #EEF7C4; padding: 4px 12px; border-radius: 999px; }
+
+.location-grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 24px; align-items: stretch; }
 @media (max-width: 900px) { .location-grid { grid-template-columns: 1fr; } }
-.location-info { background: #FFFFFF; border-radius: 24px; padding: 32px; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); }
-.location-row { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #E7E3D3; }
+.location-info { background: #FFFFFF; border-radius: 24px; padding: 30px; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); display: flex; flex-direction: column; justify-content: space-between; }
+.location-row { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #E7E3D3; }
 .location-row:last-child { border-bottom: none; }
 .location-row .li-icon { width: 40px; height: 40px; border-radius: 12px; background: #EEF7C4; color: #3B4A12; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .location-row .li-icon svg { width: 18px; height: 18px; }
 .location-row h5 { font-size: 14.5px; font-weight: 700; margin-bottom: 3px; }
 .location-row p { font-size: 13.5px; color: #62655A; }
-.map-placeholder { border-radius: 24px; background: linear-gradient(150deg, #E4EED0, #9BB37E); box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); min-height: 320px; display: flex; align-items: center; justify-content: center; position: relative; }
-.map-placeholder svg { width: 48px; height: 48px; color: #fff; opacity: 0.6; }
-.map-placeholder .ph-caption { position: absolute; top: 20px; left: 20px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.85); background: rgba(22,24,15,0.25); padding: 6px 12px; border-radius: 999px; }
+.location-actions { margin-top: 18px; }
+
+.map-wrapper { position: relative; border-radius: 24px; overflow: hidden; min-height: 380px; box-shadow: 0 1px 2px rgba(22,24,15,0.04), 0 8px 24px rgba(22,24,15,0.06); border: 1px solid #E7E3D3; }
+.leaflet-map-frame { width: 100%; height: 100%; min-height: 380px; z-index: 1; }
+.map-overlay-badge { position: absolute; top: 16px; right: 16px; z-index: 500; background: rgba(255,255,255,0.92); backdrop-filter: blur(8px); border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #16301F; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 4px rgba(34,197,94,0.25); }
+
+:deep(.mediflow-map-pin) { background: transparent; border: none; }
+:deep(.pin-wrap) { position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; }
+:deep(.pin-body) { width: 40px; height: 40px; border-radius: 50% 50% 50% 0; background: #16301F; color: #DDF15C; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(22,48,31,0.4); border: 2px solid #FFFFFF; }
+:deep(.pin-body svg) { transform: rotate(45deg); }
+:deep(.pin-pulse) { position: absolute; width: 44px; height: 44px; border-radius: 50%; background: rgba(221,241,92,0.6); animation: pinPulse 2s infinite ease-in-out; }
+@keyframes pinPulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 
 .newsletter { background: #DDF15C; border-radius: 32px; padding: 52px 44px; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
 .newsletter h3 { font-size: 24px; font-weight: 800; letter-spacing: -0.015em; max-width: 22ch; }
