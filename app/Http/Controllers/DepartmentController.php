@@ -34,7 +34,7 @@ class DepartmentController extends Controller
         }
 
         $department->load(['doctors' => function ($query) {
-            $query->where('status', 'active')->with(['user:id,name,email,avatar_path']);
+            $query->where('status', 'active')->with(['user:id,name,email,avatar_path', 'department:id,name,slug']);
         }]);
 
         return Inertia::render('Departments/Show', [

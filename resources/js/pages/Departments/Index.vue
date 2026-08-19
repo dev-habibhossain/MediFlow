@@ -113,8 +113,8 @@ function getDepartmentTags(slug: string): string[] {
 
                         <!-- Card Footer & Actions -->
                         <div class="dept-card-actions">
-                            <Link :href="`/doctors?department=${dept.slug}`" class="btn btn-primary btn-sm w-full font-semibold">
-                                View Doctors in <b>{{ dept.name }}</b> →
+                            <Link :href="`/departments/${dept.slug}`" class="btn btn-primary btn-sm w-full font-semibold">
+                                View <b>{{ dept.name }}</b> Department →
                             </Link>
                             <Link :href="`/departments/${dept.slug}`" class="sub-link">
                                 Department Overview & Information
