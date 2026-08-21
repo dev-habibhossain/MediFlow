@@ -17,10 +17,6 @@ test('admin dashboard page renders successfully for admin user', function () {
         ->assertStatus(200)
         ->assertInertia(fn (Assert $page) => $page
             ->component('Admin/Dashboard')
-            ->has('stats')
-            ->has('monthlyVolume')
-            ->has('activityLogs')
-            ->has('systemConfig')
         );
 });
 

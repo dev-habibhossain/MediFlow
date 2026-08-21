@@ -28,11 +28,12 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
  * @property string|null $remember_token
+ * @property string $role
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  */
-#[Fillable(['name', 'email', 'password', 'phone', 'avatar_path', 'is_active'])]
+#[Fillable(['name', 'email', 'role', 'password', 'phone', 'avatar_path', 'is_active'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -51,6 +52,21 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin' || $this->hasRole('Admin');
+    }
+
+    public function isDoctor(): bool
+    {
+        return $this->role === 'doctor' || $this->hasRole('Doctor');
+    }
+
+    public function isPatient(): bool
+    {
+        return $this->role === 'patient' || $this->hasRole('Patient');
     }
 
     public function patient(): HasOne

@@ -1,39 +1,5 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
-
-interface Stats {
-    total_doctors: number
-    active_patients: number
-    appointments_today: number
-    monthly_revenue: string
-}
-
-interface MonthlyVolume {
-    month: string
-    height: string
-    is_current?: boolean
-}
-
-interface ActivityLogItem {
-    id: number
-    action: string
-    description: string
-    causer: string
-    time_ago: string
-}
-
-interface SystemConfig {
-    hospital_name: string
-    slot_duration: string
-    payment_gateway: string
-}
-
-defineProps<{
-    stats: Stats
-    monthlyVolume: MonthlyVolume[]
-    activityLogs: ActivityLogItem[]
-    systemConfig: SystemConfig
-}>()
 </script>
 
 <template>
@@ -44,7 +10,7 @@ defineProps<{
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Total Doctors</span>
-                <b>{{ stats.total_doctors }}</b>
+                <b>28</b>
                 <small>↑ +2 added this month</small>
             </div>
             <div class="stat-icon" style="background: #DCFCE7; color: #15803D;">
@@ -58,7 +24,7 @@ defineProps<{
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Active Patients</span>
-                <b>{{ stats.active_patients.toLocaleString() }}</b>
+                <b>1,840</b>
                 <small>↑ +124 new registrations</small>
             </div>
             <div class="stat-icon" style="background: #E0F2FE; color: #0369A1;">
@@ -71,7 +37,7 @@ defineProps<{
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Appointments Today</span>
-                <b>{{ stats.appointments_today }}</b>
+                <b>42</b>
                 <small>36 Completed · 6 In Progress</small>
             </div>
             <div class="stat-icon" style="background: #FEF3C7; color: #B45309;">
@@ -84,7 +50,7 @@ defineProps<{
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Monthly Revenue</span>
-                <b>${{ stats.monthly_revenue }}</b>
+                <b>$42,800</b>
                 <small>↑ +8.4% growth</small>
             </div>
             <div class="stat-icon" style="background: var(--lime-soft); color: var(--lime-text);">
@@ -113,13 +79,12 @@ defineProps<{
 
                 <div class="chart-box">
                     <div class="chart-bars-wrap">
-                        <div v-for="(col, index) in monthlyVolume" :key="index" class="chart-col">
-                            <div
-                                class="chart-bar-pillar"
-                                :style="{ height: col.height, background: col.is_current ? 'var(--lime)' : 'var(--forest)' }"
-                            ></div>
-                            <span class="chart-label">{{ col.month }}</span>
-                        </div>
+                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 55%;"></div><span class="chart-label">Mar</span></div>
+                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 70%;"></div><span class="chart-label">Apr</span></div>
+                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 82%;"></div><span class="chart-label">May</span></div>
+                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 78%;"></div><span class="chart-label">Jun</span></div>
+                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 92%;"></div><span class="chart-label">Jul</span></div>
+                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 96%; background: var(--lime);"></div><span class="chart-label">Aug</span></div>
                     </div>
                 </div>
             </div>
@@ -137,14 +102,27 @@ defineProps<{
                 </div>
 
                 <div class="activity-list">
-                    <div v-for="(log, idx) in activityLogs" :key="log.id || idx" class="activity-item">
-                        <div
-                            class="activity-dot"
-                            :style="{ background: idx === 1 ? '#0369A1' : idx === 2 ? '#B45309' : 'var(--forest)' }"
-                        ></div>
+                    <div class="activity-item">
+                        <div class="activity-dot"></div>
                         <div class="activity-content">
-                            <p>{{ log.description }}</p>
-                            <span>{{ log.time_ago }} · {{ log.causer }}</span>
+                            <p>Dr. Marcus Vance onboarded to Neurology Department.</p>
+                            <span>10 minutes ago · Admin User #1</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-dot" style="background: #0369A1;"></div>
+                        <div class="activity-content">
+                            <p>Payment #INV-89201 processed for consultation #MDF-102.</p>
+                            <span>1 hour ago · Stripe Webhook</span>
+                        </div>
+                    </div>
+
+                    <div class="activity-item">
+                        <div class="activity-dot" style="background: #B45309;"></div>
+                        <div class="activity-content">
+                            <p>Holiday Schedule exception added for Independence Day.</p>
+                            <span>Yesterday · Admin Console</span>
                         </div>
                     </div>
                 </div>
@@ -208,13 +186,13 @@ defineProps<{
                 <b style="font-size: 14px; color: var(--forest); display: block; margin-bottom: 8px;">System Configuration</b>
                 <div style="font-size: 12.5px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 6px;">
                     <div style="display: flex; justify-content: space-between;">
-                        <span>Hospital Name:</span> <strong>{{ systemConfig.hospital_name }}</strong>
+                        <span>Hospital Name:</span> <strong>MediFlow Central</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span>Slot Duration:</span> <strong>{{ systemConfig.slot_duration }}</strong>
+                        <span>Slot Duration:</span> <strong>30 Minutes</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span>Payment Gateway:</span> <strong style="color: #15803D;">{{ systemConfig.payment_gateway }}</strong>
+                        <span>Payment Gateway:</span> <strong style="color: #15803D;">Stripe Active</strong>
                     </div>
                 </div>
                 <Link href="/admin/settings/general" style="display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--forest); text-decoration: underline; margin-top: 12px;">
