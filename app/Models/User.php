@@ -41,6 +41,21 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
 
+    protected $appends = ['avatar_url'];
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar_path, 'http://') || str_starts_with($this->avatar_path, 'https://')) {
+            return $this->avatar_path;
+        }
+
+        return asset('storage/'.$this->avatar_path);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

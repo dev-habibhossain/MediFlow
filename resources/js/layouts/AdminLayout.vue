@@ -7,7 +7,7 @@ const isSidebarOpen = ref(false)
 const isProfileOpen = ref(false)
 const isNotificationsOpen = ref(false)
 
-const user = computed(() => page.props.auth?.user as { name?: string; email?: string } | undefined)
+const user = computed(() => page.props.auth?.user as { name?: string; email?: string; avatar_url?: string } | undefined)
 const currentUrl = computed(() => page.url)
 
 function toggleSidebar() {
@@ -35,6 +35,16 @@ function closeDropdowns() {
 
 function isActive(path: string) {
     return currentUrl.value === path || currentUrl.value.startsWith(path + '/')
+}
+
+function getInitials(name?: string) {
+    if (!name) return 'ADM'
+    return name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2)
 }
 </script>
 
@@ -145,12 +155,18 @@ function isActive(path: string) {
                 </Link>
 
                 <div class="menu-label">System Settings</div>
+                <Link href="/admin/profile" class="nav-item" :class="{ active: isActive('/admin/profile') }" @click="closeDropdowns">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Personal Profile Settings
+                </Link>
                 <Link href="/admin/settings" class="nav-item" :class="{ active: isActive('/admin/settings') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                     </svg>
-                    Settings Control Center
+                    Hospital Settings
                 </Link>
             </nav>
         </aside>
@@ -224,7 +240,8 @@ function isActive(path: string) {
                     <!-- CLICKABLE CIRCLE PROFILE PIC -->
                     <div class="header-dropdown-wrap">
                         <button class="user-avatar-btn" title="User Profile Menu" @click.stop="toggleProfile">
-                            <span class="avatar-circle">ADM</span>
+                            <img v-if="user?.avatar_url" :src="user.avatar_url" alt="Avatar" class="avatar-circle-img" />
+                            <span v-else class="avatar-circle">{{ getInitials(user?.name) }}</span>
                             <span class="online-indicator"></span>
                         </button>
 
@@ -233,18 +250,27 @@ function isActive(path: string) {
                             <div class="user-dropdown-info">
                                 <b>{{ user?.name || 'System Admin' }}</b>
                                 <span>{{ user?.email || 'admin@mediflow.com' }}</span>
-                                <div class="user-role-badge">Super Administrator</div>
+                                <div class="user-role-badge">Admin</div>
                             </div>
 
                             <div class="dropdown-divider"></div>
+
+                            <Link href="/admin/profile" class="dropdown-menu-item" @click="closeDropdowns">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                Settings
+                            </Link>
 
                             <Link href="/admin/settings" class="dropdown-menu-item" @click="closeDropdowns">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                                     <circle cx="12" cy="12" r="3"/>
                                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                                 </svg>
-                                Settings Control
+                                Hospital Settings
                             </Link>
+
+                            <div class="dropdown-divider"></div>
 
                             <Link href="/logout" method="post" as="button" class="dropdown-menu-item text-danger" @click="closeDropdowns">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -346,7 +372,9 @@ function isActive(path: string) {
 
 .admin-shell .user-avatar-btn { position: relative; background: none; border: none; padding: 0; cursor: pointer; outline: none; }
 .admin-shell .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--forest); color: var(--lime); font-weight: 800; font-size: 13.5px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); transition: all 150ms ease; border: 2px solid transparent; }
-.admin-shell .user-avatar-btn:hover .avatar-circle { border-color: var(--lime); transform: scale(1.05); }
+.admin-shell .avatar-circle-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid transparent; box-shadow: var(--shadow-sm); transition: all 150ms ease; display: block; }
+.admin-shell .user-avatar-btn:hover .avatar-circle,
+.admin-shell .user-avatar-btn:hover .avatar-circle-img { border-color: var(--lime); transform: scale(1.05); }
 
 .admin-shell .online-indicator { position: absolute; bottom: 0; right: 0; width: 11px; height: 11px; border-radius: 50%; background: #16A34A; border: 2px solid var(--card); }
 

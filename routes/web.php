@@ -14,6 +14,7 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentPayController;
+use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public Pages
@@ -84,6 +85,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Payments & Invoices
         Route::get('/payments', fn () => inertia('Admin/Payments/Index'))->name('payments.index');
+        Route::get('/payments/{id}', fn () => inertia('Admin/Payments/Show'))->name('payments.show');
+
+        // Profile Settings (Admin Personal Settings)
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
+        Route::post('/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
 
         // System Settings
         Route::get('/settings', fn () => inertia('Admin/Settings/Index'))->name('settings.index');
