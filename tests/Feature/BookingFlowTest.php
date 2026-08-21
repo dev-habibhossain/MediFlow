@@ -105,3 +105,89 @@ test('inactive doctors with weekly schedules can be viewed and booked', function
             ->where('doctor.id', $doctor->id)
         );
 });
+
+test('authenticated user can store appointment with pay at clinic creating unpaid payment due', function () {
+    $patientUser = User::factory()->create();
+    $doctorUser = User::factory()->create();
+    $department = Department::factory()->create();
+    $doctor = Doctor::factory()->create([
+        'user_id' => $doctorUser->id,
+        'department_id' => $department->id,
+        'consultation_fee' => 75.00,
+        'license_number' => 'DOC-STORE-101',
+    ]);
+
+    $response = $this->actingAs($patientUser)->post(route('appointments.book.store'), [
+        'doctor_id' => $doctor->id,
+        'appointment_date' => '2026-09-01',
+        'start_time' => '10:00 AM',
+        'reason' => 'Heart Checkup',
+        'payment_method' => 'clinic',
+    ]);
+
+    $response->assertRedirect();
+
+    $this->assertDatabaseHas('appointments', [
+        'doctor_id' => $doctor->id,
+        'status' => 'confirmed',
+    ]);
+
+    $this->assertDatabaseHas('payments', [
+        'amount' => 75.00,
+        'status' => 'pending',
+    ]);
+});
+
+test('authenticated user can store appointment with stripe creating paid payment', function () {
+    $patientUser = User::factory()->create();
+    $doctorUser = User::factory()->create();
+    $department = Department::factory()->create();
+    $doctor = Doctor::factory()->create([
+        'user_id' => $doctorUser->id,
+        'department_id' => $department->id,
+        'consultation_fee' => 120.00,
+        'license_number' => 'DOC-STORE-102',
+    ]);
+
+    $response = $this->actingAs($patientUser)->post(route('appointments.book.store'), [
+        'doctor_id' => $doctor->id,
+        'appointment_date' => '2026-09-02',
+        'start_time' => '02:00 PM',
+        'reason' => 'General Health Consultation',
+        'payment_method' => 'stripe',
+    ]);
+
+    $response->assertRedirect();
+
+    $this->assertDatabaseHas('payments', [
+        'amount' => 120.00,
+        'status' => 'paid',
+    ]);
+});
+
+test('dashboard renders user appointments and unpaid dues', function () {
+    $patientUser = User::factory()->create();
+    $doctorUser = User::factory()->create();
+    $department = Department::factory()->create();
+    $doctor = Doctor::factory()->create([
+        'user_id' => $doctorUser->id,
+        'department_id' => $department->id,
+        'consultation_fee' => 50.00,
+    ]);
+
+    $this->actingAs($patientUser)->post(route('appointments.book.store'), [
+        'doctor_id' => $doctor->id,
+        'appointment_date' => '2026-09-05',
+        'start_time' => '11:00 AM',
+        'reason' => 'Routine Check',
+        'payment_method' => 'clinic',
+    ]);
+
+    $this->actingAs($patientUser)->get(route('dashboard'))
+        ->assertStatus(200)
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard')
+            ->has('appointments', 1)
+            ->has('unpaidPayments', 1)
+        );
+});

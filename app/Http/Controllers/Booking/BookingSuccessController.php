@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Booking;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\Doctor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,8 +28,18 @@ class BookingSuccessController extends Controller
             ]);
         }
 
+        $code = $request->query('code');
+        $appointment = null;
+
+        if ($code) {
+            $appointment = Appointment::with(['doctor.user', 'department', 'payment'])
+                ->where('appointment_code', $code)
+                ->first();
+        }
+
         return Inertia::render('Booking/Success', [
             'doctor' => $doctor,
+            'appointment' => $appointment,
         ]);
     }
 }

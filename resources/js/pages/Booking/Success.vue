@@ -25,8 +25,25 @@ interface Doctor {
     department: Department
 }
 
+interface Payment {
+    id: number
+    amount: number | string
+    status: string
+}
+
+interface Appointment {
+    id: number
+    appointment_code: string
+    appointment_date: string
+    start_time: string
+    reason: string
+    status: string
+    payment?: Payment
+}
+
 const props = defineProps<{
     doctor: Doctor
+    appointment?: Appointment
 }>()
 
 const bookingDate = ref('Friday, Aug 7')
@@ -37,13 +54,19 @@ const referenceCode = ref('MDF-89240')
 const copied = ref(false)
 
 onMounted(() => {
-    const savedDate = sessionStorage.getItem('booking_date')
-    const savedTime = sessionStorage.getItem('booking_time')
-    const savedMode = sessionStorage.getItem('booking_mode')
+    if (props.appointment) {
+        referenceCode.value = props.appointment.appointment_code
+        bookingDate.value = props.appointment.appointment_date
+        bookingTime.value = props.appointment.start_time
+    } else {
+        const savedDate = localStorage.getItem('booking_date') || sessionStorage.getItem('booking_date')
+        const savedTime = localStorage.getItem('booking_time') || sessionStorage.getItem('booking_time')
+        const savedMode = localStorage.getItem('booking_mode') || sessionStorage.getItem('booking_mode')
 
-    if (savedDate) bookingDate.value = savedDate
-    if (savedTime) bookingTime.value = savedTime
-    if (savedMode) bookingMode.value = savedMode
+        if (savedDate) bookingDate.value = savedDate
+        if (savedTime) bookingTime.value = savedTime
+        if (savedMode) bookingMode.value = savedMode
+    }
 })
 
 function copyReferenceCode() {
@@ -80,9 +103,11 @@ function downloadICal() {
                     </svg>
                 </div>
 
-                <span class="pill mb-4">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="w-3.5 h-3.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-                    Appointment Confirmed
+                <span v-if="appointment?.payment?.status === 'paid'" class="pill mb-4 bg-[#DCFCE7] text-[#15803D] border border-[#BBF7D0]">
+                    ✓ Paid Online via Stripe
+                </span>
+                <span v-else class="pill mb-4 bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]">
+                    ⚠ Fee Due at Clinic (${{ appointment?.payment?.amount || doctor.consultation_fee }})
                 </span>
 
                 <h1 class="text-3xl sm:text-4xl font-extrabold text-[#16301F] tracking-tight mb-2">
