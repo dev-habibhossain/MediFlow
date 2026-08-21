@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PublicLayout from '@/layouts/PublicLayout.vue'
-import { Link } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
 interface Schedule {
@@ -31,6 +31,7 @@ interface Doctor {
     bio?: string
     consultation_fee: string | number
     license_number: string
+    status?: string
     user: {
         id: number
         name: string
@@ -53,19 +54,36 @@ const props = defineProps<{
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-const selectedSlot = ref('Today 02:30 PM')
+const selectedDay = ref('Friday, Aug 7')
+const selectedTime = ref('10:00 AM')
 
 const sampleSlots = [
-    { day: 'Today', time: '02:30 PM' },
-    { day: 'Today', time: '04:15 PM' },
-    { day: 'Tomorrow', time: '10:00 AM' },
-    { day: 'Tomorrow', time: '11:30 AM' },
-    { day: 'Tomorrow', time: '03:00 PM' },
-    { day: 'Friday', time: '09:15 AM' },
+    { day: 'Friday, Aug 7', time: '09:30 AM' },
+    { day: 'Friday, Aug 7', time: '10:00 AM' },
+    { day: 'Friday, Aug 7', time: '02:00 PM' },
+    { day: 'Saturday, Aug 8', time: '11:00 AM' },
+    { day: 'Saturday, Aug 8', time: '02:30 PM' },
+    { day: 'Monday, Aug 10', time: '10:30 AM' },
 ]
 
-function selectSlot(slotStr: string) {
-    selectedSlot.value = slotStr
+function selectSlot(dayStr: string, timeStr: string) {
+    selectedDay.value = dayStr
+    selectedTime.value = timeStr
+
+    localStorage.setItem('booking_date', dayStr)
+    localStorage.setItem('booking_time', timeStr)
+    sessionStorage.setItem('booking_date', dayStr)
+    sessionStorage.setItem('booking_time', timeStr)
+}
+
+function startBooking() {
+    localStorage.setItem('booking_date', selectedDay.value)
+    localStorage.setItem('booking_time', selectedTime.value)
+    localStorage.setItem('booking_doctor_license', props.doctor.license_number)
+    sessionStorage.setItem('booking_date', selectedDay.value)
+    sessionStorage.setItem('booking_time', selectedTime.value)
+
+    router.get(`/appointments/book/${props.doctor.license_number}`)
 }
 </script>
 
@@ -86,7 +104,7 @@ function selectSlot(slotStr: string) {
                     <aside class="profile-card-sticky">
                         <div class="doc-photo-large">
                             <span class="status-indicator">
-                                <span class="status-dot"></span> Available Today
+                                <span class="status-dot"></span> {{ doctor.status === 'active' ? 'Available Today' : 'Available by Schedule' }}
                             </span>
                             <img v-if="doctor.user.avatar_path" :src="doctor.user.avatar_path" :alt="doctor.user.name" class="doc-img-large" />
                             <div v-else class="avatar-large">
@@ -105,9 +123,9 @@ function selectSlot(slotStr: string) {
                             <b>${{ doctor.consultation_fee }}</b>
                         </div>
 
-                        <Link :href="`/register?doctor=${doctor.id}`" class="btn btn-primary btn-block">
-                            Book Appointment
-                        </Link>
+                        <button @click="startBooking" class="btn btn-primary btn-block">
+                            Book Appointment Now
+                        </button>
                     </aside>
 
                     <!-- RIGHT CONTENT SECTIONS -->
@@ -150,12 +168,18 @@ function selectSlot(slotStr: string) {
                                 <div
                                     v-for="(slot, idx) in sampleSlots"
                                     :key="idx"
-                                    :class="['slot-pill', selectedSlot === `${slot.day} ${slot.time}` ? 'selected' : '']"
-                                    @click="selectSlot(`${slot.day} ${slot.time}`)"
+                                    :class="['slot-pill', selectedDay === slot.day && selectedTime === slot.time ? 'selected' : '']"
+                                    @click="selectSlot(slot.day, slot.time)"
                                 >
                                     <span>{{ slot.day }}</span>
                                     <b>{{ slot.time }}</b>
                                 </div>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button @click="startBooking" class="btn btn-primary text-sm px-6 py-2.5">
+                                    Book Selected Slot ({{ selectedTime }}) →
+                                </button>
                             </div>
 
                             <!-- WEEKLY SCHEDULE SUMMARY -->

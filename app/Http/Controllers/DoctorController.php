@@ -54,10 +54,6 @@ class DoctorController extends Controller
      */
     public function show(Doctor $doctor): Response
     {
-        if ($doctor->status === 'inactive') {
-            abort(404);
-        }
-
         $doctor->load([
             'user:id,name,email,phone,avatar_path',
             'department:id,name,slug',
