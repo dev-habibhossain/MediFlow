@@ -48,6 +48,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin Console Routes
     Route::prefix('admin')->name('admin.')->middleware(['role:Admin'])->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
+
+        // Doctors Management
+        Route::get('/doctors', fn () => inertia('Admin/Doctors/Index'))->name('doctors.index');
+        Route::get('/doctors/create', fn () => inertia('Admin/Doctors/Create'))->name('doctors.create');
+        Route::get('/doctors/{id}/edit', fn () => inertia('Admin/Doctors/Edit'))->name('doctors.edit');
+        Route::get('/doctors/{id}/schedule', fn () => inertia('Admin/Doctors/Schedule'))->name('doctors.schedule');
+
+        // Patients Management
+        Route::get('/patients', fn () => inertia('Admin/Patients/Index'))->name('patients.index');
+        Route::get('/patients/{id}', fn () => inertia('Admin/Patients/Show'))->name('patients.show');
+
+        // Departments Management
+        Route::get('/departments', fn () => inertia('Admin/Departments/Index'))->name('departments.index');
+        Route::get('/departments/create', fn () => inertia('Admin/Departments/Create'))->name('departments.create');
+        Route::get('/departments/{slug}', fn () => inertia('Admin/Departments/Edit'))->name('departments.edit');
     });
 });
 

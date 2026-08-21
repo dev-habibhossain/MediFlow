@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -52,6 +53,23 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (User $user) {
+            $roleName = match ($user->role) {
+                'admin' => 'Admin',
+                'doctor' => 'Doctor',
+                'patient' => 'Patient',
+                default => null,
+            };
+
+            if ($roleName && ! $user->hasRole($roleName)) {
+                $role = Role::findOrCreate($roleName, 'web');
+                $user->assignRole($role);
+            }
+        });
     }
 
     public function isAdmin(): bool

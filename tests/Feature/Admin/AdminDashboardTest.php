@@ -30,7 +30,12 @@ test('non admin user cannot access admin dashboard', function () {
         ->assertStatus(403);
 });
 
-test('unauthenticated user cannot access admin dashboard', function () {
-    $this->get(route('admin.dashboard'))
-        ->assertRedirect(route('login'));
+test('admin user accessing general dashboard is redirected to admin dashboard', function () {
+    Role::create(['name' => 'Admin']);
+    $adminUser = User::factory()->create();
+    $adminUser->assignRole('Admin');
+
+    $this->actingAs($adminUser)
+        ->get(route('dashboard'))
+        ->assertRedirect(route('admin.dashboard'));
 });
