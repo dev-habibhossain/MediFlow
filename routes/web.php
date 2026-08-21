@@ -63,6 +63,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/departments', fn () => inertia('Admin/Departments/Index'))->name('departments.index');
         Route::get('/departments/create', fn () => inertia('Admin/Departments/Create'))->name('departments.create');
         Route::get('/departments/{slug}', fn () => inertia('Admin/Departments/Edit'))->name('departments.edit');
+
+        // Appointments Management
+        Route::get('/appointments', fn () => inertia('Admin/Appointments/Index'))->name('appointments.index');
+        Route::get('/appointments/{id}', fn () => inertia('Admin/Appointments/Show'))->name('appointments.show');
+
+        // Analytics & Reports
+        Route::get('/reports', fn () => inertia('Admin/Reports/Index'))->name('reports.index');
+        Route::get('/reports/revenue', fn () => inertia('Admin/Reports/Revenue'))->name('reports.revenue');
+
+        // User & RBAC Management
+        Route::get('/users', fn () => inertia('Admin/Users/Index'))->name('users.index');
+        Route::get('/users/{id}', fn () => inertia('Admin/Users/Show'))->name('users.show');
+        Route::get('/roles', fn () => inertia('Admin/Roles/Index'))->name('roles.index');
+        Route::get('/activity-logs', fn () => inertia('Admin/ActivityLogs/Index'))->name('activity-logs.index');
+
+        // Content & Broadcast Moderation
+        Route::get('/reviews', fn () => inertia('Admin/Reviews/Index'))->name('reviews.index');
+        Route::get('/announcements', fn () => inertia('Admin/Announcements/Index'))->name('announcements.index');
+
+        // Payments & Invoices
+        Route::get('/payments', fn () => inertia('Admin/Payments/Index'))->name('payments.index');
+
+        // System Settings
+        Route::get('/settings', fn () => inertia('Admin/Settings/Index'))->name('settings.index');
+        Route::get('/settings/general', fn () => inertia('Admin/Settings/General'))->name('settings.general');
+        Route::get('/settings/scheduling', fn () => inertia('Admin/Settings/Scheduling'))->name('settings.scheduling');
+        Route::get('/settings/notifications', fn () => inertia('Admin/Settings/Notifications'))->name('settings.notifications');
+        Route::get('/settings/holidays', fn () => inertia('Admin/Settings/Holidays'))->name('settings.holidays');
     });
 });
 
