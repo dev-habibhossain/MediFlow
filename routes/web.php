@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\Booking\BookingConfirmController;
+use App\Http\Controllers\Booking\BookingSelectSlotController;
+use App\Http\Controllers\Booking\BookingSuccessController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DoctorController;
@@ -18,6 +21,11 @@ Route::get('/departments/{department:slug}', [DepartmentController::class, 'show
 
 Route::get('/doctors', [DoctorController::class, 'index'])->name('doctors.index');
 Route::get('/doctors/{doctor:license_number}', [DoctorController::class, 'show'])->name('doctors.show');
+
+// Doctor Booking Flow Pages
+Route::get('/appointments/book/{doctor:license_number?}', BookingSelectSlotController::class)->name('appointments.book.select-slot');
+Route::get('/appointments/book/{doctor:license_number?}/confirm', BookingConfirmController::class)->name('appointments.book.confirm');
+Route::get('/appointments/book/{doctor:license_number?}/success', BookingSuccessController::class)->name('appointments.book.success');
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');

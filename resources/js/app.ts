@@ -16,6 +16,7 @@ createInertiaApp({
                 name === 'About' ||
                 name.startsWith('Departments/') ||
                 name.startsWith('Doctors/') ||
+                name.startsWith('Booking/') ||
                 name === 'Contact' ||
                 name === 'Faq' ||
                 name === 'PrivacyPolicy' ||
