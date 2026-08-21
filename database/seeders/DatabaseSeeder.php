@@ -41,6 +41,7 @@ class DatabaseSeeder extends Seeder
         $adminUser = User::factory()->create([
             'name' => 'MediFlow Administrator',
             'email' => 'admin@mediflow.com',
+            'role' => 'admin',
             'phone' => '+15550000001',
             'is_active' => true,
         ]);
@@ -102,6 +103,7 @@ class DatabaseSeeder extends Seeder
             $user = User::factory()->create([
                 'name' => $docInfo['name'],
                 'email' => $docInfo['email'],
+                'role' => 'doctor',
                 'avatar_path' => $docInfo['avatar'],
                 'phone' => '+1555100000'.($index + 1),
                 'is_active' => true,

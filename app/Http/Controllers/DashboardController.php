@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Payment;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -11,11 +12,15 @@ use Inertia\Response;
 class DashboardController extends Controller
 {
     /**
-     * Display the patient dashboard with appointments and payment dues.
+     * Display the dashboard, redirecting admins to the admin dashboard.
      */
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request): Response|RedirectResponse
     {
         $user = $request->user();
+
+        if ($user && $user->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
 
         $patient = $user->patient;
 
