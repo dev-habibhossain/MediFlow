@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Booking\BookingConfirmController;
 use App\Http\Controllers\Booking\BookingSelectSlotController;
 use App\Http\Controllers\Booking\BookingStoreController;
@@ -43,6 +44,11 @@ Route::get('/terms-of-service', [PageController::class, 'terms'])->name('terms')
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::post('/dashboard/payments/{payment}/pay', PaymentPayController::class)->name('dashboard.payments.pay');
+
+    // Admin Console Routes
+    Route::prefix('admin')->name('admin.')->middleware(['role:Admin'])->group(function () {
+        Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
+    });
 });
 
 require __DIR__.'/settings.php';
