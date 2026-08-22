@@ -2,235 +2,276 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
-const currentStatus = ref('in-progress')
+const currentStatus = ref('confirmed')
+const toastMsg = ref('')
+const showToast = ref(false)
 
 const appointment = {
-    id: 'MDF-9021',
+    id: 'MDF-101',
+    patientId: 'MDF-9021',
     patientName: 'Habib Hossain',
-    patientAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-    dob: 'Jan 15, 1988 (Age 38)',
+    patientInitials: 'HH',
+    age: 28,
     gender: 'Male',
-    phone: '+1 (555) 234-5678',
-    email: 'habib.hossain@example.com',
-    date: 'August 22, 2026',
-    time: '09:30 AM EST',
-    mode: 'In-Person (Room 302)',
-    department: 'Cardiology Dept',
-    fee: '$120.00',
-    statusLabel: 'In Progress',
+    bloodGroup: 'O+',
+    allergies: 'Penicillin (Mild)',
+    visitsCompleted: 14,
+    date: 'Friday, Aug 7, 2026',
+    time: '10:00 AM – 10:30 AM EST',
+    mode: 'In-Person Visit',
+    location: 'Room 302, Harbor Ave Clinic',
+    phone: '(555) 340-2199',
+    email: 'habib@example.com',
+    paymentStatus: 'Paid ($120.00)',
+    receipt: 'Receipt #INV-88402',
+    reason: 'Routine follow-up consultation regarding recent blood pressure fluctuations and post-exercise chest tightness.',
     vitals: {
-        bp: '135/88 mmHg',
-        hr: '72 bpm',
-        temp: '98.6 °F',
-        spo2: '98%',
-        weight: '74 kg',
+        bp: '120/80',
+        hr: '72',
+        weight: '74.5',
     },
-    complaint: 'Patient reports persistent mild headache for the past 2 weeks with elevated morning blood pressure readings ranging between 135-140 systolic.',
-    historySummary: 'Diagnosed with Stage 1 Essential Hypertension (2024). No prior surgeries. Regular compliance with dietary sodium reduction.',
-    allergies: ['Penicillin (Moderate Rash)', 'NSAIDs (Mild Gastric Upset)'],
 }
 
-function saveStatus() {
-    alert('Status updated!')
+function handleStatusChange(event: Event) {
+    const val = (event.target as HTMLSelectElement).value
+    currentStatus.value = val
+    toastMsg.value = `Status updated to ${val.replace('_', ' ')}`
+    showToast.value = true
+    setTimeout(() => {
+        showToast.value = false
+    }, 3000)
+}
+
+function printSummary() {
+    window.print()
 }
 </script>
 
 <template>
-    <Head :title="`Appointment ${appointment.id}`" />
+    <Head :title="`Appointment #${appointment.id} Detail - MediFlow`" />
 
-    <!-- BREADCRUMB / BACK LINK -->
-    <div class="nav-bar-row">
-        <Link href="/doctor/appointments" class="back-link">
-            ← Back to All Appointments
+    <!-- TOP HEADER / BACK LINK -->
+    <div class="top-nav-row">
+        <Link href="/doctor/appointments" class="back-btn">
+            ← Back to Appointments List
         </Link>
-        <span class="appointment-tag">Appointment Ref #{{ appointment.id }}</span>
+        <button class="back-btn" @click="printSummary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Print Summary
+        </button>
     </div>
 
-    <!-- HERO HEADER CARD -->
-    <div class="hero-card">
-        <div class="hero-main">
-            <img :src="appointment.patientAvatar" :alt="appointment.patientName" class="patient-hero-avatar" />
-            <div class="hero-meta">
-                <div class="hero-title-row">
-                    <h2>{{ appointment.patientName }}</h2>
-                    <span class="status-pill-badge in-progress">{{ appointment.statusLabel }}</span>
-                </div>
-                <p>{{ appointment.date }} at {{ appointment.time }} • {{ appointment.mode }}</p>
-                <div class="hero-badges">
-                    <span class="meta-pill">DOB: {{ appointment.dob }}</span>
-                    <span class="meta-pill">Phone: {{ appointment.phone }}</span>
-                    <span class="meta-pill">Dept: {{ appointment.department }}</span>
-                </div>
+    <!-- HEADER BANNER CARD -->
+    <div class="detail-header-card">
+        <div>
+            <div class="header-info-group">
+                <span class="ref-badge">#{{ appointment.id }}</span>
+                <span
+                    class="badge"
+                    :class="{
+                        'badge-confirmed': currentStatus === 'confirmed',
+                        'badge-in-progress': currentStatus === 'in_progress',
+                        'badge-completed': currentStatus === 'completed',
+                        'badge-cancelled': currentStatus === 'no_show' || currentStatus === 'cancelled'
+                    }"
+                >
+                    {{ currentStatus === 'confirmed' ? 'Confirmed Visit' : currentStatus.replace('_', ' ').toUpperCase() }}
+                </span>
             </div>
-        </div>
-
-        <div class="hero-actions">
-            <Link :href="`/doctor/patients/${appointment.id}/history`" class="btn btn-outline">
-                View Patient History
-            </Link>
+            <h1>Cardiology Follow-Up Consultation</h1>
         </div>
     </div>
 
-    <!-- VITALS STRIP -->
-    <div class="vitals-strip">
-        <div class="vital-box">
-            <label>Blood Pressure</label>
-            <b>{{ appointment.vitals.bp }}</b>
-        </div>
-        <div class="vital-box">
-            <label>Heart Rate</label>
-            <b>{{ appointment.vitals.hr }}</b>
-        </div>
-        <div class="vital-box">
-            <label>Body Temp</label>
-            <b>{{ appointment.vitals.temp }}</b>
-        </div>
-        <div class="vital-box">
-            <label>SpO2 Level</label>
-            <b>{{ appointment.vitals.spo2 }}</b>
-        </div>
-        <div class="vital-box">
-            <label>Weight</label>
-            <b>{{ appointment.vitals.weight }}</b>
-        </div>
-    </div>
-
-    <!-- DETAIL TWO COLUMN GRID -->
+    <!-- MAIN SPLIT GRID -->
     <div class="detail-grid">
-        <!-- LEFT: CLINICAL NOTES & ACTION TILES -->
-        <div class="left-column">
-            <!-- CHIEF COMPLAINT CARD -->
-            <div class="content-card">
-                <div class="card-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    Chief Complaint & Symptoms
-                </div>
-                <p class="complaint-text">{{ appointment.complaint }}</p>
-            </div>
-
-            <!-- ALLERGIES & HISTORY -->
-            <div class="content-card">
-                <div class="card-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                    Known Allergies & Clinical Background
-                </div>
-                
-                <div class="allergies-list">
-                    <span v-for="allergy in appointment.allergies" :key="allergy" class="allergy-badge">
-                        ⚠️ {{ allergy }}
-                    </span>
-                </div>
-
-                <div class="history-summary">
-                    <b style="font-size: 13px; color: var(--forest); display: block; margin-bottom: 4px;">Medical History Summary:</b>
-                    <p style="font-size: 13px; color: var(--ink);">{{ appointment.historySummary }}</p>
-                </div>
-            </div>
-
-            <!-- ACTION BUTTONS GRID -->
-            <div class="action-cards-grid">
-                <Link :href="`/doctor/appointments/${appointment.id}/records/create`" class="action-card-btn">
-                    <div class="action-icon bg-forest-soft">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <b>Create Medical Record</b>
-                        <span>Log SOAP diagnosis & notes</span>
-                    </div>
-                </Link>
-
-                <Link :href="`/doctor/appointments/${appointment.id}/prescriptions/create`" class="action-card-btn">
-                    <div class="action-icon bg-lime-soft">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <b>Issue New Prescription</b>
-                        <span>Write rx medication order</span>
-                    </div>
-                </Link>
-            </div>
-        </div>
-
-        <!-- RIGHT: VISIT STATUS & PATIENT METADATA -->
-        <div class="right-column">
-            <!-- STATUS UPDATE CARD -->
-            <div class="content-card">
-                <div class="card-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    Visit Status Controls
-                </div>
-
-                <div class="status-controls">
-                    <label style="font-size: 12px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase;">Update Status</label>
-                    <select v-model="currentStatus" class="form-select">
-                        <option value="in-progress">In Progress</option>
-                        <option value="completed">Completed / Discharged</option>
-                        <option value="no-show">No-Show / Cancelled</option>
-                    </select>
-
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" @click="saveStatus">
-                        Save Status Change
-                    </button>
-                </div>
-            </div>
-
+        <!-- LEFT COLUMN: PATIENT CLINICAL DATA -->
+        <div class="main-details-col">
             <!-- PATIENT PROFILE CARD -->
-            <div class="content-card">
+            <div class="card-shell">
                 <div class="card-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    Patient Information
+                    <div class="card-title-text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Patient Information
+                    </div>
+                    <Link :href="`/doctor/patients/${appointment.patientId}`" class="history-link">
+                        View Full History →
+                    </Link>
                 </div>
 
-                <div class="info-list">
-                    <div class="info-item">
-                        <label>Full Name</label>
-                        <span>{{ appointment.patientName }}</span>
+                <div class="patient-profile-strip">
+                    <div class="patient-avatar-lg">{{ appointment.patientInitials }}</div>
+                    <div class="patient-meta-lg">
+                        <h3>{{ appointment.patientName }}</h3>
+                        <p>Patient ID: #{{ appointment.patientId }} · Age: {{ appointment.age }} · Gender: {{ appointment.gender }}</p>
+
+                        <div class="patient-quick-stats">
+                            <span class="stat-pill">Blood Group: <strong>{{ appointment.bloodGroup }}</strong></span>
+                            <span class="stat-pill">Allergies: <strong>{{ appointment.allergies }}</strong></span>
+                            <span class="stat-pill">Visits Completed: <strong>{{ appointment.visitsCompleted }}</strong></span>
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <label>Email Address</label>
-                        <span>{{ appointment.email }}</span>
+                </div>
+            </div>
+
+            <!-- SCHEDULE & LOCATION SPECIFICATIONS -->
+            <div class="card-shell">
+                <div class="card-title">
+                    <div class="card-title-text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                        </svg>
+                        Schedule & Location
                     </div>
-                    <div class="info-item">
-                        <label>Phone Number</label>
+                </div>
+
+                <div class="info-pairs-grid">
+                    <div class="info-box">
+                        <label>Date & Time</label>
+                        <span>{{ appointment.date }}</span>
+                        <small>{{ appointment.time }}</small>
+                    </div>
+
+                    <div class="info-box">
+                        <label>Consultation Mode</label>
+                        <span>{{ appointment.mode }}</span>
+                        <small>{{ appointment.location }}</small>
+                    </div>
+
+                    <div class="info-box">
+                        <label>Patient Contact</label>
                         <span>{{ appointment.phone }}</span>
+                        <small>{{ appointment.email }}</small>
                     </div>
-                    <div class="info-item">
-                        <label>Consultation Fee</label>
-                        <b class="mono-text">{{ appointment.fee }}</b>
+
+                    <div class="info-box">
+                        <label>Payment Status</label>
+                        <span style="color: #15803D;">{{ appointment.paymentStatus }}</span>
+                        <small>{{ appointment.receipt }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REASON & VITALS SNAPSHOT -->
+            <div class="card-shell">
+                <div class="card-title">
+                    <div class="card-title-text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                        Chief Complaint & Pre-Visit Vitals
+                    </div>
+                </div>
+
+                <div class="symptom-box">
+                    <label>Patient Stated Reason for Visit</label>
+                    <p>"{{ appointment.reason }}"</p>
+                </div>
+
+                <div class="vitals-mini-grid">
+                    <div class="vital-tile">
+                        <label>Blood Pressure</label>
+                        <b>{{ appointment.vitals.bp }} <small style="font-size: 11px; font-weight: normal;">mmHg</small></b>
+                    </div>
+                    <div class="vital-tile">
+                        <label>Heart Rate</label>
+                        <b>{{ appointment.vitals.hr }} <small style="font-size: 11px; font-weight: normal;">bpm</small></b>
+                    </div>
+                    <div class="vital-tile">
+                        <label>Body Weight</label>
+                        <b>{{ appointment.vitals.weight }} <small style="font-size: 11px; font-weight: normal;">kg</small></b>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- RIGHT SIDEBAR: STATUS UPDATE & CLINICAL WORKFLOW -->
+        <div class="sidebar-col">
+            <!-- UPDATE STATUS CARD -->
+            <div class="action-card">
+                <h4 class="card-heading">Appointment Status</h4>
+                <p class="card-subtext">Update consultation stage for hospital flow:</p>
+
+                <select class="status-select" :value="currentStatus" @change="handleStatusChange">
+                    <option value="confirmed">Confirmed (Waiting)</option>
+                    <option value="in_progress">In Progress (In Room)</option>
+                    <option value="completed">Completed</option>
+                    <option value="no_show">No Show</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <!-- CLINICAL DOCUMENTATION WORKFLOW -->
+            <div class="action-card">
+                <h4 class="card-heading">Clinical Actions</h4>
+                <p class="card-subtext">Generate medical records or issue prescriptions for this session:</p>
+
+                <Link href="/doctor/appointments/101/medical-record/create" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    Create Medical Record
+                </Link>
+
+                <Link href="/doctor/appointments/101/prescriptions/create" class="btn btn-lime">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/>
+                    </svg>
+                    Issue Prescription
+                </Link>
+
+                <Link :href="`/doctor/patients/${appointment.patientId}`" class="btn btn-outline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    Patient History Log
+                </Link>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTICE -->
+    <div v-if="showToast" class="toast-notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>{{ toastMsg }}</span>
     </div>
 </template>
 
 <style scoped>
-.nav-bar-row {
+.top-nav-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
-.back-link { font-size: 13.5px; font-weight: 700; color: var(--forest); text-decoration: none; }
-.appointment-tag { font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; color: var(--ink-muted); }
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--forest);
+    background: var(--cream);
+    border: 1px solid var(--line);
+    padding: 6px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+.back-btn:hover { background: var(--card); border-color: var(--forest); }
 
-.hero-card {
+/* HEADER BANNER CARD */
+.detail-header-card {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius-xl);
-    padding: 24px 28px;
+    padding: 28px 32px;
     box-shadow: var(--shadow-card);
     display: flex;
     align-items: center;
@@ -239,126 +280,76 @@ function saveStatus() {
     gap: 20px;
     margin-bottom: 24px;
 }
+.header-info-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ref-badge { font-family: var(--font-mono); font-size: 13px; font-weight: 700; background: var(--cream); border: 1px solid var(--line); color: var(--forest); padding: 4px 10px; border-radius: var(--radius-sm); }
+.detail-header-card h1 { font-size: 22px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; margin-top: 4px; }
 
-.hero-main { display: flex; align-items: center; gap: 20px; }
-.patient-hero-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.badge-confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.badge-in-progress { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.badge-completed { background: var(--cream-alt); color: var(--ink-muted); border: 1px solid var(--line); }
+.badge-cancelled { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
 
-.hero-title-row { display: flex; align-items: center; gap: 12px; }
-.hero-title-row h2 { font-size: 22px; font-weight: 800; color: var(--forest); margin: 0; }
+/* GRID LAYOUT */
+.detail-grid { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+@media (max-width: 1024px) { .detail-grid { grid-template-columns: 1fr; } }
 
-.hero-meta p { font-size: 13px; color: var(--ink-muted); margin: 4px 0 8px 0; }
-.hero-badges { display: flex; gap: 8px; flex-wrap: wrap; }
-.meta-pill { font-size: 11.5px; font-weight: 600; background: var(--cream); border: 1px solid var(--line); padding: 3px 10px; border-radius: 999px; }
+.main-details-col { display: flex; flex-direction: column; gap: 24px; }
 
-.vitals-strip {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-}
-@media (max-width: 900px) { .vitals-strip { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 500px) { .vitals-strip { grid-template-columns: 1fr 1fr; } }
+.card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); padding: 28px; }
+.card-title { font-size: 16px; font-weight: 800; color: var(--forest); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+.card-title-text { display: flex; align-items: center; gap: 10px; }
+.card-title svg { width: 18px; height: 18px; color: var(--forest); }
+.history-link { font-size: 13px; font-weight: 700; color: var(--forest); text-decoration: underline; }
 
-.vital-box {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    padding: 16px;
-    text-align: center;
-    box-shadow: var(--shadow-sm);
-}
-.vital-box label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-muted); display: block; margin-bottom: 4px; }
-.vital-box b { font-family: var(--font-mono); font-size: 18px; font-weight: 800; color: var(--forest); }
+/* PATIENT SUMMARY HEADER */
+.patient-profile-strip { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.patient-avatar-lg { width: 72px; height: 72px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+.patient-meta-lg h3 { font-size: 19px; font-weight: 800; color: var(--forest); margin-bottom: 2px; }
+.patient-meta-lg p { font-size: 13.5px; color: var(--ink-muted); font-weight: 500; }
 
-.detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 24px;
-    align-items: start;
-}
-@media (max-width: 992px) { .detail-grid { grid-template-columns: 1fr; } }
+.patient-quick-stats { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.stat-pill { font-size: 12px; font-weight: 600; background: var(--cream); border: 1px solid var(--line); padding: 4px 12px; border-radius: 999px; color: var(--ink); }
 
-.left-column, .right-column { display: flex; flex-direction: column; gap: 20px; }
+/* INFO GRID */
+.info-pairs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (max-width: 600px) { .info-pairs-grid { grid-template-columns: 1fr; } }
 
-.content-card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-xl);
-    padding: 24px;
-    box-shadow: var(--shadow-card);
-}
+.info-box { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px; }
+.info-box label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 4px; }
+.info-box span { font-size: 14.5px; font-weight: 700; color: var(--ink); display: block; }
+.info-box small { font-size: 12px; color: var(--ink-muted); display: block; margin-top: 2px; }
 
-.card-title {
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--forest);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 10px;
-}
+/* REASON & CLINICAL PREP */
+.symptom-box { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 18px; margin-bottom: 16px; }
+.symptom-box label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--ink-muted); display: block; margin-bottom: 4px; }
+.symptom-box p { font-size: 14.5px; font-weight: 600; color: var(--ink); }
 
-.complaint-text { font-size: 14px; color: var(--ink); line-height: 1.5; }
+/* VITALS STRIP */
+.vitals-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 600px) { .vitals-mini-grid { grid-template-columns: 1fr; } }
+.vital-tile { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px; }
+.vital-tile label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--ink-muted); display: block; }
+.vital-tile b { font-family: var(--font-mono); font-size: 17px; font-weight: 800; color: var(--forest); display: block; margin-top: 2px; }
 
-.allergies-list { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.allergy-badge { font-size: 12px; font-weight: 700; background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; padding: 4px 12px; border-radius: 999px; }
+/* SIDEBAR ACTIONS */
+.sidebar-col { display: flex; flex-direction: column; gap: 24px; }
 
-.action-cards-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
-@media (max-width: 600px) { .action-cards-grid { grid-template-columns: 1fr; } }
+.action-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 14px; }
+.card-heading { font-size: 15px; font-weight: 800; color: var(--forest); }
+.card-subtext { font-size: 12.5px; color: var(--ink-muted); }
 
-.action-card-btn {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    transition: all 150ms ease;
-    box-shadow: var(--shadow-sm);
-}
-.action-card-btn:hover { border-color: var(--forest); transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.status-select { width: 100%; height: 44px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); padding: 0 14px; font-size: 14px; font-weight: 700; color: var(--forest); }
 
-.action-icon { width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.bg-forest-soft { background: #E2E8F0; color: var(--forest); }
-.bg-lime-soft { background: var(--lime-soft); color: var(--lime-text); }
-
-.action-card-btn b { display: block; font-size: 13.5px; font-weight: 700; color: var(--forest); }
-.action-card-btn span { display: block; font-size: 11.5px; color: var(--ink-muted); }
-
-.status-controls { display: flex; flex-direction: column; gap: 8px; }
-
-.form-select {
-    height: 42px;
-    border-radius: var(--radius-md);
-    border: 1px solid var(--line);
-    background: var(--cream);
-    padding: 0 14px;
-    font-size: 13.5px;
-    color: var(--ink);
-    width: 100%;
-}
-
-.info-list { display: flex; flex-direction: column; gap: 12px; }
-.info-item { display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed var(--line); padding-bottom: 8px; }
-.info-item:last-child { border-bottom: none; }
-.info-item label { color: var(--ink-muted); }
-.info-item span { font-weight: 600; color: var(--ink); }
-.mono-text { font-family: var(--font-mono); color: var(--forest); }
-
-.status-pill-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
-.status-pill-badge.in-progress { background: var(--lime-soft); color: var(--lime-text); border: 1px solid #d2e85a; }
-
-.btn { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600; text-decoration: none; transition: all 150ms ease; }
-.btn-outline { background: transparent; color: var(--forest); border: 1.5px solid var(--line); }
-.btn-outline:hover { background: var(--cream); border-color: var(--forest); }
-.btn-primary { background: var(--forest); color: white; border: 1.5px solid var(--forest); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 999px; font-size: 14px; font-weight: 700; transition: all 150ms ease; width: 100%; text-decoration: none; cursor: pointer; }
+.btn-primary { background: var(--forest); color: #fff; box-shadow: var(--shadow-sm); }
 .btn-primary:hover { background: var(--forest-2); }
+.btn-lime { background: var(--lime); color: var(--lime-text); border: 1px solid #c4dc3c; }
+.btn-lime:hover { background: #d2e85a; }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+
+/* TOAST */
+.toast-notice { position: fixed; bottom: 24px; right: 24px; background: var(--forest); color: #fff; padding: 14px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lift); display: flex; align-items: center; gap: 10px; z-index: 100; animation: slideUp 200ms ease-out; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>

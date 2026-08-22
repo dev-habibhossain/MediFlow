@@ -2,156 +2,259 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
-const supersedeReason = ref('dosage_adjustment')
-const customReasonNotes = ref('Increasing dosage from 10mg to 20mg daily due to sub-optimal blood pressure control.')
+const showToast = ref(false)
+
+const supersedeReason = ref('Adjusted Amlodipine dosage from 5mg to 10mg based on 24h blood pressure telemetry log.')
 
 const items = ref([
     {
-        drug: 'Lisinopril 20mg Oral Tablet',
-        dosage: '20mg',
-        frequency: 'Once Daily (Morning)',
-        duration: '30 Days',
-        qty: '30 Tablets',
-        refills: '3',
+        name: 'Amlodipine Besylate 10mg',
+        frequency: '1x Daily (Morning)',
+        duration: '90 Days',
+        refills: '2',
+        instructions: 'Take morning with food',
+    },
+    {
+        name: 'Atorvastatin Calcium 20mg',
+        frequency: '1x Daily (Bedtime)',
+        duration: '90 Days',
+        refills: '2',
+        instructions: 'Take at bedtime, avoid grapefruit',
     },
 ])
 
-function handleSupersede() {
-    alert('Prescription #RX-8041 superseded successfully! Original order voided.')
+const pharmacyNotes = ref('Discontinue previous 5mg Amlodipine. Patient to transition directly to 10mg daily morning dose.')
+
+function addRow() {
+    items.value.push({
+        name: '',
+        frequency: '1x Daily (Morning)',
+        duration: '30 Days',
+        refills: '1',
+        instructions: '',
+    })
+}
+
+function removeRow(index: number) {
+    if (items.value.length > 1) {
+        items.value.splice(index, 1)
+    } else {
+        alert('Prescription must contain at least one medication line item.')
+    }
+}
+
+function handleSupersedeRx() {
+    showToast.value = true
+    setTimeout(() => {
+        showToast.value = false
+        window.location.href = '/doctor/patients/9021'
+    }, 1200)
 }
 </script>
 
 <template>
-    <Head title="Supersede Prescription #RX-8041" />
+    <Head title="Supersede Prescription - MediFlow" />
 
-    <!-- NAV BAR ROW -->
-    <div class="nav-bar-row">
-        <Link href="/doctor/patients/MDF-9021/history" class="back-link">
-            ← Back to Patient History
+    <!-- TOP HEADER -->
+    <div class="top-nav-row">
+        <Link href="/doctor/patients/9021" class="back-btn">
+            ← Cancel & Back to Patient History
         </Link>
-        <span class="context-tag">Superseding Rx Order Ref #RX-8041 • Patient: Habib Hossain</span>
     </div>
 
-    <!-- SUPERSEDE WARNING BANNER -->
-    <div class="supersede-banner">
-        <div class="banner-icon">🔄</div>
-        <div class="banner-text">
-            <b>Voiding & Superseding Existing Prescription Order #RX-8041</b>
-            <p>Submitting this form will automatically flag previous order #RX-8041 (Lisinopril 10mg) as VOID/SUPERSEDED in the electronic health network.</p>
+    <!-- HEADER BANNER CARD -->
+    <div class="rx-header-card">
+        <div>
+            <span class="ref-badge">Superseding Original Rx #RX-401</span>
+            <h1>Correct & Supersede Prescription</h1>
         </div>
     </div>
 
-    <!-- MAIN FORM CARD -->
+    <!-- COMPLIANCE WARNING BANNER -->
+    <div class="supersede-alert-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div>
+            <h4>Pharmacy Protocol Notice</h4>
+            <p>Issuing this corrected prescription will immediately void Prescription <strong>#RX-401</strong> in the hospital central pharmacy system. The patient and assigned dispensing pharmacy will receive a cancellation broadcast for the previous order.</p>
+        </div>
+    </div>
+
+    <!-- PATIENT MINI SUMMARY -->
+    <div class="patient-summary-box">
+        <div class="patient-meta-group">
+            <div class="patient-avatar-md">HH</div>
+            <div class="patient-info">
+                <b>Habib Hossain</b>
+                <span>Patient ID: #MDF-9021 · Male, 28 Yrs · Original Rx Issued: July 14, 2026</span>
+            </div>
+        </div>
+
+        <div class="record-rev-badge">
+            New Record ID: <strong>#RX-401-REV1</strong>
+        </div>
+    </div>
+
+    <!-- FORM CARD -->
     <div class="form-card">
-        <div class="card-header">
-            <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        <div class="card-title-row">
+            <div class="card-title-text">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/>
                 </svg>
-                Replacement Prescription Order (Rx)
-            </h3>
+                Corrected Line Items & Regimen
+            </div>
         </div>
 
-        <form @submit.prevent="handleSupersede">
+        <form @submit.prevent="handleSupersedeRx">
             <!-- REASON FOR SUPERSEDING -->
-            <div class="form-section highlight-section">
-                <h4 class="section-title">Reason for Voiding Previous Rx</h4>
-
-                <div class="form-grid-dual">
-                    <div class="form-group">
-                        <label>Primary Clinical Reason <span>*</span></label>
-                        <select v-model="supersedeReason" class="form-control" required>
-                            <option value="dosage_adjustment">Dosage Adjustment / Titration</option>
-                            <option value="adverse_reaction">Adverse Drug Event / Side Effects</option>
-                            <option value="drug_interaction">Drug Interaction Concern</option>
-                            <option value="patient_preference">Formulation / Patient Request</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Detailed Explanation / Clinical Rationale <span>*</span></label>
-                        <input v-model="customReasonNotes" type="text" class="form-control" required />
-                    </div>
-                </div>
+            <div class="reason-highlight-box">
+                <label>Reason for Correction / Superseding <span>*</span></label>
+                <input v-model="supersedeReason" type="text" class="form-control" required placeholder="E.g., Adjusted dosage..." />
             </div>
 
-            <!-- REPLACEMENT MEDICATION ORDER -->
-            <div class="form-section">
-                <h4 class="section-title">New Replacement Medication Item</h4>
-
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 30%;">Medication & Strength</th>
-                                <th style="width: 15%;">Dosage</th>
-                                <th style="width: 25%;">Frequency</th>
-                                <th style="width: 12%;">Duration</th>
-                                <th style="width: 10%;">Qty</th>
-                                <th style="width: 8%;">Refills</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(item, idx) in items" :key="idx">
-                                <td>
-                                    <input v-model="item.drug" type="text" class="table-input" required />
-                                </td>
-                                <td>
-                                    <input v-model="item.dosage" type="text" class="table-input" required />
-                                </td>
-                                <td>
-                                    <select v-model="item.frequency" class="table-select">
-                                        <option value="Once Daily (Morning)">Once Daily (Morning)</option>
-                                        <option value="Twice Daily (BID)">Twice Daily (BID)</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <input v-model="item.duration" type="text" class="table-input" required />
-                                </td>
-                                <td>
-                                    <input v-model="item.qty" type="text" class="table-input mono" required />
-                                </td>
-                                <td>
-                                    <input v-model="item.refills" type="text" class="table-input mono" required />
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <!-- MEDICATION ITEMS TABLE -->
+            <div class="table-wrap">
+                <table class="med-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 28%;">Medication Name & Dosage</th>
+                            <th style="width: 20%;">Frequency / Timing</th>
+                            <th style="width: 16%;">Duration</th>
+                            <th style="width: 14%;">Refills</th>
+                            <th style="width: 18%;">Special Timing Instructions</th>
+                            <th style="width: 40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(item, idx) in items" :key="idx" class="med-row">
+                            <td>
+                                <input v-model="item.name" type="text" class="form-control-sm" placeholder="e.g. Amlodipine 10mg" required />
+                            </td>
+                            <td>
+                                <select v-model="item.frequency" class="form-control-sm">
+                                    <option value="1x Daily (Morning)">1x Daily (Morning)</option>
+                                    <option value="1x Daily (Bedtime)">1x Daily (Bedtime)</option>
+                                    <option value="2x Daily (12 Hours)">2x Daily (12 Hours)</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input v-model="item.duration" type="text" class="form-control-sm" placeholder="90 Days" required />
+                            </td>
+                            <td>
+                                <select v-model="item.refills" class="form-control-sm">
+                                    <option value="0">0 Refills</option>
+                                    <option value="1">1 Refill</option>
+                                    <option value="2">2 Refills</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input v-model="item.instructions" type="text" class="form-control-sm" placeholder="e.g. Take with food" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn-remove-row" title="Remove item" @click="removeRow(idx)">✕</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
-            <!-- FORM ACTIONS -->
+            <button type="button" class="btn-row-add" @click="addRow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add Medication Line Item
+            </button>
+
+            <!-- SPECIAL PHARMACY & PATIENT NOTES -->
+            <div class="form-group">
+                <label>Special Pharmacy Directions (Superseded Version)</label>
+                <textarea v-model="pharmacyNotes" class="form-control" placeholder="Add additional directions for dispensing pharmacist..."></textarea>
+            </div>
+
+            <!-- BUTTON ROW -->
             <div class="form-actions">
-                <Link href="/doctor/patients/MDF-9021/history" class="btn btn-outline">Cancel</Link>
-                <button type="submit" class="btn btn-primary">Void Existing & Issue Replacement Rx</button>
+                <Link href="/doctor/patients/9021" class="btn btn-outline">Cancel Amendment</Link>
+                <button type="submit" class="btn btn-lime">Sign & Issue Superseded Rx #RX-401-REV1</button>
             </div>
         </form>
+    </div>
+
+    <!-- TOAST NOTICE -->
+    <div v-if="showToast" class="toast-notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Prescription #RX-401-REV1 issued! #RX-401 voided.
     </div>
 </template>
 
 <style scoped>
-.nav-bar-row {
+.top-nav-row { margin-bottom: 20px; }
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--forest);
+    background: var(--cream);
+    border: 1px solid var(--line);
+    padding: 6px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+}
+.back-btn:hover { background: var(--card); border-color: var(--forest); }
+
+.rx-header-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    padding: 24px 32px;
+    box-shadow: var(--shadow-card);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
-}
-.back-link { font-size: 13.5px; font-weight: 700; color: var(--forest); text-decoration: none; }
-.context-tag { font-size: 12.5px; font-weight: 600; color: var(--ink-muted); }
-
-.supersede-banner {
-    background: #E0F2FE;
-    border: 1px solid #BAE6FD;
-    border-radius: var(--radius-lg);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 16px;
     margin-bottom: 24px;
 }
-.banner-icon { font-size: 24px; }
-.banner-text b { font-size: 14px; color: #0369A1; display: block; margin-bottom: 2px; }
-.banner-text p { font-size: 12.5px; color: #0284C7; margin: 0; }
+.ref-badge { font-family: var(--font-mono); font-size: 12.5px; font-weight: 700; background: var(--cream); border: 1px solid var(--line); color: var(--forest); padding: 4px 10px; border-radius: var(--radius-sm); display: inline-block; margin-bottom: 4px; }
+.rx-header-card h1 { font-size: 22px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; }
+
+.supersede-alert-box {
+    background: #FEF3C7;
+    border: 1px solid #FDE68A;
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    color: #B45309;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.supersede-alert-box svg { flex-shrink: 0; margin-top: 2px; }
+.supersede-alert-box h4 { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.supersede-alert-box p { font-size: 13px; line-height: 1.45; color: #92400E; margin: 0; }
+
+.patient-summary-box {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.patient-meta-group { display: flex; align-items: center; gap: 14px; }
+.patient-avatar-md { width: 46px; height: 46px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.patient-info b { font-size: 15px; font-weight: 800; color: var(--forest); display: block; }
+.patient-info span { font-size: 12.5px; color: var(--ink-muted); display: block; }
+.record-rev-badge { font-size: 12.5px; color: var(--ink-muted); font-family: var(--font-mono); }
 
 .form-card {
     background: var(--card);
@@ -160,95 +263,52 @@ function handleSupersede() {
     padding: 32px;
     box-shadow: var(--shadow-card);
 }
+@media (max-width: 600px) { .form-card { padding: 20px; } }
 
-.card-header {
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 16px;
-    margin-bottom: 24px;
-}
-.card-header h3 { font-size: 18px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 10px; }
+.card-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+.card-title-text { font-size: 16px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 10px; }
 
-.form-section { margin-bottom: 28px; }
-.highlight-section { background: var(--cream); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--line); }
-
-.section-title {
-    font-size: 14px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--forest);
-    margin-bottom: 16px;
-    border-left: 3px solid var(--lime);
-    padding-left: 10px;
-}
-
-.form-grid-dual {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-@media (max-width: 768px) { .form-grid-dual { grid-template-columns: 1fr; } }
-
-.table-responsive { width: 100%; overflow-x: auto; }
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.data-table th {
-    background: var(--cream);
-    padding: 12px 14px;
-    font-size: 11.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--ink-muted);
-    border-bottom: 1px solid var(--line);
-    text-align: left;
-}
-
-.data-table td {
-    padding: 10px 8px;
-    border-bottom: 1px solid var(--line);
-    vertical-align: middle;
-}
-
-.table-input, .table-select {
-    height: 40px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--line);
-    background: var(--card);
-    padding: 0 10px;
-    font-size: 13.5px;
-    color: var(--ink);
-    width: 100%;
-}
-.table-input.mono { font-family: var(--font-mono); }
-
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-group label { font-size: 13px; font-weight: 700; color: var(--ink); }
-
-.form-control {
-    height: 44px;
+.reason-highlight-box {
+    background: #FFFBEB;
+    padding: 16px;
+    border: 1px solid #FDE68A;
     border-radius: var(--radius-md);
-    border: 1px solid var(--line);
-    background: var(--card);
-    padding: 0 14px;
-    font-size: 14px;
-    color: var(--ink);
-}
-
-.form-actions {
+    margin-bottom: 20px;
     display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    border-top: 1px solid var(--line);
-    padding-top: 20px;
+    flex-direction: column;
+    gap: 6px;
 }
+.reason-highlight-box label { font-size: 13px; font-weight: 700; color: #92400E; }
+.reason-highlight-box label span { color: #DC2626; }
 
-.btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 150ms ease; }
-.btn-outline { background: transparent; color: var(--forest); border: 1.5px solid var(--line); }
-.btn-outline:hover { background: var(--cream); border-color: var(--forest); }
-.btn-primary { background: var(--forest); color: white; border: 1.5px solid var(--forest); }
-.btn-primary:hover { background: var(--forest-2); }
+.table-wrap { overflow-x: auto; margin-bottom: 20px; }
+.med-table { width: 100%; border-collapse: collapse; min-width: 760px; }
+.med-table th { background: var(--cream); padding: 12px 14px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); text-align: left; }
+.med-table td { padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+
+.form-control-sm { width: 100%; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--cream); padding: 0 12px; font-size: 13.5px; color: var(--ink); transition: border-color 150ms ease; }
+.form-control-sm:focus { border-color: var(--forest); background: var(--card); outline: none; }
+
+.btn-row-add { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 18px; border-radius: 999px; background: var(--cream); border: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--forest); transition: all 150ms ease; margin-bottom: 28px; cursor: pointer; }
+.btn-row-add:hover { background: var(--forest); color: #fff; border-color: var(--forest); }
+
+.btn-remove-row { width: 36px; height: 40px; border-radius: var(--radius-sm); border: 1px solid #FCA5A5; background: #FEE2E2; color: #DC2626; display: flex; align-items: center; justify-content: center; transition: all 150ms ease; cursor: pointer; }
+.btn-remove-row:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
+
+.form-group { margin-bottom: 24px; display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 13px; font-weight: 700; color: var(--ink); display: block; }
+.form-control { width: 100%; height: 44px; border-radius: var(--radius-md); border: 1px solid var(--line); background: #fff; padding: 0 14px; font-size: 14px; color: var(--ink); transition: border-color 150ms ease; }
+.form-control:focus { border-color: var(--forest); outline: none; }
+textarea.form-control { height: auto; min-height: 90px; padding: 12px 16px; resize: vertical; background: var(--cream); }
+textarea.form-control:focus { background: var(--card); }
+
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 28px; border-radius: 999px; font-size: 14.5px; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 150ms ease; }
+.btn-lime { background: var(--lime); color: var(--lime-text); border: 1px solid #c4dc3c; font-weight: 700; }
+.btn-lime:hover { background: #d2e85a; }
+.btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+
+.toast-notice { position: fixed; bottom: 24px; right: 24px; background: var(--forest); color: #fff; padding: 14px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lift); display: flex; align-items: center; gap: 10px; z-index: 100; animation: slideUp 200ms ease-out; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 </style>
