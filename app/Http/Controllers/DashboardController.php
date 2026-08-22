@@ -22,6 +22,10 @@ class DashboardController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        if ($user && $user->isDoctor()) {
+            return redirect()->route('doctor.dashboard');
+        }
+
         $patient = $user->patient;
 
         $appointments = [];

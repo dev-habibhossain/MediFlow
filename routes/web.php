@@ -98,6 +98,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/settings/notifications', fn () => inertia('Admin/Settings/Notifications'))->name('settings.notifications');
         Route::get('/settings/holidays', fn () => inertia('Admin/Settings/Holidays'))->name('settings.holidays');
     });
+
+    // Doctor Portal Routes
+    Route::prefix('doctor')->name('doctor.')->group(function () {
+        Route::get('/dashboard', fn () => inertia('Doctor/Dashboard'))->name('dashboard');
+
+        // Appointments
+        Route::get('/appointments', fn () => inertia('Doctor/Appointments/Index'))->name('appointments.index');
+        Route::get('/appointments/{id}', fn () => inertia('Doctor/Appointments/Show'))->name('appointments.show');
+
+        // Patient History
+        Route::get('/patients/{id}/history', fn () => inertia('Doctor/Patients/History'))->name('patients.history');
+
+        // Medical Records
+        Route::get('/appointments/{id}/records/create', fn () => inertia('Doctor/Records/Create'))->name('records.create');
+        Route::get('/records/{id}/edit', fn () => inertia('Doctor/Records/Edit'))->name('records.edit');
+
+        // Prescriptions
+        Route::get('/appointments/{id}/prescriptions/create', fn () => inertia('Doctor/Prescriptions/Create'))->name('prescriptions.create');
+        Route::get('/prescriptions/{id}/supersede', fn () => inertia('Doctor/Prescriptions/Supersede'))->name('prescriptions.supersede');
+
+        // Schedule & Availability
+        Route::get('/schedule', fn () => inertia('Doctor/Schedule/Index'))->name('schedule.index');
+        Route::get('/schedule/exceptions', fn () => inertia('Doctor/Schedule/Exceptions'))->name('schedule.exceptions');
+
+        // Performance & Profile
+        Route::get('/performance', fn () => inertia('Doctor/Performance/Index'))->name('performance.index');
+        Route::get('/settings/profile', fn () => inertia('Doctor/Settings/Profile'))->name('settings.profile');
+    });
 });
 
 require __DIR__.'/settings.php';
