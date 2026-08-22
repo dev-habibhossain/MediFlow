@@ -91,6 +91,12 @@ const props = withDefaults(
                 <span class="status-badge status-active">● Active Account</span>
             </div>
         </div>
+
+        <div>
+            <Link v-if="props.patient.user_id" :href="`/admin/doctors/create?user_id=${props.patient.user_id}`" class="btn-promote-doc">
+                + Promote to Doctor
+            </Link>
+        </div>
     </div>
 
     <!-- MAIN SPLIT GRID -->
@@ -243,6 +249,8 @@ const props = withDefaults(
 .action-card p { font-size: 12.5px; color: var(--ink-muted); }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 999px; font-size: 14px; font-weight: 700; transition: all 150ms ease; width: 100%; cursor: pointer; text-decoration: none; border: 0; }
+.btn-promote-doc { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 999px; background: var(--forest); color: #fff; font-size: 13.5px; font-weight: 700; text-decoration: none; transition: background-color 150ms ease; }
+.btn-promote-doc:hover { background: var(--forest-2); }
 .btn-secondary-action { background: var(--cream); color: var(--forest); border: 1px solid var(--line); }
 .btn-secondary-action:hover { background: var(--card); border-color: var(--forest); }
 .btn-outline-danger { background: transparent; color: #DC2626; border: 1.5px solid #FCA5A5; }

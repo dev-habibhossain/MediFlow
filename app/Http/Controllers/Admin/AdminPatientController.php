@@ -101,6 +101,7 @@ class AdminPatientController extends Controller
         return Inertia::render('Admin/Patients/Show', [
             'patient' => [
                 'id' => $patient->id,
+                'user_id' => $patient->user_id,
                 'code' => 'MDF-'.$patient->id,
                 'name' => $name,
                 'initials' => $initials,

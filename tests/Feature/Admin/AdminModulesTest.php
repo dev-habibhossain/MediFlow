@@ -17,28 +17,30 @@ beforeEach(function () {
     $this->admin->assignRole('Admin');
 });
 
-test('admin can access doctors registry and create doctor', function () {
+test('admin can access doctors registry and promote registered user to doctor', function () {
     $dept = Department::create(['name' => 'Surgery', 'slug' => 'surgery', 'is_active' => true]);
+    $patientUser = User::factory()->create([
+        'name' => 'Dr. Test Candidate',
+        'email' => 'candidate@mediflow.com',
+        'role' => 'Patient',
+    ]);
 
     $response = $this->actingAs($this->admin)->get(route('admin.doctors.index'));
     $response->assertOk();
 
     $response = $this->actingAs($this->admin)->post(route('admin.doctors.store'), [
-        'title_name' => 'Dr. Test Specialist',
-        'email' => 'testspec@mediflow.com',
-        'gender' => 'male',
+        'user_id' => $patientUser->id,
         'license_number' => 'MD-TEST-999',
         'department_id' => $dept->id,
         'qualifications' => 'MD, FACS',
         'experience_years' => 10,
         'consultation_fee' => 150.00,
-        'password' => 'password123',
         'status' => 'active',
     ]);
 
     $response->assertRedirect(route('admin.doctors.index'));
-    $this->assertDatabaseHas('users', ['email' => 'testspec@mediflow.com']);
-    $this->assertDatabaseHas('doctors', ['license_number' => 'MD-TEST-999']);
+    $this->assertDatabaseHas('users', ['id' => $patientUser->id, 'role' => 'Doctor']);
+    $this->assertDatabaseHas('doctors', ['user_id' => $patientUser->id, 'license_number' => 'MD-TEST-999']);
 });
 
 test('admin can access patients registry and patient details', function () {

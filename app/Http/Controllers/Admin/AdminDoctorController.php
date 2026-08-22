@@ -10,7 +10,6 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -78,27 +77,46 @@ class AdminDoctorController extends Controller
     }
 
     /**
-     * Show creation form.
+     * Show form for promoting an existing user/patient to Doctor.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
         $departments = Department::where('is_active', true)->select('id', 'name')->get();
 
+        $eligibleUsers = User::doesntHave('doctor')
+            ->where(function ($q) {
+                $q->where('role', '!=', 'Admin')->orWhereNull('role');
+            })
+            ->where('id', '!=', $request->user()?->id)
+            ->select('id', 'name', 'email', 'phone', 'avatar_path', 'role', 'created_at')
+            ->latest()
+            ->get()
+            ->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? 'N/A',
+                'avatar' => $user->avatar_url,
+                'role' => $user->role ?? 'Patient',
+                'joined' => $user->created_at ? $user->created_at->format('M j, Y') : 'Recently',
+            ]);
+
+        $selectedUserId = $request->query('user_id');
+
         return Inertia::render('Admin/Doctors/Create', [
             'departments' => $departments,
+            'eligibleUsers' => $eligibleUsers,
+            'selectedUserId' => $selectedUserId ? (int) $selectedUserId : null,
         ]);
     }
 
     /**
-     * Store newly created doctor.
+     * Promote existing user/patient to Doctor.
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'title_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:30',
-            'gender' => 'required|string|in:male,female,other',
+            'user_id' => 'required|exists:users,id',
             'license_number' => 'required|string|unique:doctors,license_number',
             'department_id' => 'required|exists:departments,id',
             'qualifications' => 'required|string|max:255',
@@ -106,27 +124,27 @@ class AdminDoctorController extends Controller
             'bio' => 'nullable|string',
             'consultation_fee' => 'required|numeric|min:0',
             'room_number' => 'nullable|string|max:100',
-            'password' => 'required|string|min:8',
             'status' => 'required|string|in:active,leave,inactive',
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
         ]);
 
-        $avatarPath = null;
-        if ($request->hasFile('avatar') && $request->file('avatar') instanceof UploadedFile) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        $user = User::findOrFail($validated['user_id']);
+
+        if (Doctor::where('user_id', $user->id)->exists()) {
+            return redirect()->back()->withErrors(['user_id' => 'This account is already registered as a doctor.']);
         }
 
-        $user = User::create([
-            'name' => $validated['title_name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'password' => Hash::make($validated['password']),
-            'avatar_path' => $avatarPath,
+        if ($request->hasFile('avatar') && $request->file('avatar') instanceof UploadedFile) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user->update(['avatar_path' => $avatarPath]);
+        }
+
+        $user->update([
             'role' => 'Doctor',
             'is_active' => $validated['status'] === 'active',
         ]);
 
-        $user->assignRole('Doctor');
+        $user->syncRoles(['Doctor']);
 
         Doctor::create([
             'user_id' => $user->id,
@@ -140,7 +158,7 @@ class AdminDoctorController extends Controller
             'status' => $validated['status'],
         ]);
 
-        return redirect()->route('admin.doctors.index')->with('success', 'Doctor onboarded successfully.');
+        return redirect()->route('admin.doctors.index')->with('success', 'User promoted to Doctor successfully.');
     }
 
     /**
