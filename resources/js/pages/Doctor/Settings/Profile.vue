@@ -18,6 +18,10 @@ const form = ref({
 function saveProfile() {
     alert('Doctor Profile & Directory listing saved successfully!')
 }
+
+function triggerUpload() {
+    alert('Upload Photo triggered!')
+}
 </script>
 
 <template>
@@ -53,7 +57,7 @@ function saveProfile() {
                         <div>
                             <b>Profile Headshot Photo</b>
                             <p>Upload a high-resolution professional portrait (PNG/JPG up to 5MB).</p>
-                            <button type="button" class="btn-sm btn-outline" @click="alert('Upload Photo triggered!')">Change Photo</button>
+                            <button type="button" class="btn-sm btn-outline" @click="triggerUpload">Change Photo</button>
                         </div>
                     </div>
 

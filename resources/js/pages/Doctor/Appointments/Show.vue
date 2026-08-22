@@ -29,6 +29,10 @@ const appointment = {
     historySummary: 'Diagnosed with Stage 1 Essential Hypertension (2024). No prior surgeries. Regular compliance with dietary sodium reduction.',
     allergies: ['Penicillin (Moderate Rash)', 'NSAIDs (Mild Gastric Upset)'],
 }
+
+function saveStatus() {
+    alert('Status updated!')
+}
 </script>
 
 <template>
@@ -174,7 +178,7 @@ const appointment = {
                         <option value="no-show">No-Show / Cancelled</option>
                     </select>
 
-                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" @click="alert('Status updated!')">
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" @click="saveStatus">
                         Save Status Change
                     </button>
                 </div>
