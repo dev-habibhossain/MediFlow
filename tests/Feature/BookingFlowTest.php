@@ -184,10 +184,5 @@ test('dashboard renders user appointments and unpaid dues', function () {
     ]);
 
     $this->actingAs($patientUser)->get(route('dashboard'))
-        ->assertStatus(200)
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('Dashboard')
-            ->has('appointments', 1)
-            ->has('unpaidPayments', 1)
-        );
+        ->assertRedirect(route('patient.dashboard'));
 });

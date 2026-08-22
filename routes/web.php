@@ -100,7 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Doctor Portal Routes
-    Route::prefix('doctor')->name('doctor.')->group(function () {
+    Route::prefix('doctor')->name('doctor.')->middleware(['role:Doctor'])->group(function () {
         Route::get('/dashboard', fn () => inertia('Doctor/Dashboard'))->name('dashboard');
 
         // Appointments
@@ -125,6 +125,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Performance & Profile
         Route::get('/performance', fn () => inertia('Doctor/Performance/Index'))->name('performance.index');
         Route::get('/settings/profile', fn () => inertia('Doctor/Settings/Profile'))->name('settings.profile');
+    });
+
+    // Patient Portal Routes
+    Route::prefix('patient')->name('patient.')->middleware(['role:Patient'])->group(function () {
+        Route::get('/dashboard', fn () => inertia('Patient/Dashboard'))->name('dashboard');
+
+        // Appointments
+        Route::get('/appointments', fn () => inertia('Patient/Appointments/Index'))->name('appointments.index');
+        Route::get('/appointments/{id}', fn () => inertia('Patient/Appointments/Show'))->name('appointments.show');
+        Route::get('/appointments/{id}/reschedule', fn () => inertia('Patient/Appointments/Reschedule'))->name('appointments.reschedule');
+        Route::get('/appointments/{id}/review', fn () => inertia('Patient/Appointments/Review'))->name('appointments.review');
+
+        // Medical Records
+        Route::get('/medical-records', fn () => inertia('Patient/Records/Index'))->name('records.index');
+        Route::get('/medical-records/{id}', fn () => inertia('Patient/Records/Show'))->name('records.show');
+
+        // Prescriptions
+        Route::get('/prescriptions', fn () => inertia('Patient/Prescriptions/Index'))->name('prescriptions.index');
+        Route::get('/prescriptions/{id}', fn () => inertia('Patient/Prescriptions/Show'))->name('prescriptions.show');
+
+        // Notifications
+        Route::get('/notifications', fn () => inertia('Patient/Notifications'))->name('notifications.index');
+
+        // Settings
+        Route::get('/settings/profile', fn () => inertia('Patient/Settings/Profile'))->name('settings.profile');
+        Route::get('/settings/security', fn () => inertia('Patient/Settings/Security'))->name('settings.security');
+        Route::get('/settings/notifications', fn () => inertia('Patient/Settings/Notifications'))->name('settings.notifications');
+
+        // Payments
+        Route::get('/payments', fn () => inertia('Patient/Payments/Index'))->name('payments.index');
+        Route::get('/payments/{id}/checkout', fn () => inertia('Patient/Payments/Checkout'))->name('payments.checkout');
+        Route::get('/appointments/{id}/pay', fn () => inertia('Patient/Payments/Checkout'))->name('appointments.pay');
     });
 });
 

@@ -11,9 +11,9 @@ import { Head, Link } from '@inertiajs/vue3'
             <div class="stat-meta">
                 <span>Total Doctors</span>
                 <b>28</b>
-                <small>↑ +2 added this month</small>
+                <small class="trend-up">↑ +2 added this month</small>
             </div>
-            <div class="stat-icon" style="background: #DCFCE7; color: #15803D;">
+            <div class="stat-icon icon-green">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
@@ -25,9 +25,9 @@ import { Head, Link } from '@inertiajs/vue3'
             <div class="stat-meta">
                 <span>Active Patients</span>
                 <b>1,840</b>
-                <small>↑ +124 new registrations</small>
+                <small class="trend-up">↑ +124 new registrations</small>
             </div>
-            <div class="stat-icon" style="background: #E0F2FE; color: #0369A1;">
+            <div class="stat-icon icon-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                 </svg>
@@ -38,9 +38,9 @@ import { Head, Link } from '@inertiajs/vue3'
             <div class="stat-meta">
                 <span>Appointments Today</span>
                 <b>42</b>
-                <small>36 Completed · 6 In Progress</small>
+                <small class="sub-detail">36 Completed · 6 In Progress</small>
             </div>
-            <div class="stat-icon" style="background: #FEF3C7; color: #B45309;">
+            <div class="stat-icon icon-amber">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
                 </svg>
@@ -51,9 +51,9 @@ import { Head, Link } from '@inertiajs/vue3'
             <div class="stat-meta">
                 <span>Monthly Revenue</span>
                 <b>$42,800</b>
-                <small>↑ +8.4% growth</small>
+                <small class="trend-up">↑ +8.4% growth</small>
             </div>
-            <div class="stat-icon" style="background: var(--lime-soft); color: var(--lime-text);">
+            <div class="stat-icon icon-lime">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
                 </svg>
@@ -64,7 +64,7 @@ import { Head, Link } from '@inertiajs/vue3'
     <!-- MAIN DASHBOARD SPLIT GRID -->
     <div class="dashboard-grid">
         <!-- LEFT: APPOINTMENT TREND CHART & SYSTEM LOGS -->
-        <div style="display: flex; flex-direction: column; gap: 28px;">
+        <div class="left-col">
             <!-- CHART CARD -->
             <div class="card-shell">
                 <div class="card-header">
@@ -74,7 +74,7 @@ import { Head, Link } from '@inertiajs/vue3'
                         </svg>
                         Monthly Appointment Volume
                     </h3>
-                    <Link href="/admin/reports">Detailed volume report →</Link>
+                    <Link href="/admin/reports" class="header-link">Detailed volume report →</Link>
                 </div>
 
                 <div class="chart-box">
@@ -84,7 +84,7 @@ import { Head, Link } from '@inertiajs/vue3'
                         <div class="chart-col"><div class="chart-bar-pillar" style="height: 82%;"></div><span class="chart-label">May</span></div>
                         <div class="chart-col"><div class="chart-bar-pillar" style="height: 78%;"></div><span class="chart-label">Jun</span></div>
                         <div class="chart-col"><div class="chart-bar-pillar" style="height: 92%;"></div><span class="chart-label">Jul</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 96%; background: var(--lime);"></div><span class="chart-label">Aug</span></div>
+                        <div class="chart-col"><div class="chart-bar-pillar chart-highlight" style="height: 96%;"></div><span class="chart-label">Aug</span></div>
                     </div>
                 </div>
             </div>
@@ -98,7 +98,7 @@ import { Head, Link } from '@inertiajs/vue3'
                         </svg>
                         System Audit Feed
                     </h3>
-                    <Link href="/admin/activity-logs">All logs</Link>
+                    <Link href="/admin/activity-logs" class="header-link">All logs →</Link>
                 </div>
 
                 <div class="activity-list">
@@ -111,7 +111,7 @@ import { Head, Link } from '@inertiajs/vue3'
                     </div>
 
                     <div class="activity-item">
-                        <div class="activity-dot" style="background: #0369A1;"></div>
+                        <div class="activity-dot dot-blue"></div>
                         <div class="activity-content">
                             <p>Payment #INV-89201 processed for consultation #MDF-102.</p>
                             <span>1 hour ago · Stripe Webhook</span>
@@ -119,7 +119,7 @@ import { Head, Link } from '@inertiajs/vue3'
                     </div>
 
                     <div class="activity-item">
-                        <div class="activity-dot" style="background: #B45309;"></div>
+                        <div class="activity-dot dot-amber"></div>
                         <div class="activity-content">
                             <p>Holiday Schedule exception added for Independence Day.</p>
                             <span>Yesterday · Admin Console</span>
@@ -130,7 +130,7 @@ import { Head, Link } from '@inertiajs/vue3'
         </div>
 
         <!-- RIGHT SIDEBAR: QUICK ACTIONS & CONTROLS -->
-        <div style="display: flex; flex-direction: column; gap: 28px;">
+        <div class="right-col">
             <!-- QUICK ACTIONS -->
             <div class="card-shell">
                 <div class="card-header">
@@ -144,7 +144,7 @@ import { Head, Link } from '@inertiajs/vue3'
 
                 <div class="quick-action-list">
                     <Link href="/admin/doctors/create" class="action-item">
-                        <div class="action-icon">
+                        <div class="action-icon icon-lime">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
@@ -156,7 +156,7 @@ import { Head, Link } from '@inertiajs/vue3'
                     </Link>
 
                     <Link href="/admin/departments/create" class="action-item">
-                        <div class="action-icon" style="background: #E0F2FE; color: #0369A1;">
+                        <div class="action-icon icon-blue">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M3 21h18M3 7v14M21 7v14M6 3h12a2 2 0 0 1 2 2v2H4V5a2 2 0 0 1 2-2z"/>
                             </svg>
@@ -168,7 +168,7 @@ import { Head, Link } from '@inertiajs/vue3'
                     </Link>
 
                     <Link href="/admin/announcements" class="action-item">
-                        <div class="action-icon" style="background: #FEF3C7; color: #B45309;">
+                        <div class="action-icon icon-amber">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                             </svg>
@@ -180,7 +180,7 @@ import { Head, Link } from '@inertiajs/vue3'
                     </Link>
 
                     <Link href="/admin/settings" class="action-item">
-                        <div class="action-icon" style="background: var(--forest); color: var(--lime);">
+                        <div class="action-icon icon-forest">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"/>
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -195,20 +195,20 @@ import { Head, Link } from '@inertiajs/vue3'
             </div>
 
             <!-- SYSTEM HEALTH & CONFIG SUMMARY -->
-            <div class="card-shell" style="padding: 20px 24px;">
-                <b style="font-size: 14px; color: var(--forest); display: block; margin-bottom: 8px;">System Configuration</b>
-                <div style="font-size: 12.5px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 6px;">
-                    <div style="display: flex; justify-content: space-between;">
+            <div class="card-shell config-summary-card">
+                <b class="config-title">System Configuration</b>
+                <div class="config-list">
+                    <div class="config-row">
                         <span>Hospital Name:</span> <strong>MediFlow Central</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between;">
+                    <div class="config-row">
                         <span>Slot Duration:</span> <strong>30 Minutes</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span>Payment Gateway:</span> <strong style="color: #15803D;">Stripe Active</strong>
+                    <div class="config-row">
+                        <span>Payment Gateway:</span> <strong class="text-green">Stripe Active</strong>
                     </div>
                 </div>
-                <Link href="/admin/settings/general" style="display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--forest); text-decoration: underline; margin-top: 12px;">
+                <Link href="/admin/settings" class="config-link">
                     Manage Hospital Settings →
                 </Link>
             </div>
@@ -216,46 +216,82 @@ import { Head, Link } from '@inertiajs/vue3'
     </div>
 </template>
 
-<style>
-.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+<style scoped>
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
 @media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px) { .metrics-grid { grid-template-columns: 1fr; } }
 
-.stat-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: flex-start; }
+.stat-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    transition: all 200ms ease;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+
 .stat-meta span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 4px; }
 .stat-meta b { font-family: var(--font-mono); font-size: 26px; font-weight: 800; color: var(--forest); line-height: 1; display: block; }
-.stat-meta small { font-size: 12px; color: #15803D; font-weight: 600; display: block; margin-top: 4px; }
+.stat-meta small.trend-up { font-size: 12px; color: #15803D; font-weight: 600; display: block; margin-top: 4px; }
+.stat-meta small.sub-detail { font-size: 12px; color: var(--ink-muted); font-weight: 600; display: block; margin-top: 4px; }
 
 .stat-icon { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--cream); color: var(--forest); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.stat-icon svg { width: 20px; height: 20px; }
+.stat-icon svg { width: 22px; height: 22px; }
+.stat-icon.icon-green { background: #DCFCE7; color: #15803D; }
+.stat-icon.icon-blue { background: #E0F2FE; color: #0369A1; }
+.stat-icon.icon-amber { background: #FEF3C7; color: #B45309; }
+.stat-icon.icon-lime { background: var(--lime-soft); color: var(--lime-text); }
 
 .dashboard-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
 @media (max-width: 1100px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
+.left-col, .right-col { display: flex; flex-direction: column; gap: 28px; }
+
 .card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
-.card-header { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
-.card-header h3 { font-size: 16px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 8px; margin: 0; }
+.card-header { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
+.card-header h3 { font-size: 15.5px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 8px; margin: 0; }
 .card-header h3 svg { width: 18px; height: 18px; color: var(--forest); }
-.card-header a { font-size: 13px; font-weight: 700; color: var(--forest); text-decoration: underline; }
+.header-link { font-size: 13px; font-weight: 700; color: var(--forest); text-decoration: none; transition: opacity 150ms ease; }
+.header-link:hover { opacity: 0.8; text-decoration: underline; }
 
 .chart-box { padding: 24px; }
 .chart-bars-wrap { display: flex; align-items: flex-end; justify-content: space-between; height: 200px; padding-top: 20px; border-bottom: 1px solid var(--line); gap: 12px; }
 .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
-.chart-bar-pillar { width: 100%; max-width: 42px; background: var(--forest); border-radius: 6px 6px 0 0; transition: background 150ms ease; }
-.chart-bar-pillar:hover { background: var(--lime); }
+.chart-bar-pillar { width: 100%; max-width: 42px; background: var(--forest); border-radius: 6px 6px 0 0; transition: all 180ms ease; }
+.chart-bar-pillar:hover { background: #1e4029; transform: scaleY(1.02); }
+.chart-bar-pillar.chart-highlight { background: var(--lime); }
+.chart-bar-pillar.chart-highlight:hover { background: #d2e85a; }
 .chart-label { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--ink-muted); }
 
-.activity-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+.activity-list { padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; }
 .activity-item { display: flex; gap: 12px; align-items: flex-start; }
-.activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 6px; flex-shrink: 0; }
+.activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 5px; flex-shrink: 0; }
+.activity-dot.dot-blue { background: #0369A1; }
+.activity-dot.dot-amber { background: #B45309; }
 .activity-content p { font-size: 13px; color: var(--ink); line-height: 1.4; margin: 0 0 2px 0; }
-.activity-content span { font-size: 11.5px; color: var(--ink-muted); font-family: var(--font-mono); }
+.activity-content span { font-size: 11px; color: var(--ink-muted); font-family: var(--font-mono); }
 
 .quick-action-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
-.action-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); transition: all 150ms ease; text-decoration: none; }
+.action-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); transition: all 180ms ease; text-decoration: none; }
 .action-item:hover { border-color: var(--forest); background: var(--card); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-.action-icon { width: 38px; height: 38px; border-radius: var(--radius-sm); background: var(--lime-soft); color: var(--lime-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.action-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .action-icon svg { width: 18px; height: 18px; }
-.action-info h4 { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0; }
-.action-info p { font-size: 12px; color: var(--ink-muted); margin: 0; }
+.action-icon.icon-lime { background: var(--lime-soft); color: var(--lime-text); }
+.action-icon.icon-blue { background: #E0F2FE; color: #0369A1; }
+.action-icon.icon-amber { background: #FEF3C7; color: #B45309; }
+.action-icon.icon-forest { background: var(--forest); color: var(--lime); }
+.action-info h4 { font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0; }
+.action-info p { font-size: 12px; color: var(--ink-muted); margin: 2px 0 0 0; }
+
+.config-summary-card { padding: 20px 24px; }
+.config-title { font-size: 14px; color: var(--forest); display: block; margin-bottom: 10px; font-weight: 800; }
+.config-list { font-size: 12.5px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 8px; }
+.config-row { display: flex; justify-content: space-between; align-items: center; }
+.text-green { color: #15803D; font-weight: 700; }
+.config-link { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--forest); text-decoration: none; margin-top: 14px; transition: opacity 150ms ease; }
+.config-link:hover { text-decoration: underline; opacity: 0.85; }
 </style>
