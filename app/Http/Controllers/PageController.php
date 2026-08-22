@@ -22,4 +22,46 @@ class PageController extends Controller
     {
         return Inertia::render('TermsOfService');
     }
+
+    /**
+     * Display the Global Search Results page.
+     */
+    public function search(): Response
+    {
+        return Inertia::render('Search', [
+            'q' => request('q', ''),
+        ]);
+    }
+
+    /**
+     * Display the System Maintenance page.
+     */
+    public function maintenance(): Response
+    {
+        return Inertia::render('Maintenance');
+    }
+
+    /**
+     * Display 404 Not Found error page.
+     */
+    public function error404(): Response
+    {
+        return Inertia::render('Error', ['status' => 404]);
+    }
+
+    /**
+     * Display 403 Forbidden error page.
+     */
+    public function error403(): Response
+    {
+        return Inertia::render('Error', ['status' => 403]);
+    }
+
+    /**
+     * Display 500 Server Error page.
+     */
+    public function error500(): Response
+    {
+        return Inertia::render('Error', ['status' => 500]);
+    }
 }
