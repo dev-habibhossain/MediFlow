@@ -93,6 +93,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Analytics & Reports
         Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/revenue', [AdminReportController::class, 'revenue'])->name('reports.revenue');
+        Route::get('/reports/appointments', [AdminReportController::class, 'appointments'])->name('reports.appointments');
+        Route::get('/reports/doctors', [AdminReportController::class, 'doctors'])->name('reports.doctors');
 
         // User & RBAC Management
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
