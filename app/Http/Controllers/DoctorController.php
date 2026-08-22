@@ -19,7 +19,13 @@ class DoctorController extends Controller
         $departmentSlug = $request->query('department');
 
         $query = Doctor::where('status', 'active')
-            ->with(['user:id,name,email,avatar_path', 'department:id,name,slug']);
+            ->with(['user:id,name,email,avatar_path', 'department:id,name,slug'])
+            ->withAvg(['reviews' => function ($q) {
+                $q->where('is_visible', true);
+            }], 'rating')
+            ->withCount(['reviews' => function ($q) {
+                $q->where('is_visible', true);
+            }]);
 
         if ($departmentSlug) {
             $query->whereHas('department', function ($q) use ($departmentSlug) {

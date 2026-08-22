@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\Department;
 use App\Models\Doctor;
+use App\Models\Faq;
 use App\Models\Review;
 use App\Models\Setting;
 use Inertia\Inertia;
@@ -43,12 +44,18 @@ class HomeController extends Controller
 
         $hospitalName = Setting::where('key', 'hospital_name')->value('value') ?? 'MediFlow General Hospital';
 
+        $faqs = Faq::where('is_published', true)
+            ->orderBy('sort_order')
+            ->take(4)
+            ->get();
+
         return Inertia::render('Home', [
             'departments' => $departments,
             'doctors' => $doctors,
             'reviews' => $reviews,
             'stats' => $stats,
             'hospitalName' => $hospitalName,
+            'faqs' => $faqs,
         ]);
     }
 }

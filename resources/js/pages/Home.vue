@@ -49,12 +49,19 @@ interface Stats {
     average_rating: number
 }
 
+interface FaqItem {
+    id: number
+    question: string
+    answer: string
+}
+
 defineProps<{
     departments: Department[]
     doctors: Doctor[]
     reviews: Review[]
     stats: Stats
     hospitalName?: string
+    faqs?: FaqItem[]
 }>()
 
 // Accordion FAQ state
@@ -483,40 +490,13 @@ function selectCampus(campus: Campus) {
                 <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>FAQ</span>
                 <div class="section-head"><h2>Common questions</h2></div>
                 <div class="faq-list">
-                    <div class="faq-item" :class="{ open: openFaqIndex === 0 }">
-                        <button class="faq-q" @click="toggleFaq(0)">
-                            <span>Do I need to call to book an appointment?</span>
+                    <div v-for="(faq, idx) in faqs" :key="faq.id" class="faq-item" :class="{ open: openFaqIndex === idx }">
+                        <button class="faq-q" @click="toggleFaq(idx)">
+                            <span>{{ faq.question }}</span>
                             <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
                         </button>
-                        <div class="faq-a" :style="{ maxHeight: openFaqIndex === 0 ? '200px' : '0px' }">
-                            <p>No — every doctor's real-time availability is visible on their profile. Pick a slot and confirm online in under two minutes.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item" :class="{ open: openFaqIndex === 1 }">
-                        <button class="faq-q" @click="toggleFaq(1)">
-                            <span>Can I reschedule or cancel an appointment?</span>
-                            <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
-                        </button>
-                        <div class="faq-a" :style="{ maxHeight: openFaqIndex === 1 ? '200px' : '0px' }">
-                            <p>Yes, up to 2 hours before your scheduled time, directly from your dashboard — no need to call in.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item" :class="{ open: openFaqIndex === 2 }">
-                        <button class="faq-q" @click="toggleFaq(2)">
-                            <span>Will I be able to see my prescriptions and records?</span>
-                            <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
-                        </button>
-                        <div class="faq-a" :style="{ maxHeight: openFaqIndex === 2 ? '200px' : '0px' }">
-                            <p>Every diagnosis, note and prescription from your visits is stored in your account and downloadable at any time.</p>
-                        </div>
-                    </div>
-                    <div class="faq-item" :class="{ open: openFaqIndex === 3 }">
-                        <button class="faq-q" @click="toggleFaq(3)">
-                            <span>How do I know a doctor's consultation fee upfront?</span>
-                            <span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
-                        </button>
-                        <div class="faq-a" :style="{ maxHeight: openFaqIndex === 3 ? '200px' : '0px' }">
-                            <p>Every doctor profile lists their consultation fee clearly before you book — no surprises at checkout.</p>
+                        <div class="faq-a" :style="{ maxHeight: openFaqIndex === idx ? '200px' : '0px' }">
+                            <p>{{ faq.answer }}</p>
                         </div>
                     </div>
                 </div>

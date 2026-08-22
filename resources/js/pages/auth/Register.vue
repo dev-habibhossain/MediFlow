@@ -23,6 +23,30 @@ const passwordVal = ref('')
 const strengthScore = ref(0)
 const strengthLabel = ref('Enter a password')
 
+const avatarPreview = ref<string | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+function handleFileChange(e: Event) {
+    const target = e.target as HTMLInputElement
+    if (target.files && target.files[0]) {
+        const file = target.files[0]
+        avatarPreview.value = URL.createObjectURL(file)
+    } else {
+        avatarPreview.value = null
+    }
+}
+
+function removeAvatar() {
+    avatarPreview.value = null
+    if (fileInputRef.value) {
+        fileInputRef.value.value = ''
+    }
+}
+
+function triggerFileInput() {
+    fileInputRef.value?.click()
+}
+
 function togglePassword() {
     showPassword.value = !showPassword.value
 }
@@ -61,6 +85,43 @@ function segmentColor(segmentIndex: number) {
         v-slot="{ errors, processing }"
         class="auth-form"
     >
+        <!-- AVATAR UPLOAD FIELD -->
+        <div class="form-group avatar-upload-group">
+            <label class="form-label">Profile Photo (Optional)</label>
+            <div class="avatar-upload-box" @click="triggerFileInput">
+                <input
+                    ref="fileInputRef"
+                    id="avatar"
+                    type="file"
+                    name="avatar"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    class="avatar-file-input"
+                    @change="handleFileChange"
+                />
+
+                <div v-if="avatarPreview" class="avatar-preview-wrap">
+                    <img :src="avatarPreview" alt="Profile Preview" class="avatar-img" />
+                    <div class="avatar-preview-overlay">
+                        <span>Change Photo</span>
+                    </div>
+                    <button type="button" class="remove-avatar-btn" @click.stop="removeAvatar" title="Remove photo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+
+                <div v-else class="avatar-placeholder">
+                    <div class="avatar-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <div class="avatar-text">
+                        <span class="upload-title">Import / Upload Photo</span>
+                        <span class="upload-sub">PNG, JPG, WEBP up to 2MB</span>
+                    </div>
+                </div>
+            </div>
+            <InputError :message="errors.avatar" />
+        </div>
+
         <!-- NAME FIELD -->
         <div class="form-group">
             <label for="name" class="form-label">Full Name *</label>
@@ -181,6 +242,136 @@ function segmentColor(segmentIndex: number) {
 
 .form-group {
     margin-bottom: 16px;
+}
+
+.avatar-upload-group {
+    margin-bottom: 20px;
+}
+
+.avatar-file-input {
+    display: none;
+}
+
+.avatar-upload-box {
+    border: 2px dashed #E7E3D3;
+    border-radius: 12px;
+    background: #F8F6EF;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 180ms ease;
+}
+
+.avatar-upload-box:hover {
+    border-color: #16301F;
+    background: #FFFFFF;
+}
+
+.avatar-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.avatar-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #E7E3D3;
+    color: #16301F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background-color 180ms ease, color 180ms ease;
+}
+
+.avatar-upload-box:hover .avatar-icon {
+    background: #16301F;
+    color: #FFFFFF;
+}
+
+.avatar-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.avatar-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.upload-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #16180F;
+}
+
+.upload-sub {
+    font-size: 12px;
+    color: #62655A;
+    margin-top: 2px;
+}
+
+.avatar-preview-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(22,24,15,0.12);
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(22, 48, 31, 0.7);
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.avatar-preview-wrap:hover .avatar-preview-overlay {
+    opacity: 1;
+}
+
+.remove-avatar-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #EF4444;
+    color: #FFFFFF;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: transform 150ms ease;
+}
+
+.remove-avatar-btn:hover {
+    transform: scale(1.1);
+}
+
+.remove-avatar-btn svg {
+    width: 12px;
+    height: 12px;
 }
 
 .form-label {

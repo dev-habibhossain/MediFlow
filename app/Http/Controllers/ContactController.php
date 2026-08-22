@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ContactFormRequest;
 use App\Models\ContactMessage;
 use App\Models\Department;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,16 +35,9 @@ class ContactController extends Controller
     /**
      * Process a contact form submission inquiry and store in database.
      */
-    public function submit(Request $request): RedirectResponse
+    public function submit(ContactFormRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'department_id' => 'nullable|exists:departments,id',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string|max:2000',
-        ]);
+        $validated = $request->validated();
 
         ContactMessage::create([
             'name' => $validated['name'],
