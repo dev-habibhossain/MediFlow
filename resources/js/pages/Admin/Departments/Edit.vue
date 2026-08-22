@@ -1,63 +1,37 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
-const props = withDefaults(
-    defineProps<{
-        department?: {
-            id: number
-            slug: string
-            name: string
-            code: string
-            location: string
-            status: string
-            description: string
-            doctors: Array<{
-                id: number
-                name: string
-                title: string
-                license_number: string
-                experience_years: number
-                avatar: string
-            }>
-        }
-    }>(),
-    {
-        department: () => ({
-            id: 1,
-            slug: 'cardiology',
-            name: 'Cardiology',
-            code: 'CARD',
-            location: 'Main Hospital Wing, Level 2',
-            status: 'active',
-            description: 'Comprehensive cardiovascular diagnostics, ECG, hypertension care, and preventative medicine.',
-            doctors: [
-                {
-                    id: 901,
-                    name: 'Dr. Sarah Jenkins',
-                    title: 'Senior Consultant',
-                    license_number: 'MD-90412',
-                    experience_years: 12,
-                    avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150',
-                },
-                {
-                    id: 905,
-                    name: 'Dr. Robert Fox',
-                    title: 'Cardiologist',
-                    license_number: 'MD-88102',
-                    experience_years: 9,
-                    avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=150',
-                },
-            ],
-        }),
-    }
-)
+interface DoctorItem {
+    id: number
+    name: string
+    title: string
+    license_number: string
+    experience_years: number
+    avatar?: string
+}
+
+interface DepartmentData {
+    id: number
+    slug: string
+    name: string
+    code?: string
+    location?: string
+    status?: string
+    description?: string
+    is_active?: boolean
+    doctors?: DoctorItem[]
+}
+
+const props = defineProps<{
+    department: DepartmentData
+}>()
 
 const form = useForm({
-    name: props.department.name,
-    code: props.department.code,
-    location: props.department.location,
-    status: props.department.status,
-    description: props.department.description,
+    name: props.department?.name ?? '',
+    code: props.department?.code ?? props.department?.name?.substring(0, 4).toUpperCase() ?? 'DEPT',
+    location: props.department?.location ?? 'Main Hospital Wing, Level 2',
+    status: props.department?.status ?? (props.department?.is_active ? 'active' : 'maintenance'),
+    description: props.department?.description ?? '',
 })
 
 function updateDepartment() {
@@ -65,10 +39,17 @@ function updateDepartment() {
         preserveScroll: true,
     })
 }
+
+function handleDeactivate() {
+    if (confirm('Are you sure you want to deactivate or remove this department unit?')) {
+        const deleteForm = useForm({})
+        deleteForm.delete(`/admin/departments/${props.department.slug}`)
+    }
+}
 </script>
 
 <template>
-    <Head :title="`${props.department.name} Department — Admin Portal`" />
+    <Head :title="`${props.department?.name || 'Department'} Details — Admin Portal`" />
 
     <!-- BACK BUTTON -->
     <div class="mb-6">
@@ -84,9 +65,11 @@ function updateDepartment() {
                 </svg>
             </div>
             <div class="dept-meta-lg">
-                <h1>{{ props.department.name }} Department</h1>
-                <p>Code: <strong>{{ props.department.code }}</strong> · Location: <strong>{{ props.department.location }}</strong></p>
-                <span class="status-badge status-active">● Active Unit</span>
+                <h1>{{ props.department?.name }} Department</h1>
+                <p>Code: <strong>{{ form.code }}</strong> · Location: <strong>{{ form.location }}</strong></p>
+                <span class="status-badge" :class="form.status === 'active' ? 'status-active' : 'status-maint'">
+                    ● {{ form.status === 'active' ? 'Active Unit' : 'Under Maintenance' }}
+                </span>
             </div>
         </div>
     </div>
@@ -99,7 +82,8 @@ function updateDepartment() {
             <div class="card-shell">
                 <div class="card-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                     Edit Department Details
                 </div>
@@ -147,9 +131,12 @@ function updateDepartment() {
             <div class="card-shell">
                 <div class="card-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                     </svg>
-                    Assigned Physicians Roster ({{ props.department.doctors.length }} Active)
+                    Assigned Physicians Roster ({{ props.department?.doctors?.length || 0 }} Active)
                 </div>
 
                 <div class="table-responsive">
@@ -163,10 +150,11 @@ function updateDepartment() {
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="doc in props.department.doctors" :key="doc.id">
+                            <tr v-for="doc in (props.department?.doctors || [])" :key="doc.id">
                                 <td>
                                     <div class="doctor-cell">
-                                        <img :src="doc.avatar" :alt="doc.name" class="doctor-avatar" />
+                                        <img v-if="doc.avatar" :src="doc.avatar" :alt="doc.name" class="doctor-avatar" />
+                                        <div v-else class="doctor-avatar-fallback">{{ doc.name.charAt(0) }}</div>
                                         <div class="doctor-meta">
                                             <b>{{ doc.name }}</b>
                                             <span>{{ doc.title }}</span>
@@ -179,6 +167,12 @@ function updateDepartment() {
                                     <button class="btn-remove-sm" title="Reassign Doctor">✕</button>
                                 </td>
                             </tr>
+
+                            <tr v-if="!props.department?.doctors || props.department.doctors.length === 0">
+                                <td colspan="4" style="text-align: center; padding: 24px; color: var(--ink-muted);">
+                                    No physicians assigned to this department yet.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -189,17 +183,17 @@ function updateDepartment() {
         <div class="sidebar-col">
             <div class="action-card">
                 <h4>Department Management</h4>
-                <p>Deactivate this department unit or archive historical appointment records.</p>
+                <p>Deactivate this department unit or archive historical records.</p>
 
-                <button type="button" class="btn btn-outline-danger">
-                    Deactivate Unit
+                <button type="button" class="btn btn-outline-danger" @click="handleDeactivate">
+                    Deactivate / Delete Unit
                 </button>
             </div>
         </div>
     </div>
 </template>
 
-<style>
+<style scoped>
 .back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; transition: all 150ms ease; text-decoration: none; }
 .back-btn:hover { background: var(--card); border-color: var(--forest); }
 
@@ -212,6 +206,7 @@ function updateDepartment() {
 
 .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; margin-top: 8px; }
 .status-active { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.status-maint { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
 
 .detail-grid { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
 @media (max-width: 1024px) { .detail-grid { grid-template-columns: 1fr; } }
@@ -239,6 +234,7 @@ textarea.form-control { height: auto; min-height: 90px; padding: 12px 16px; resi
 
 .doctor-cell { display: flex; align-items: center; gap: 10px; }
 .doctor-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--cream-alt); flex-shrink: 0; }
+.doctor-avatar-fallback { width: 36px; height: 36px; border-radius: 50%; background: var(--forest); color: var(--lime); font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .doctor-meta b { display: block; font-size: 13.5px; font-weight: 700; color: var(--forest); }
 .doctor-meta span { display: block; font-size: 11.5px; color: var(--ink-muted); font-family: var(--font-mono); }
 

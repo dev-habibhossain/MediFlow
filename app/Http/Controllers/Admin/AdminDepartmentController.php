@@ -52,14 +52,19 @@ class AdminDepartmentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:departments,name',
             'description' => 'nullable|string',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
+            'status' => 'nullable|string',
         ]);
+
+        $isActive = isset($validated['is_active'])
+            ? (bool) $validated['is_active']
+            : ($request->input('status', 'active') === 'active');
 
         Department::create([
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
-            'is_active' => $validated['is_active'] ?? true,
+            'is_active' => $isActive,
         ]);
 
         return redirect()->route('admin.departments.index')->with('success', 'Department created successfully.');
@@ -72,13 +77,28 @@ class AdminDepartmentController extends Controller
     {
         $department = Department::where('slug', $slug)->firstOrFail();
 
+        $doctors = $department->doctors()->with('user')->get()->map(function ($doc) {
+            return [
+                'id' => $doc->id,
+                'name' => $doc->user?->name ?? 'Dr. Physician',
+                'title' => $doc->specialization ?? 'Specialist',
+                'license_number' => $doc->license_number ?? ('MD-'.$doc->id),
+                'experience_years' => $doc->years_of_experience ?? 5,
+                'avatar' => $doc->user?->avatar_url ?? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150',
+            ];
+        });
+
         return Inertia::render('Admin/Departments/Edit', [
             'department' => [
                 'id' => $department->id,
                 'slug' => $department->slug,
                 'name' => $department->name,
-                'description' => $department->description,
+                'code' => strtoupper(substr($department->name, 0, 4)),
+                'location' => 'Main Hospital Wing, Level 2',
+                'description' => $department->description ?? '',
+                'status' => $department->is_active ? 'active' : 'maintenance',
                 'is_active' => (bool) $department->is_active,
+                'doctors' => $doctors,
             ],
         ]);
     }
@@ -93,14 +113,19 @@ class AdminDepartmentController extends Controller
         $validated = $request->validate([
             'name' => "required|string|max:255|unique:departments,name,{$department->id}",
             'description' => 'nullable|string',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
+            'status' => 'nullable|string',
         ]);
+
+        $isActive = isset($validated['is_active'])
+            ? (bool) $validated['is_active']
+            : ($request->input('status', 'active') === 'active');
 
         $department->update([
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']),
             'description' => $validated['description'] ?? null,
-            'is_active' => $validated['is_active'] ?? true,
+            'is_active' => $isActive,
         ]);
 
         return redirect()->route('admin.departments.index')->with('success', 'Department updated successfully.');
