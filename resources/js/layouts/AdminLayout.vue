@@ -2,6 +2,16 @@
 import { Link, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+interface NotificationItem {
+    id: string
+    title: string
+    message: string
+    url: string
+    type?: string
+    bg_class?: string
+    time?: string
+}
+
 const page = usePage()
 const isSidebarOpen = ref(false)
 const isProfileOpen = ref(false)
@@ -9,6 +19,7 @@ const isNotificationsOpen = ref(false)
 
 const user = computed(() => page.props.auth?.user as { name?: string; email?: string; avatar_url?: string } | undefined)
 const currentUrl = computed(() => page.url)
+const notifications = computed(() => (page.props.notifications as NotificationItem[]) || [])
 
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value
@@ -182,8 +193,7 @@ function getInitials(name?: string) {
                         </svg>
                     </button>
                     <div class="top-left">
-                        <h1>Admin Control Center</h1>
-                        <p>MediFlow Hospital operations & key performance indicators</p>
+                        <!-- Clean header left space -->
                     </div>
                 </div>
 
@@ -199,36 +209,32 @@ function getInitials(name?: string) {
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                             </svg>
-                            <span class="notif-badge">3</span>
+                            <span v-if="notifications.length > 0" class="notif-badge">{{ notifications.length }}</span>
                         </button>
 
                         <!-- NOTIFICATIONS DROPDOWN -->
                         <div v-if="isNotificationsOpen" class="head-dropdown-panel notif-panel">
                             <div class="dropdown-header">
                                 <b>Notifications</b>
-                                <span class="badge-count">3 New</span>
+                                <span class="badge-count">{{ notifications.length }} New</span>
                             </div>
                             <div class="dropdown-body">
-                                <div class="notif-item">
-                                    <div class="notif-dot bg-green"></div>
+                                <Link
+                                    v-for="notif in notifications"
+                                    :key="notif.id"
+                                    :href="notif.url"
+                                    class="notif-item"
+                                    @click="closeDropdowns"
+                                >
+                                    <div class="notif-dot" :class="notif.bg_class || 'bg-blue'"></div>
                                     <div class="notif-text">
-                                        <p><strong>Dr. Marcus Vance</strong> onboarded to Neurology</p>
-                                        <small>10m ago</small>
+                                        <p><strong>{{ notif.title }}</strong>: {{ notif.message }}</p>
+                                        <small>{{ notif.time }}</small>
                                     </div>
-                                </div>
-                                <div class="notif-item">
-                                    <div class="notif-dot bg-blue"></div>
-                                    <div class="notif-text">
-                                        <p>Payment <strong>#INV-89201</strong> processed via Stripe</p>
-                                        <small>45m ago</small>
-                                    </div>
-                                </div>
-                                <div class="notif-item">
-                                    <div class="notif-dot bg-amber"></div>
-                                    <div class="notif-text">
-                                        <p>Holiday Schedule updated for Independence Day</p>
-                                        <small>2h ago</small>
-                                    </div>
+                                </Link>
+
+                                <div v-if="notifications.length === 0" class="p-4 text-center text-xs text-[var(--ink-muted)]">
+                                    No new system notifications.
                                 </div>
                             </div>
                             <div class="dropdown-footer">
@@ -389,7 +395,7 @@ function getInitials(name?: string) {
 .admin-shell .badge-count { font-size: 11px; font-weight: 700; color: #15803D; background: #DCFCE7; padding: 2px 8px; border-radius: 999px; }
 
 .admin-shell .dropdown-body { padding: 8px 0; max-height: 260px; overflow-y: auto; }
-.admin-shell .notif-item { padding: 10px 16px; display: flex; gap: 10px; align-items: flex-start; transition: background 150ms ease; cursor: pointer; }
+.admin-shell .notif-item { padding: 10px 16px; display: flex; gap: 10px; align-items: flex-start; transition: background 150ms ease; cursor: pointer; text-decoration: none; }
 .admin-shell .notif-item:hover { background: var(--cream); }
 .admin-shell .notif-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
 .admin-shell .notif-dot.bg-green { background: #16A34A; }
