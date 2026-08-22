@@ -7,7 +7,7 @@ use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
-test('admin dashboard page renders successfully for admin user', function () {
+test('admin dashboard page renders successfully with dynamic database props for admin user', function () {
     Role::create(['name' => 'Admin']);
     $adminUser = User::factory()->create();
     $adminUser->assignRole('Admin');
@@ -17,6 +17,15 @@ test('admin dashboard page renders successfully for admin user', function () {
         ->assertStatus(200)
         ->assertInertia(fn (Assert $page) => $page
             ->component('Admin/Dashboard')
+            ->has('stats')
+            ->has('stats.total_doctors')
+            ->has('stats.active_patients')
+            ->has('stats.appointments_today')
+            ->has('stats.monthly_revenue')
+            ->has('monthlyVolume', 6)
+            ->has('activityLogs')
+            ->has('systemConfig')
+            ->where('systemConfig.hospital_name', 'MediFlow Central')
         );
 });
 

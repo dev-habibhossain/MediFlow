@@ -1,5 +1,45 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
+
+interface Stats {
+    total_doctors: number
+    doctors_this_month: number
+    active_patients: number
+    patients_this_month: number
+    appointments_today: number
+    completed_today: number
+    pending_today: number
+    monthly_revenue: string
+    revenue_growth: number
+}
+
+interface MonthlyVolumeItem {
+    month: string
+    count: number
+    height: string
+    is_current: boolean
+}
+
+interface ActivityLogItem {
+    id: number
+    action: string
+    description: string
+    causer: string
+    time_ago: string
+}
+
+interface SystemConfig {
+    hospital_name: string
+    slot_duration: string
+    payment_gateway: string
+}
+
+defineProps<{
+    stats: Stats
+    monthlyVolume: MonthlyVolumeItem[]
+    activityLogs: ActivityLogItem[]
+    systemConfig: SystemConfig
+}>()
 </script>
 
 <template>
@@ -10,8 +50,8 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Total Doctors</span>
-                <b>28</b>
-                <small>↑ +2 added this month</small>
+                <b>{{ stats.total_doctors.toLocaleString() }}</b>
+                <small>↑ +{{ stats.doctors_this_month }} added this month</small>
             </div>
             <div class="stat-icon" style="background: #DCFCE7; color: #15803D;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,8 +64,8 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Active Patients</span>
-                <b>1,840</b>
-                <small>↑ +124 new registrations</small>
+                <b>{{ stats.active_patients.toLocaleString() }}</b>
+                <small>↑ +{{ stats.patients_this_month }} new registrations</small>
             </div>
             <div class="stat-icon" style="background: #E0F2FE; color: #0369A1;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -37,8 +77,8 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Appointments Today</span>
-                <b>42</b>
-                <small>36 Completed · 6 In Progress</small>
+                <b>{{ stats.appointments_today.toLocaleString() }}</b>
+                <small>{{ stats.completed_today }} Completed · {{ stats.pending_today }} Scheduled</small>
             </div>
             <div class="stat-icon" style="background: #FEF3C7; color: #B45309;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -50,8 +90,8 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Monthly Revenue</span>
-                <b>$42,800</b>
-                <small>↑ +8.4% growth</small>
+                <b>${{ stats.monthly_revenue }}</b>
+                <small>{{ stats.revenue_growth >= 0 ? '↑ +' : '↓ ' }}{{ stats.revenue_growth }}% vs last month</small>
             </div>
             <div class="stat-icon" style="background: var(--lime-soft); color: var(--lime-text);">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -79,12 +119,21 @@ import { Head, Link } from '@inertiajs/vue3'
 
                 <div class="chart-box">
                     <div class="chart-bars-wrap">
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 55%;"></div><span class="chart-label">Mar</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 70%;"></div><span class="chart-label">Apr</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 82%;"></div><span class="chart-label">May</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 78%;"></div><span class="chart-label">Jun</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 92%;"></div><span class="chart-label">Jul</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 96%; background: var(--lime);"></div><span class="chart-label">Aug</span></div>
+                        <div
+                            v-for="bar in monthlyVolume"
+                            :key="bar.month"
+                            class="chart-col"
+                            :title="`${bar.month}: ${bar.count} appointments`"
+                        >
+                            <div
+                                class="chart-bar-pillar"
+                                :style="{
+                                    height: bar.height,
+                                    background: bar.is_current ? 'var(--lime)' : undefined
+                                }"
+                            ></div>
+                            <span class="chart-label">{{ bar.month }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -102,28 +151,20 @@ import { Head, Link } from '@inertiajs/vue3'
                 </div>
 
                 <div class="activity-list">
-                    <div class="activity-item">
+                    <div
+                        v-for="log in activityLogs"
+                        :key="log.id"
+                        class="activity-item"
+                    >
                         <div class="activity-dot"></div>
                         <div class="activity-content">
-                            <p>Dr. Marcus Vance onboarded to Neurology Department.</p>
-                            <span>10 minutes ago · Admin User #1</span>
+                            <p>{{ log.description }}</p>
+                            <span>{{ log.time_ago }} · {{ log.causer }}</span>
                         </div>
                     </div>
 
-                    <div class="activity-item">
-                        <div class="activity-dot" style="background: #0369A1;"></div>
-                        <div class="activity-content">
-                            <p>Payment #INV-89201 processed for consultation #MDF-102.</p>
-                            <span>1 hour ago · Stripe Webhook</span>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-dot" style="background: #B45309;"></div>
-                        <div class="activity-content">
-                            <p>Holiday Schedule exception added for Independence Day.</p>
-                            <span>Yesterday · Admin Console</span>
-                        </div>
+                    <div v-if="activityLogs.length === 0" class="empty-feed">
+                        No recent system audit events recorded.
                     </div>
                 </div>
             </div>
@@ -199,13 +240,13 @@ import { Head, Link } from '@inertiajs/vue3'
                 <b style="font-size: 14px; color: var(--forest); display: block; margin-bottom: 8px;">System Configuration</b>
                 <div style="font-size: 12.5px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 6px;">
                     <div style="display: flex; justify-content: space-between;">
-                        <span>Hospital Name:</span> <strong>MediFlow Central</strong>
+                        <span>Hospital Name:</span> <strong>{{ systemConfig.hospital_name }}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span>Slot Duration:</span> <strong>30 Minutes</strong>
+                        <span>Slot Duration:</span> <strong>{{ systemConfig.slot_duration }}</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <span>Payment Gateway:</span> <strong style="color: #15803D;">Stripe Active</strong>
+                        <span>Payment Gateway:</span> <strong style="color: #15803D;">{{ systemConfig.payment_gateway }}</strong>
                     </div>
                 </div>
                 <Link href="/admin/settings/general" style="display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--forest); text-decoration: underline; margin-top: 12px;">
@@ -216,7 +257,7 @@ import { Head, Link } from '@inertiajs/vue3'
     </div>
 </template>
 
-<style>
+<style scoped>
 .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 @media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px) { .metrics-grid { grid-template-columns: 1fr; } }
@@ -240,7 +281,7 @@ import { Head, Link } from '@inertiajs/vue3'
 
 .chart-box { padding: 24px; }
 .chart-bars-wrap { display: flex; align-items: flex-end; justify-content: space-between; height: 200px; padding-top: 20px; border-bottom: 1px solid var(--line); gap: 12px; }
-.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; cursor: pointer; }
 .chart-bar-pillar { width: 100%; max-width: 42px; background: var(--forest); border-radius: 6px 6px 0 0; transition: background 150ms ease; }
 .chart-bar-pillar:hover { background: var(--lime); }
 .chart-label { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--ink-muted); }
@@ -250,6 +291,7 @@ import { Head, Link } from '@inertiajs/vue3'
 .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 6px; flex-shrink: 0; }
 .activity-content p { font-size: 13px; color: var(--ink); line-height: 1.4; margin: 0 0 2px 0; }
 .activity-content span { font-size: 11.5px; color: var(--ink-muted); font-family: var(--font-mono); }
+.empty-feed { font-size: 13px; color: var(--ink-muted); text-align: center; padding: 12px 0; }
 
 .quick-action-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
 .action-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); transition: all 150ms ease; text-decoration: none; }
