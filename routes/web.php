@@ -41,6 +41,13 @@ Route::get('/faq', FaqController::class)->name('faq');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/terms-of-service', [PageController::class, 'terms'])->name('terms');
 
+// System & Utility Pages
+Route::get('/search', [PageController::class, 'search'])->name('search');
+Route::get('/maintenance', [PageController::class, 'maintenance'])->name('maintenance');
+Route::get('/404', [PageController::class, 'error404'])->name('error.404');
+Route::get('/403', [PageController::class, 'error403'])->name('error.403');
+Route::get('/500', [PageController::class, 'error500'])->name('error.500');
+
 // Authenticated Routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
@@ -71,6 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Analytics & Reports
         Route::get('/reports', fn () => inertia('Admin/Reports/Index'))->name('reports.index');
+        Route::get('/reports/appointments', fn () => inertia('Admin/Reports/Appointments'))->name('reports.appointments');
+        Route::get('/reports/doctors', fn () => inertia('Admin/Reports/Doctors'))->name('reports.doctors');
         Route::get('/reports/revenue', fn () => inertia('Admin/Reports/Revenue'))->name('reports.revenue');
 
         // User & RBAC Management
