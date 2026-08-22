@@ -19,7 +19,7 @@ class AdminPatientController extends Controller
         $search = $request->query('search');
         $bloodGroup = $request->query('blood_group');
 
-        $query = Patient::with(['user:id,name,email,phone,is_active', 'appointments'])
+        $query = Patient::with(['user:id,name,email,phone,avatar_path,is_active', 'appointments'])
             ->withCount('appointments');
 
         if ($search) {
@@ -51,6 +51,7 @@ class AdminPatientController extends Controller
                 'code' => 'MDF-'.$patient->id,
                 'name' => $name,
                 'initials' => $initials,
+                'avatar_url' => $patient->user?->avatar_url ?? null,
                 'phone' => $patient->user->phone ?? '(555) 000-0000',
                 'email' => $patient->user->email ?? '',
                 'age' => $patient->date_of_birth ? $patient->date_of_birth->age : 28,
@@ -101,13 +102,13 @@ class AdminPatientController extends Controller
         return Inertia::render('Admin/Patients/Show', [
             'patient' => [
                 'id' => $patient->id,
-                'user_id' => $patient->user_id,
                 'code' => 'MDF-'.$patient->id,
                 'name' => $name,
                 'initials' => $initials,
-                'email' => $patient->user->email ?? '',
+                'avatar_url' => $patient->user?->avatar_url ?? null,
+                'email' => $patient->user->email ?? 'N/A',
                 'phone' => $patient->user->phone ?? '(555) 000-0000',
-                'dob' => $patient->date_of_birth ? $patient->date_of_birth->format('F j, Y') : 'Unknown',
+                'dob' => $patient->date_of_birth ? $patient->date_of_birth->format('F j, Y') : 'N/A',
                 'age' => $patient->date_of_birth ? $patient->date_of_birth->age : 28,
                 'gender' => ucfirst($patient->gender ?? 'Male'),
                 'blood_group' => $patient->blood_group ?? 'O+',
@@ -122,15 +123,16 @@ class AdminPatientController extends Controller
     }
 
     /**
-     * Deactivate / delete patient account.
+     * Remove specified patient.
      */
     public function destroy(int $id): RedirectResponse
     {
-        $patient = Patient::with('user')->findOrFail($id);
+        $patient = Patient::findOrFail($id);
         if ($patient->user) {
-            $patient->user->update(['is_active' => false]);
+            $patient->user->delete();
         }
+        $patient->delete();
 
-        return redirect()->route('admin.patients.index')->with('success', 'Patient account deactivated.');
+        return redirect()->route('admin.patients.index')->with('success', 'Patient record archived.');
     }
 }

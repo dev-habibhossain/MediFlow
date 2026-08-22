@@ -8,6 +8,7 @@ const props = withDefaults(
             code: string
             name: string
             initials: string
+            avatar_url?: string | null
             email: string
             phone: string
             dob: string
@@ -34,6 +35,7 @@ const props = withDefaults(
             code: 'MDF-9021',
             name: 'Habib Hossain',
             initials: 'HH',
+            avatar_url: null,
             email: 'habib@example.com',
             phone: '(555) 340-2199',
             dob: 'April 12, 1998',
@@ -84,77 +86,92 @@ const props = withDefaults(
     <!-- PATIENT HEADER BANNER -->
     <div class="patient-header-card mb-6">
         <div class="patient-info-left">
-            <div class="patient-avatar-lg">{{ props.patient.initials }}</div>
+            <div class="patient-avatar-lg">
+                <img v-if="props.patient.avatar_url" :src="props.patient.avatar_url" :alt="props.patient.name" class="avatar-fit-lg" />
+                <span v-else>{{ props.patient.initials }}</span>
+            </div>
             <div class="patient-meta-lg">
                 <h1>{{ props.patient.name }}</h1>
                 <p>Patient Account ID: <strong>#{{ props.patient.code }}</strong> · Registered {{ props.patient.registered_at }}</p>
-                <span class="status-badge status-active">● Active Account</span>
+                <span class="status-badge" :class="props.patient.status === 'active' ? 'status-active' : 'status-inactive'">
+                    ● {{ props.patient.status === 'active' ? 'Active Account' : 'Inactive Account' }}
+                </span>
             </div>
         </div>
-
-        <div>
-            <Link v-if="props.patient.user_id" :href="`/admin/doctors/create?user_id=${props.patient.user_id}`" class="btn-promote-doc">
-                + Promote to Doctor
-            </Link>
+        <div class="stats-pills">
+            <div class="pill-stat">
+                <span>Total Spent</span>
+                <b>{{ props.patient.total_spent }}</b>
+            </div>
+            <div class="pill-stat">
+                <span>Appointments</span>
+                <b>{{ props.patient.appointments.length }} Visits</b>
+            </div>
         </div>
     </div>
 
-    <!-- MAIN SPLIT GRID -->
-    <div class="detail-grid">
-        <!-- LEFT COLUMN -->
-        <div class="main-col">
-            <!-- ACCOUNT DETAILS BOX -->
-            <div class="card-shell">
+    <!-- MAIN GRID -->
+    <div class="patient-grid">
+        <!-- LEFT COLUMN: PERSONAL DETAILS -->
+        <div class="col-details">
+            <div class="card-shell mb-6">
                 <div class="card-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                     </svg>
-                    Account Demographic Information
+                    Demographics & Health Info
                 </div>
 
-                <div class="info-pairs-grid">
-                    <div class="info-box">
-                        <label>Email Address</label>
-                        <span>{{ props.patient.email }}</span>
-                        <small>Verified Account</small>
+                <div class="info-list">
+                    <div class="info-row">
+                        <span class="info-label">Full Name:</span>
+                        <span class="info-val"><b>{{ props.patient.name }}</b></span>
                     </div>
-
-                    <div class="info-box">
-                        <label>Phone Number</label>
-                        <span>{{ props.patient.phone }}</span>
-                        <small>Primary Contact</small>
+                    <div class="info-row">
+                        <span class="info-label">Email Address:</span>
+                        <span class="info-val">{{ props.patient.email }}</span>
                     </div>
-
-                    <div class="info-box">
-                        <label>Date of Birth & Gender</label>
-                        <span>{{ props.patient.dob }} ({{ props.patient.age }} Yrs)</span>
-                        <small>{{ props.patient.gender }}</small>
+                    <div class="info-row">
+                        <span class="info-label">Phone Number:</span>
+                        <span class="info-val font-mono"><b>{{ props.patient.phone }}</b></span>
                     </div>
-
-                    <div class="info-box">
-                        <label>Blood Group & Allergies</label>
-                        <span style="color: #15803D;">{{ props.patient.blood_group }} Positive</span>
-                        <small>{{ props.patient.allergies }}</small>
+                    <div class="info-row">
+                        <span class="info-label">Date of Birth:</span>
+                        <span class="info-val">{{ props.patient.dob }} ({{ props.patient.age }} Yrs)</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Gender:</span>
+                        <span class="info-val">{{ props.patient.gender }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Blood Group:</span>
+                        <span class="info-val"><b class="blood-tag">{{ props.patient.blood_group }}</b></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Known Allergies:</span>
+                        <span class="info-val text-amber-700 font-semibold">{{ props.patient.allergies }}</span>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- APPOINTMENT SUMMARY TABLE -->
+        <!-- RIGHT COLUMN: APPOINTMENT HISTORY -->
+        <div class="col-history">
             <div class="card-shell">
                 <div class="card-title">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                     </svg>
-                    Appointment History Summary
+                    Consultation & Appointment History
                 </div>
 
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Ref ID</th>
-                                <th>Date & Time</th>
-                                <th>Assigned Doctor</th>
+                                <th>Appointment ID</th>
+                                <th>Schedule Date</th>
+                                <th>Attending Doctor</th>
                                 <th>Department</th>
                                 <th>Status</th>
                             </tr>
@@ -162,13 +179,15 @@ const props = withDefaults(
                         <tbody>
                             <tr v-for="app in props.patient.appointments" :key="app.id">
                                 <td style="font-family: var(--font-mono); font-weight: 700;">#{{ app.id }}</td>
-                                <td>{{ app.date }}</td>
-                                <td>{{ app.doctor }}</td>
-                                <td>{{ app.department }}</td>
-                                <td>
-                                    <span class="badge-status" :class="app.status === 'Confirmed Visit' ? 'badge-confirmed' : 'badge-completed'">
-                                        {{ app.status }}
-                                    </span>
+                                <td style="font-size: 12.5px;">{{ app.date }}</td>
+                                <td><b>{{ app.doctor }}</b></td>
+                                <td><span class="dept-badge">{{ app.department }}</span></td>
+                                <td><span class="status-badge status-active">{{ app.status }}</span></td>
+                            </tr>
+
+                            <tr v-if="props.patient.appointments.length === 0">
+                                <td colspan="5" style="text-align: center; padding: 24px; color: var(--ink-muted);">
+                                    No appointment history recorded.
                                 </td>
                             </tr>
                         </tbody>
@@ -176,83 +195,47 @@ const props = withDefaults(
                 </div>
             </div>
         </div>
-
-        <!-- RIGHT SIDEBAR -->
-        <div class="sidebar-col">
-            <div class="action-card">
-                <h4>Administrative Actions</h4>
-                <p>Manage patient account security and portal access privileges.</p>
-
-                <button type="button" class="btn btn-secondary-action">
-                    Send Password Reset Link
-                </button>
-
-                <button type="button" class="btn btn-outline-danger">
-                    Deactivate Account
-                </button>
-            </div>
-
-            <div class="action-card">
-                <h4>Billing Summary</h4>
-                <p>Total consultation payments processed:</p>
-                <div class="font-mono text-2xl font-extrabold text-[var(--forest)]">
-                    {{ props.patient.total_spent }}
-                </div>
-                <span class="text-xs text-[var(--ink-muted)]">{{ props.patient.invoices_count }} Invoices Settled</span>
-            </div>
-        </div>
     </div>
 </template>
 
-<style>
+<style scoped>
 .back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; transition: all 150ms ease; text-decoration: none; }
 .back-btn:hover { background: var(--card); border-color: var(--forest); }
 
 .patient-header-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
 .patient-info-left { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.patient-avatar-lg { width: 72px; height: 72px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
+.patient-avatar-lg { width: 72px; height: 72px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 24px; font-family: var(--font-mono); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--line); flex-shrink: 0; }
+.avatar-fit-lg { width: 100%; height: 100%; object-fit: cover; }
 .patient-meta-lg h1 { font-size: 22px; font-weight: 800; color: var(--forest); letter-spacing: -0.01em; margin-bottom: 2px; }
 .patient-meta-lg p { font-size: 13.5px; color: var(--ink-muted); font-weight: 500; }
 
-.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; margin-top: 8px; }
+.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-top: 6px; }
 .status-active { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.status-inactive { background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; }
 
-.detail-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
-@media (max-width: 1024px) { .detail-grid { grid-template-columns: 1fr; } }
+.stats-pills { display: flex; gap: 16px; }
+.pill-stat { background: var(--cream); border: 1px solid var(--line); padding: 12px 20px; border-radius: var(--radius-lg); text-align: center; }
+.pill-stat span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); display: block; }
+.pill-stat b { font-family: var(--font-mono); font-size: 18px; font-weight: 800; color: var(--forest); display: block; margin-top: 2px; }
 
-.main-col { display: flex; flex-direction: column; gap: 24px; }
-.sidebar-col { display: flex; flex-direction: column; gap: 24px; }
+.patient-grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 1024px) { .patient-grid { grid-template-columns: 1fr; } }
 
 .card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card); }
 .card-title { font-size: 16px; font-weight: 800; color: var(--forest); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
 .card-title svg { width: 18px; height: 18px; color: var(--forest); }
 
-.info-pairs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-@media (max-width: 600px) { .info-pairs-grid { grid-template-columns: 1fr; } }
+.info-list { display: flex; flex-direction: column; gap: 14px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; border-bottom: 1px dashed var(--line); padding-bottom: 10px; }
+.info-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.info-label { color: var(--ink-muted); font-weight: 600; }
+.info-val { color: var(--ink); }
 
-.info-box { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px; }
-.info-box label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 4px; }
-.info-box span { font-size: 14.5px; font-weight: 700; color: var(--ink); display: block; }
-.info-box small { font-size: 12px; color: var(--ink-muted); display: block; margin-top: 2px; }
+.blood-tag { background: #FEE2E2; color: #DC2626; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px; }
+.dept-badge { font-size: 12px; font-weight: 700; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 2px 8px; border-radius: var(--radius-sm); }
 
 .table-responsive { width: 100%; overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; }
 .data-table th { background: var(--cream); padding: 12px 16px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
 .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
-
-.badge-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
-.badge-completed { background: var(--cream-alt); color: var(--ink-muted); border: 1px solid var(--line); }
-.badge-confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
-
-.action-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 24px; box-shadow: var(--shadow-card); display: flex; flex-direction: column; gap: 14px; }
-.action-card h4 { font-size: 15px; font-weight: 800; color: var(--forest); }
-.action-card p { font-size: 12.5px; color: var(--ink-muted); }
-
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 999px; font-size: 14px; font-weight: 700; transition: all 150ms ease; width: 100%; cursor: pointer; text-decoration: none; border: 0; }
-.btn-promote-doc { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 999px; background: var(--forest); color: #fff; font-size: 13.5px; font-weight: 700; text-decoration: none; transition: background-color 150ms ease; }
-.btn-promote-doc:hover { background: var(--forest-2); }
-.btn-secondary-action { background: var(--cream); color: var(--forest); border: 1px solid var(--line); }
-.btn-secondary-action:hover { background: var(--card); border-color: var(--forest); }
-.btn-outline-danger { background: transparent; color: #DC2626; border: 1.5px solid #FCA5A5; }
-.btn-outline-danger:hover { background: #FEF2F2; border-color: #DC2626; }
 </style>

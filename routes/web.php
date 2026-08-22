@@ -66,10 +66,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/doctors', [AdminDoctorController::class, 'index'])->name('doctors.index');
         Route::get('/doctors/create', [AdminDoctorController::class, 'create'])->name('doctors.create');
         Route::post('/doctors', [AdminDoctorController::class, 'store'])->name('doctors.store');
+        Route::get('/doctors/{id}', [AdminDoctorController::class, 'edit'])->name('doctors.show');
         Route::get('/doctors/{id}/edit', [AdminDoctorController::class, 'edit'])->name('doctors.edit');
         Route::put('/doctors/{id}', [AdminDoctorController::class, 'update'])->name('doctors.update');
         Route::get('/doctors/{id}/schedule', [AdminDoctorController::class, 'schedule'])->name('doctors.schedule');
-        Route::put('/doctors/{id}/schedule', [AdminDoctorController::class, 'updateSchedule'])->name('doctors.schedule.update');
+        Route::post('/doctors/{id}/schedule', [AdminDoctorController::class, 'updateSchedule'])->name('doctors.schedule.update');
+        Route::put('/doctors/{id}/schedule', [AdminDoctorController::class, 'updateSchedule'])->name('doctors.schedule.put');
         Route::delete('/doctors/{id}', [AdminDoctorController::class, 'destroy'])->name('doctors.destroy');
 
         // Patients Management

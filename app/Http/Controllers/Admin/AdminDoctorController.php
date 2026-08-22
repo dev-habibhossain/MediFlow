@@ -48,9 +48,18 @@ class AdminDoctorController extends Controller
         }
 
         $doctors = $query->latest()->get()->map(function ($doctor) {
+            $name = $doctor->user->name ?? 'Doctor';
+            $cleaned = trim(str_replace(['Dr.', 'Dr '], '', $name));
+            $words = explode(' ', $cleaned);
+            $initials = strtoupper(
+                substr($words[0] ?? 'D', 0, 1).
+                substr($words[1] ?? '', 0, 1)
+            );
+
             return [
                 'id' => $doctor->id,
-                'name' => $doctor->user->name ?? 'Doctor',
+                'name' => $name,
+                'initials' => $initials ?: 'DR',
                 'title' => ($doctor->qualifications ?? 'MD').' · '.($doctor->years_of_experience ?? 0).' Yrs Exp',
                 'license_code' => $doctor->license_number,
                 'department' => $doctor->department->name ?? 'General',
@@ -59,7 +68,7 @@ class AdminDoctorController extends Controller
                 'rating' => round((float) ($doctor->reviews_avg_rating ?? 5.0), 1),
                 'reviews_count' => $doctor->reviews_count ?? 0,
                 'status' => $doctor->status,
-                'avatar' => $doctor->user->avatar_url ?? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150',
+                'avatar' => $doctor->user?->avatar_url ?? null,
             ];
         });
 
@@ -177,13 +186,14 @@ class AdminDoctorController extends Controller
                 'email' => $doctor->user->email,
                 'phone' => $doctor->user->phone,
                 'license_number' => $doctor->license_number,
+                'department' => $doctor->department->name ?? 'General',
                 'department_id' => $doctor->department_id,
                 'qualifications' => $doctor->qualifications,
                 'experience_years' => $doctor->years_of_experience,
                 'bio' => $doctor->bio,
                 'consultation_fee' => $doctor->consultation_fee,
                 'status' => $doctor->status,
-                'avatar' => $doctor->user->avatar_url,
+                'avatar' => $doctor->user?->avatar_url,
             ],
             'departments' => $departments,
         ]);
@@ -237,68 +247,74 @@ class AdminDoctorController extends Controller
     }
 
     /**
-     * Doctor schedule view.
+     * Show doctor's schedule override console.
      */
     public function schedule(int $id): Response
     {
-        $doctor = Doctor::with(['user', 'department', 'schedules', 'scheduleExceptions'])->findOrFail($id);
+        $doctor = Doctor::with('user')->findOrFail($id);
 
         return Inertia::render('Admin/Doctors/Schedule', [
             'doctor' => [
                 'id' => $doctor->id,
-                'name' => $doctor->user->name,
-                'license_number' => $doctor->license_number,
-                'department' => $doctor->department->name ?? 'General',
-                'schedules' => $doctor->schedules,
-                'exceptions' => $doctor->scheduleExceptions,
+                'name' => $doctor->user->name ?? 'Doctor',
             ],
         ]);
     }
 
     /**
-     * Update doctor schedule.
+     * Update doctor's weekly recurring schedule.
      */
     public function updateSchedule(Request $request, int $id): RedirectResponse
     {
         $doctor = Doctor::findOrFail($id);
 
         $validated = $request->validate([
-            'schedules' => 'nullable|array',
-            'schedules.*.day_of_week' => 'required|integer|min:0|max:6',
-            'schedules.*.start_time' => 'required|string',
-            'schedules.*.end_time' => 'required|string',
-            'schedules.*.slot_duration_minutes' => 'nullable|integer|min:5|max:120',
-            'schedules.*.is_active' => 'boolean',
+            'schedule' => 'nullable|array',
         ]);
 
-        if (isset($validated['schedules'])) {
-            foreach ($validated['schedules'] as $sch) {
+        if (! empty($validated['schedule'])) {
+            $dayMap = [
+                'mon' => 1, 'tue' => 2, 'wed' => 3, 'thu' => 4,
+                'fri' => 5, 'sat' => 6, 'sun' => 7,
+            ];
+
+            foreach ($validated['schedule'] as $dayItem) {
+                $key = $dayItem['key'] ?? null;
+                $dayNum = $dayMap[$key] ?? null;
+                if (! $dayNum) {
+                    continue;
+                }
+
                 DoctorSchedule::updateOrCreate(
+                    ['doctor_id' => $doctor->id, 'day_of_week' => $dayNum],
                     [
-                        'doctor_id' => $doctor->id,
-                        'day_of_week' => $sch['day_of_week'],
-                    ],
-                    [
-                        'start_time' => $sch['start_time'],
-                        'end_time' => $sch['end_time'],
-                        'slot_duration_minutes' => $sch['slot_duration_minutes'] ?? 30,
-                        'is_active' => $sch['is_active'] ?? true,
+                        'start_time' => $dayItem['start'] ?? '09:00',
+                        'end_time' => $dayItem['end'] ?? '17:00',
+                        'slot_duration_minutes' => 30,
+                        'is_active' => (bool) ($dayItem['active'] ?? true),
                     ]
                 );
             }
         }
 
-        return redirect()->back()->with('success', 'Doctor schedule updated.');
+        return redirect()->route('admin.doctors.index')->with('success', 'Doctor schedule template updated successfully.');
     }
 
     /**
-     * Remove / deactivate doctor.
+     * Remove specified doctor (revert role to Patient or soft delete).
      */
     public function destroy(int $id): RedirectResponse
     {
         $doctor = Doctor::findOrFail($id);
-        $doctor->update(['status' => 'inactive']);
+        $user = $doctor->user;
 
-        return redirect()->route('admin.doctors.index')->with('success', 'Doctor status set to inactive.');
+        if ($user) {
+            $user->update(['role' => 'Patient']);
+            $user->syncRoles(['Patient']);
+        }
+
+        $doctor->delete();
+
+        return redirect()->route('admin.doctors.index')->with('success', 'Doctor role removed. User reverted to Patient.');
     }
 }

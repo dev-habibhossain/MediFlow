@@ -7,6 +7,7 @@ interface PatientItem {
     code: string
     name: string
     initials: string
+    avatar_url?: string | null
     phone: string
     email: string
     age: number
@@ -29,6 +30,7 @@ const props = withDefaults(
                 code: 'MDF-9021',
                 name: 'Habib Hossain',
                 initials: 'HH',
+                avatar_url: null,
                 phone: '(555) 340-2199',
                 email: 'habib@example.com',
                 age: 28,
@@ -44,6 +46,7 @@ const props = withDefaults(
                 code: 'MDF-8812',
                 name: 'Tanjila Ahmed',
                 initials: 'TA',
+                avatar_url: null,
                 phone: '(555) 291-8840',
                 email: 'tanjila@example.com',
                 age: 26,
@@ -59,6 +62,7 @@ const props = withDefaults(
                 code: 'MDF-7701',
                 name: 'Robert Fox',
                 initials: 'RF',
+                avatar_url: null,
                 phone: '(555) 492-1029',
                 email: 'robert@example.com',
                 age: 42,
@@ -101,34 +105,41 @@ const countInactive = computed(() => props.patients.filter((p) => p.status === '
 <template>
     <Head title="Patients Registry — Admin Portal" />
 
-    <!-- TOOLBAR & FILTERS -->
-    <div class="toolbar-row">
-        <div class="tab-group">
-            <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
-                All Patients <span class="tab-badge">{{ countAll }}</span>
-            </button>
-            <button class="tab-btn" :class="{ active: activeTab === 'active' }" @click="activeTab = 'active'">
-                Active <span class="tab-badge">{{ countActive }}</span>
-            </button>
-            <button class="tab-btn" :class="{ active: activeTab === 'inactive' }" @click="activeTab = 'inactive'">
-                Inactive <span class="tab-badge">{{ countInactive }}</span>
-            </button>
-        </div>
+    <!-- FILTER BAR -->
+    <div class="filter-card mb-6">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="tabs-group">
+                <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
+                    All Patients <span class="tab-count">{{ countAll }}</span>
+                </button>
+                <button class="tab-btn" :class="{ active: activeTab === 'active' }" @click="activeTab = 'active'">
+                    Active Patients <span class="tab-count count-active">{{ countActive }}</span>
+                </button>
+                <button class="tab-btn" :class="{ active: activeTab === 'inactive' }" @click="activeTab = 'inactive'">
+                    Inactive <span class="tab-count count-inactive">{{ countInactive }}</span>
+                </button>
+            </div>
 
-        <div class="filter-controls">
-            <select v-model="selectedBlood" class="select-filter">
-                <option value="all">All Blood Groups</option>
-                <option value="O+">O+</option>
-                <option value="A+">A+</option>
-                <option value="B+">B+</option>
-                <option value="AB+">AB+</option>
-            </select>
+            <div class="filter-controls">
+                <select v-model="selectedBlood" class="select-filter">
+                    <option value="all">All Blood Groups</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                </select>
 
-            <div class="search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <input v-model="searchQuery" type="text" class="search-input" placeholder="Search name, phone, or ID..." />
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input v-model="searchQuery" type="text" class="search-input" placeholder="Search name, phone, or ID..." />
+                </div>
             </div>
         </div>
     </div>
@@ -152,7 +163,10 @@ const countInactive = computed(() => props.patients.filter((p) => p.status === '
                     <tr v-for="patient in filteredPatients" :key="patient.id">
                         <td>
                             <div class="patient-cell">
-                                <div class="patient-avatar" :style="{ background: patient.avatar_bg, color: patient.avatar_color }">
+                                <div v-if="patient.avatar_url" class="patient-avatar-wrap">
+                                    <img :src="patient.avatar_url" :alt="patient.name" class="patient-avatar-fit" />
+                                </div>
+                                <div v-else class="patient-avatar" :style="{ background: patient.avatar_bg, color: patient.avatar_color }">
                                     {{ patient.initials }}
                                 </div>
                                 <div class="patient-meta">
@@ -176,15 +190,16 @@ const countInactive = computed(() => props.patients.filter((p) => p.status === '
                         <td>
                             <Link :href="`/admin/patients/${patient.id}`" class="btn-action-icon" title="View Patient Details">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
                                 </svg>
                             </Link>
                         </td>
                     </tr>
 
                     <tr v-if="filteredPatients.length === 0">
-                        <td colspan="7" style="text-align: center; padding: 40px; color: var(--ink-muted);">
-                            No registered patients match your search query.
+                        <td colspan="7" class="empty-state">
+                            No patient records match the selected filter criteria.
                         </td>
                     </tr>
                 </tbody>
@@ -193,38 +208,44 @@ const countInactive = computed(() => props.patients.filter((p) => p.status === '
     </div>
 </template>
 
-<style>
-.toolbar-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 24px; }
-.tab-group { display: flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px; gap: 4px; box-shadow: var(--shadow-sm); }
-.tab-btn { padding: 8px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink-muted); transition: all 150ms ease; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: 0; background: transparent; }
-.tab-btn:hover { color: var(--ink); }
-.tab-btn.active { background: var(--forest); color: #fff; }
-.tab-badge { font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; border-radius: 999px; background: rgba(22,24,15,0.08); color: inherit; }
-.tab-btn.active .tab-badge { background: rgba(255,255,255,0.2); color: #fff; }
+<style scoped>
+.filter-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 18px 24px; box-shadow: var(--shadow-sm); }
+.tabs-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tab-btn { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--ink-muted); background: transparent; border: 1px solid transparent; transition: all 150ms ease; cursor: pointer; }
+.tab-btn:hover { background: var(--cream); color: var(--forest); }
+.tab-btn.active { background: var(--forest); color: #fff; border-color: var(--forest); }
+
+.tab-count { font-family: var(--font-mono); font-size: 11px; padding: 2px 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.2); }
+.tab-btn:not(.active) .tab-count { background: var(--cream-alt); color: var(--ink); }
 
 .filter-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.search-box { position: relative; width: 280px; }
-.search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--ink-muted); }
-.search-input { width: 100%; height: 40px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); padding: 0 16px 0 40px; font-size: 13.5px; color: var(--ink); transition: border-color 150ms ease; outline: none; }
-.search-input:focus { border-color: var(--forest); }
-.select-filter { height: 40px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 13.5px; font-weight: 600; color: var(--ink); cursor: pointer; outline: none; }
+.select-filter { height: 38px; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); font-size: 13px; color: var(--ink); font-weight: 600; outline: none; transition: border-color 150ms ease; }
+.select-filter:focus { border-color: var(--forest); background: var(--card); }
+
+.search-box { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); min-width: 240px; transition: border-color 150ms ease; }
+.search-box:focus-within { border-color: var(--forest); background: var(--card); }
+.search-box svg { color: var(--ink-muted); flex-shrink: 0; }
+.search-input { width: 100%; border: 0; background: transparent; font-size: 13px; color: var(--ink); outline: none; }
 
 .card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
 .table-responsive { width: 100%; overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; }
-.data-table th { background: var(--cream); padding: 14px 24px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
-.data-table td { padding: 18px 24px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
+.data-table th { background: var(--cream); padding: 14px 20px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
+.data-table td { padding: 16px 20px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
 
 .patient-cell { display: flex; align-items: center; gap: 12px; }
-.patient-avatar { width: 40px; height: 40px; border-radius: 50%; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sm); }
-.patient-meta b { display: block; font-size: 14.5px; font-weight: 700; color: var(--forest); }
+.patient-avatar-wrap { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 1px solid var(--line); flex-shrink: 0; }
+.patient-avatar-fit { width: 100%; height: 100%; object-fit: cover; }
+.patient-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13.5px; font-family: var(--font-mono); flex-shrink: 0; }
+.patient-meta b { display: block; font-size: 14px; font-weight: 700; color: var(--forest); }
+.ref-code { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted); }
 
-.ref-code { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--ink); background: var(--cream); padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid var(--line); }
-
-.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; }
 .status-active { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
-.status-inactive { background: var(--cream-alt); color: var(--ink-muted); border: 1px solid var(--line); }
+.status-inactive { background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; }
 
-.btn-action-icon { width: 34px; height: 34px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--cream); display: inline-flex; align-items: center; justify-content: center; color: var(--forest); transition: all 150ms ease; text-decoration: none; }
-.btn-action-icon:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+.btn-action-icon { width: 34px; height: 34px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--cream); color: var(--forest); display: inline-flex; align-items: center; justify-content: center; transition: all 150ms ease; text-decoration: none; }
+.btn-action-icon:hover { background: var(--forest); color: #fff; border-color: var(--forest); }
+
+.empty-state { text-align: center; padding: 48px; font-size: 13.5px; color: var(--ink-muted); font-weight: 500; }
 </style>
