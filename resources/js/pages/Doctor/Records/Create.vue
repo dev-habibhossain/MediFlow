@@ -1,28 +1,61 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, useForm } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+
+const props = defineProps<{
+    appointment?: {
+        id: string
+        db_id: number
+        date: string
+    }
+    patient?: {
+        id: string
+        name: string
+        initials: string
+        gender: string
+        age: number
+        bloodGroup: string
+    }
+}>()
+
+const appInfo = computed(() => props.appointment ?? {
+    id: '101',
+    db_id: 101,
+    date: 'Today',
+})
+
+const patientInfo = computed(() => props.patient ?? {
+    id: 'MDF-9021',
+    name: 'Habib Hossain',
+    initials: 'HH',
+    gender: 'Male',
+    age: 28,
+    bloodGroup: 'O+',
+})
 
 const showToast = ref(false)
 
-const form = ref({
-    symptoms: 'Exertional chest tightness, minor dyspnea after workout routine. Mild headache reported in the morning.',
+const form = useForm({
+    symptoms: 'Exertional chest tightness, minor dyspnea after workout routine.',
     primaryDiagnosis: 'Essential (Primary) Hypertension - Controlled',
     icdCode: 'I10',
     bpSystolic: 120,
     bpDiastolic: 80,
     heartRate: 72,
     weight: 74.5,
-    soapSubjective: 'Patient Habib Hossain presents for cardiology follow-up. States chest tightness resolved after resting.',
-    soapObjective: 'Resting 12-lead ECG shows normal sinus rhythm. S1/S2 normal, no murmurs. Lungs clear.',
-    soapPlan: 'Maintain current Amlodipine 5mg regimen. Hydrate before exercise. Follow-up in 6 months.',
+    soapSubjective: 'Patient presents for cardiology follow-up.',
+    soapObjective: 'Resting 12-lead ECG shows normal sinus rhythm. Lungs clear.',
+    soapPlan: 'Maintain current Amlodipine 5mg regimen.',
+    attachment: null as File | null,
 })
 
 function handleSaveRecord() {
-    showToast.value = true
-    setTimeout(() => {
-        showToast.value = false
-        window.location.href = '/doctor/appointments/101'
-    }, 1200)
+    form.post(`/doctor/appointments/${appInfo.value.id}/records`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showToast.value = true
+        },
+    })
 }
 </script>
 
@@ -31,15 +64,15 @@ function handleSaveRecord() {
 
     <!-- TOP HEADER -->
     <div class="top-nav-row">
-        <Link href="/doctor/appointments/101" class="back-btn">
-            ← Cancel & Return to Appointment #MDF-101
+        <Link :href="`/doctor/appointments/${appInfo.id}`" class="back-btn">
+            ← Cancel & Return to Appointment #{{ appInfo.id }}
         </Link>
     </div>
 
     <!-- HEADER BANNER -->
     <div class="record-header-card">
         <div>
-            <span class="ref-badge">New Record for Visit #MDF-101</span>
+            <span class="ref-badge">New Record for Visit #{{ appInfo.id }}</span>
             <h1>Create Patient Clinical Medical Record</h1>
         </div>
     </div>
@@ -47,15 +80,15 @@ function handleSaveRecord() {
     <!-- PATIENT MINI SUMMARY -->
     <div class="patient-summary-box">
         <div class="patient-meta-group">
-            <div class="patient-avatar-md">HH</div>
+            <div class="patient-avatar-md">{{ patientInfo.initials }}</div>
             <div class="patient-info">
-                <b>Habib Hossain</b>
-                <span>Patient ID: #MDF-9021 · Male, 28 Yrs · Blood Type: O+</span>
+                <b>{{ patientInfo.name }}</b>
+                <span>Patient ID: #{{ patientInfo.id }} · {{ patientInfo.gender }}, {{ patientInfo.age }} Yrs · Blood Type: {{ patientInfo.bloodGroup }}</span>
             </div>
         </div>
 
         <div class="date-badge">
-            Date: <strong>Aug 7, 2026</strong>
+            Date: <strong>{{ appInfo.date }}</strong>
         </div>
     </div>
 

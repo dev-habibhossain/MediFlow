@@ -2,10 +2,30 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+const props = defineProps<{
+    patient?: {
+        id: string
+        db_id?: number
+        name: string
+        initials: string
+        avatarBg: string
+        avatarColor: string
+        metaText: string
+        bloodType: string
+        allergy: string
+        condition: string
+        visitsCount: number
+        activePrescriptionsCount: number
+        labReportsCount: number
+        lastBp: string
+    }
+    historyItems?: Array<any>
+}>()
+
 const activeCategory = ref('all')
 const searchQuery = ref('')
 
-const patient = {
+const patientData = computed(() => props.patient ?? {
     id: 'MDF-9021',
     name: 'Habib Hossain',
     initials: 'HH',
@@ -19,9 +39,9 @@ const patient = {
     activePrescriptionsCount: 2,
     labReportsCount: 5,
     lastBp: '120/80',
-}
+})
 
-const historyItems = [
+const rawHistoryItems = computed(() => props.historyItems && props.historyItems.length > 0 ? props.historyItems : [
     {
         id: 'REC-301',
         category: 'consultation',
@@ -30,13 +50,14 @@ const historyItems = [
         title: 'Cardiology Follow-Up & ECG Assessment',
         primaryDiag: 'Primary Diagnosis: Essential Hypertension (Controlled)',
         icdCode: 'ICD-10: I10',
-        notes: 'Blood pressure remains stable (120/80 mmHg). Resting ECG demonstrated normal sinus rhythm at 72 bpm. Adjusted dosage of Amlodipine Besylate to 5mg daily.',
+        notes: 'Blood pressure remains stable (120/80 mmHg). Resting ECG demonstrated normal sinus rhythm at 72 bpm.',
         doctor: 'Dr. Sarah Jenkins · Cardiology Department',
         doctorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100',
         actionLabel: 'Edit / Amend Record →',
-        actionUrl: '/doctor/appointments/101/medical-record/edit',
+        actionUrl: '/doctor/records/1/edit',
         searchTerms: 'cardiology ecg hypertension amlodipine chest tightness dr sarah jenkins rec-301',
     },
+])
     {
         id: 'RX-401',
         category: 'prescription',
@@ -72,29 +93,29 @@ const historyItems = [
         isLab: true,
         searchTerms: 'lipid panel cbc blood count laboratory dr emily watson lab-9201',
     },
-]
+])
 
 const filteredItems = computed(() => {
     const query = searchQuery.value.toLowerCase().trim()
-    return historyItems.filter((item) => {
+    return rawHistoryItems.value.filter((item: any) => {
         const matchesCategory = activeCategory.value === 'all' || item.category === activeCategory.value
-        const matchesSearch = !query || item.searchTerms.includes(query) || item.title.toLowerCase().includes(query)
+        const matchesSearch = !query || (item.searchTerms && item.searchTerms.includes(query)) || item.title.toLowerCase().includes(query)
         return matchesCategory && matchesSearch
     })
 })
 
 function viewLabPdf() {
-    alert('Opening lab PDF report scan...')
+    window.print()
 }
 </script>
 
 <template>
-    <Head :title="`Patient Clinical History - ${patient.name}`" />
+    <Head :title="`Patient Clinical History - ${patientData.name}`" />
 
     <!-- TOP BAR NAVIGATION -->
     <div class="top-nav-row">
-        <Link href="/doctor/appointments/MDF-9021" class="back-btn">
-            ← Back to Appointment #MDF-101
+        <Link href="/doctor/appointments" class="back-btn">
+            ← Back to Appointments List
         </Link>
         <button class="back-btn" @click="viewLabPdf">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
@@ -107,21 +128,40 @@ function viewLabPdf() {
     <!-- PATIENT PROFILE HEADER CARD -->
     <div class="patient-header-card">
         <div class="patient-info-left">
-            <div class="patient-avatar-xl" :style="{ background: patient.avatarBg, color: patient.avatarColor }">
-                {{ patient.initials }}
+            <div class="patient-avatar-xl" :style="{ background: patientData.avatarBg, color: patientData.avatarColor }">
+                {{ patientData.initials }}
             </div>
             <div class="patient-details-heading">
-                <h1>{{ patient.name }}</h1>
-                <p>{{ patient.metaText }}</p>
+                <h1>{{ patientData.name }}</h1>
+                <p>{{ patientData.metaText }}</p>
 
                 <div class="health-pills-row">
-                    <span class="health-pill blood">Blood Type: {{ patient.bloodType }}</span>
-                    <span class="health-pill allergy">Allergy: {{ patient.allergy }}</span>
-                    <span class="health-pill">{{ patient.condition }}</span>
+                    <span class="health-pill blood">Blood Type: {{ patientData.bloodType }}</span>
+                    <span class="health-pill allergy">Allergy: {{ patientData.allergy }}</span>
+                    <span class="health-pill condition">Condition: {{ patientData.condition }}</span>
                 </div>
             </div>
         </div>
 
+        <div class="patient-header-stats">
+            <div class="stat-box">
+                <span class="stat-val">{{ patientData.visitsCount }}</span>
+                <span class="stat-lbl">Visits Recorded</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val green">{{ patientData.activePrescriptionsCount }}</span>
+                <span class="stat-lbl">Active Rxs</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val blue">{{ patientData.labReportsCount }}</span>
+                <span class="stat-lbl">Lab Scans</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val amber">{{ patientData.lastBp }}</span>
+                <span class="stat-lbl">Last Vitals BP</span>
+            </div>
+        </div>
+        
         <div class="header-action-group">
             <Link href="/doctor/appointments/101/medical-record/create" class="btn-action-lg primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">

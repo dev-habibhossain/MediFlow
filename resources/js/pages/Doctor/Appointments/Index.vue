@@ -1,16 +1,59 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, router } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
 
-const activeTab = ref('today')
-const statusFilter = ref('All Statuses')
-const searchQuery = ref('')
-const selectedDate = ref('2026-08-07')
+const props = defineProps<{
+    appointments?: Array<{
+        id: string
+        db_id: number
+        date: string
+        time: string
+        patientName: string
+        patientRef: string
+        avatarBg: string
+        avatarColor: string
+        avatarInitials: string
+        visitType: string
+        status: string
+        statusLabel: string
+        actionLabel: string
+        actionUrl: string
+    }>
+    todayCount?: number
+    filters?: {
+        tab: string
+        date: string
+        status: string
+        search: string
+    }
+}>()
 
-const appointments = [
+const activeTab = ref(props.filters?.tab || 'today')
+const statusFilter = ref(props.filters?.status || 'All Statuses')
+const searchQuery = ref(props.filters?.search || '')
+const selectedDate = ref(props.filters?.date || new Date().toISOString().split('T')[0])
+
+function applyFilters(tab?: string) {
+    if (tab) {
+        activeTab.value = tab
+    }
+    router.get(
+        '/doctor/appointments',
+        {
+            tab: activeTab.value,
+            date: selectedDate.value,
+            status: statusFilter.value,
+            search: searchQuery.value,
+        },
+        { preserveState: true, preserveScroll: true, replace: true }
+    )
+}
+
+const list = computed(() => props.appointments && props.appointments.length > 0 ? props.appointments : [
     {
         id: '101',
-        date: 'Aug 7, 2026',
+        db_id: 101,
+        date: 'Today',
         time: '10:00 AM',
         patientName: 'Habib Hossain',
         patientRef: '#MDF-9021',
@@ -21,39 +64,9 @@ const appointments = [
         status: 'confirmed',
         statusLabel: 'Confirmed',
         actionLabel: 'Manage',
-        actionUrl: '/doctor/appointments/MDF-9021',
+        actionUrl: '/doctor/appointments/101',
     },
-    {
-        id: '102',
-        date: 'Aug 7, 2026',
-        time: '11:30 AM',
-        patientName: 'Tanjila Ahmed',
-        patientRef: '#MDF-8812',
-        avatarBg: '#E0F2FE',
-        avatarColor: '#0369A1',
-        avatarInitials: 'TA',
-        visitType: 'Telehealth',
-        status: 'pending',
-        statusLabel: 'Pending',
-        actionLabel: 'View',
-        actionUrl: '/doctor/appointments/MDF-9022',
-    },
-    {
-        id: '103',
-        date: 'Aug 7, 2026',
-        time: '02:00 PM',
-        patientName: 'Karim Alam',
-        patientRef: '#MDF-7419',
-        avatarBg: '#FEF3C7',
-        avatarColor: '#B45309',
-        avatarInitials: 'KA',
-        visitType: 'In-Person',
-        status: 'completed',
-        statusLabel: 'Completed',
-        actionLabel: 'View',
-        actionUrl: '/doctor/appointments/MDF-8810',
-    },
-]
+])
 </script>
 
 <template>
@@ -65,29 +78,29 @@ const appointments = [
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'today' }"
-                @click="activeTab = 'today'"
+                @click="applyFilters('today')"
             >
-                Today <span class="tab-badge">6</span>
+                Today <span class="tab-badge">{{ props.todayCount ?? 6 }}</span>
             </button>
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'upcoming' }"
-                @click="activeTab = 'upcoming'"
+                @click="applyFilters('upcoming')"
             >
                 Upcoming
             </button>
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'past' }"
-                @click="activeTab = 'past'"
+                @click="applyFilters('past')"
             >
                 Past
             </button>
         </div>
 
         <div class="filter-bar">
-            <input v-model="selectedDate" type="date" class="select-input" />
-            <select v-model="statusFilter" class="select-input">
+            <input v-model="selectedDate" type="date" class="select-input" @change="applyFilters()" />
+            <select v-model="statusFilter" class="select-input" @change="applyFilters()">
                 <option>All Statuses</option>
                 <option>Confirmed</option>
                 <option>Pending</option>
@@ -111,7 +124,7 @@ const appointments = [
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="app in appointments" :key="app.id">
+                    <tr v-for="app in list" :key="app.id">
                         <td>
                             <b>{{ app.date }}</b><br />
                             <span class="time-sub">{{ app.time }}</span>

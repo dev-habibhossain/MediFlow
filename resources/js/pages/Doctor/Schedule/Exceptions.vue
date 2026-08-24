@@ -1,39 +1,52 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, router, useForm } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
-const exceptionType = ref('vacation')
-const startDate = ref('2026-09-04')
-const endDate = ref('2026-09-06')
-const reasonNotes = ref('Attending Annual Cardiology World Congress 2026 in Chicago.')
+const props = defineProps<{
+    exceptions?: Array<{
+        id: string
+        db_id?: number
+        type: string
+        range: string
+        days: string
+        reason: string
+        status: string
+        statusLabel: string
+    }>
+}>()
 
-const exceptions = ref([
+const form = useForm({
+    exceptionType: 'vacation',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    reasonNotes: '',
+})
+
+const exceptionList = computed(() => props.exceptions && props.exceptions.length > 0 ? props.exceptions : [
     {
         id: 'EXC-101',
         type: 'Planned Vacation / Conference',
         range: 'Sep 04, 2026 — Sep 06, 2026',
         days: '3 Days',
-        reason: 'Attending Annual Cardiology World Congress 2026 in Chicago.',
+        reason: 'Attending Annual Cardiology World Congress in Chicago.',
         status: 'approved',
         statusLabel: 'Approved by HR',
-    },
-    {
-        id: 'EXC-102',
-        type: 'Personal Leave',
-        range: 'Oct 12, 2026 (Half-day)',
-        days: '1 Day',
-        reason: 'Family event in the afternoon.',
-        status: 'pending',
-        statusLabel: 'Pending Approval',
     },
 ])
 
 function addException() {
-    alert('Schedule exception submitted for administrative approval!')
+    form.post('/doctor/schedule/exceptions', {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset('reasonNotes')
+        },
+    })
 }
 
 function cancelException(id: string) {
-    exceptions.value = exceptions.value.filter((item) => item.id !== id)
+    router.delete(`/doctor/schedule/exceptions/${id}`, {
+        preserveScroll: true,
+    })
 }
 </script>
 
@@ -63,7 +76,7 @@ function cancelException(id: string) {
             <div class="form-grid">
                 <div class="form-group">
                     <label>Exception Category <span>*</span></label>
-                    <select v-model="exceptionType" class="form-control" required>
+                    <select v-model="form.exceptionType" class="form-control" required>
                         <option value="vacation">Planned Vacation / Leave</option>
                         <option value="conference">Medical Conference / Seminar</option>
                         <option value="emergency">Emergency Absence</option>
@@ -73,22 +86,22 @@ function cancelException(id: string) {
 
                 <div class="form-group">
                     <label>Start Date <span>*</span></label>
-                    <input v-model="startDate" type="date" class="form-control" required />
+                    <input v-model="form.startDate" type="date" class="form-control" required />
                 </div>
 
                 <div class="form-group">
                     <label>End Date <span>*</span></label>
-                    <input v-model="endDate" type="date" class="form-control" required />
+                    <input v-model="form.endDate" type="date" class="form-control" required />
                 </div>
             </div>
 
             <div class="form-group" style="margin-top: 16px;">
                 <label>Reason / Clinical Coverage Details <span>*</span></label>
-                <input v-model="reasonNotes" type="text" class="form-control" placeholder="Specify reason and covering physician if applicable..." required />
+                <input v-model="form.reasonNotes" type="text" class="form-control" placeholder="Specify reason and covering physician if applicable..." required />
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">+ Submit Schedule Exception Request</button>
+                <button type="submit" class="btn btn-primary" :disabled="form.processing">+ Submit Schedule Exception Request</button>
             </div>
         </form>
     </div>
@@ -112,7 +125,7 @@ function cancelException(id: string) {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="exc in exceptions" :key="exc.id">
+                    <tr v-for="exc in exceptionList" :key="exc.id">
                         <td><b class="mono-id">{{ exc.id }}</b></td>
                         <td><b>{{ exc.type }}</b></td>
                         <td>

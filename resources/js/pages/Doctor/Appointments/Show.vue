@@ -1,13 +1,41 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, router } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
 
-const currentStatus = ref('confirmed')
-const toastMsg = ref('')
-const showToast = ref(false)
+const props = defineProps<{
+    appointment?: {
+        id: string
+        db_id: number
+        patientId: string
+        patientDbId?: number
+        patientName: string
+        patientInitials: string
+        age: number
+        gender: string
+        bloodGroup: string
+        allergies: string
+        visitsCompleted: number
+        date: string
+        time: string
+        mode: string
+        location: string
+        phone: string
+        email: string
+        paymentStatus: string
+        receipt: string
+        reason: string
+        status: string
+        vitals: {
+            bp: string
+            hr: string
+            weight: string
+        }
+    }
+}>()
 
-const appointment = {
-    id: 'MDF-101',
+const appData = computed(() => props.appointment ?? {
+    id: '101',
+    db_id: 101,
     patientId: 'MDF-9021',
     patientName: 'Habib Hossain',
     patientInitials: 'HH',
@@ -24,22 +52,34 @@ const appointment = {
     email: 'habib@example.com',
     paymentStatus: 'Paid ($120.00)',
     receipt: 'Receipt #INV-88402',
-    reason: 'Routine follow-up consultation regarding recent blood pressure fluctuations and post-exercise chest tightness.',
+    reason: 'Routine follow-up consultation regarding recent blood pressure fluctuations.',
+    status: 'confirmed',
     vitals: {
         bp: '120/80',
         hr: '72',
         weight: '74.5',
     },
-}
+})
+
+const currentStatus = ref(appData.value.status)
+const toastMsg = ref('')
+const showToast = ref(false)
 
 function handleStatusChange(event: Event) {
     const val = (event.target as HTMLSelectElement).value
     currentStatus.value = val
-    toastMsg.value = `Status updated to ${val.replace('_', ' ')}`
-    showToast.value = true
-    setTimeout(() => {
-        showToast.value = false
-    }, 3000)
+    router.patch(
+        `/doctor/appointments/${appData.value.id}/status`,
+        { status: val },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                toastMsg.value = `Status updated to ${val.replace('_', ' ')}`
+                showToast.value = true
+                setTimeout(() => { showToast.value = false }, 3000)
+            },
+        }
+    )
 }
 
 function printSummary() {
@@ -48,7 +88,7 @@ function printSummary() {
 </script>
 
 <template>
-    <Head :title="`Appointment #${appointment.id} Detail - MediFlow`" />
+    <Head :title="`Appointment #${appData.id} Detail - MediFlow`" />
 
     <!-- TOP HEADER / BACK LINK -->
     <div class="top-nav-row">
@@ -67,7 +107,7 @@ function printSummary() {
     <div class="detail-header-card">
         <div>
             <div class="header-info-group">
-                <span class="ref-badge">#{{ appointment.id }}</span>
+                <span class="ref-badge">#{{ appData.id }}</span>
                 <span
                     class="badge"
                     :class="{
@@ -97,21 +137,21 @@ function printSummary() {
                         </svg>
                         Patient Information
                     </div>
-                    <Link :href="`/doctor/patients/${appointment.patientId}`" class="history-link">
+                    <Link :href="`/doctor/patients/${appData.patientId}/history`" class="history-link">
                         View Full History →
                     </Link>
                 </div>
 
                 <div class="patient-profile-strip">
-                    <div class="patient-avatar-lg">{{ appointment.patientInitials }}</div>
+                    <div class="patient-avatar-lg">{{ appData.patientInitials }}</div>
                     <div class="patient-meta-lg">
-                        <h3>{{ appointment.patientName }}</h3>
-                        <p>Patient ID: #{{ appointment.patientId }} · Age: {{ appointment.age }} · Gender: {{ appointment.gender }}</p>
+                        <h3>{{ appData.patientName }}</h3>
+                        <p>Patient ID: #{{ appData.patientId }} · Age: {{ appData.age }} · Gender: {{ appData.gender }}</p>
 
                         <div class="patient-quick-stats">
-                            <span class="stat-pill">Blood Group: <strong>{{ appointment.bloodGroup }}</strong></span>
-                            <span class="stat-pill">Allergies: <strong>{{ appointment.allergies }}</strong></span>
-                            <span class="stat-pill">Visits Completed: <strong>{{ appointment.visitsCompleted }}</strong></span>
+                            <span class="stat-pill">Blood Group: <strong>{{ appData.bloodGroup }}</strong></span>
+                            <span class="stat-pill">Allergies: <strong>{{ appData.allergies }}</strong></span>
+                            <span class="stat-pill">Visits Completed: <strong>{{ appData.visitsCompleted }}</strong></span>
                         </div>
                     </div>
                 </div>
@@ -131,26 +171,26 @@ function printSummary() {
                 <div class="info-pairs-grid">
                     <div class="info-box">
                         <label>Date & Time</label>
-                        <span>{{ appointment.date }}</span>
-                        <small>{{ appointment.time }}</small>
+                        <span>{{ appData.date }}</span>
+                        <small>{{ appData.time }}</small>
                     </div>
 
                     <div class="info-box">
                         <label>Consultation Mode</label>
-                        <span>{{ appointment.mode }}</span>
-                        <small>{{ appointment.location }}</small>
+                        <span>{{ appData.mode }}</span>
+                        <small>{{ appData.location }}</small>
                     </div>
 
                     <div class="info-box">
                         <label>Patient Contact</label>
-                        <span>{{ appointment.phone }}</span>
-                        <small>{{ appointment.email }}</small>
+                        <span>{{ appData.phone }}</span>
+                        <small>{{ appData.email }}</small>
                     </div>
 
                     <div class="info-box">
                         <label>Payment Status</label>
-                        <span style="color: #15803D;">{{ appointment.paymentStatus }}</span>
-                        <small>{{ appointment.receipt }}</small>
+                        <span style="color: #15803D;">{{ appData.paymentStatus }}</span>
+                        <small>{{ appData.receipt }}</small>
                     </div>
                 </div>
             </div>
@@ -168,21 +208,21 @@ function printSummary() {
 
                 <div class="symptom-box">
                     <label>Patient Stated Reason for Visit</label>
-                    <p>"{{ appointment.reason }}"</p>
+                    <p>"{{ appData.reason }}"</p>
                 </div>
 
                 <div class="vitals-mini-grid">
                     <div class="vital-tile">
                         <label>Blood Pressure</label>
-                        <b>{{ appointment.vitals.bp }} <small style="font-size: 11px; font-weight: normal;">mmHg</small></b>
+                        <b>{{ appData.vitals.bp }} <small style="font-size: 11px; font-weight: normal;">mmHg</small></b>
                     </div>
                     <div class="vital-tile">
                         <label>Heart Rate</label>
-                        <b>{{ appointment.vitals.hr }} <small style="font-size: 11px; font-weight: normal;">bpm</small></b>
+                        <b>{{ appData.vitals.hr }} <small style="font-size: 11px; font-weight: normal;">bpm</small></b>
                     </div>
                     <div class="vital-tile">
                         <label>Body Weight</label>
-                        <b>{{ appointment.vitals.weight }} <small style="font-size: 11px; font-weight: normal;">kg</small></b>
+                        <b>{{ appData.vitals.weight }} <small style="font-size: 11px; font-weight: normal;">kg</small></b>
                     </div>
                 </div>
             </div>
@@ -209,14 +249,14 @@ function printSummary() {
                 <h4 class="card-heading">Clinical Actions</h4>
                 <p class="card-subtext">Generate medical records or issue prescriptions for this session:</p>
 
-                <Link href="/doctor/appointments/101/medical-record/create" class="btn btn-primary">
+                <Link :href="`/doctor/appointments/${appData.id}/records/create`" class="btn btn-primary">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
                     </svg>
                     Create Medical Record
                 </Link>
 
-                <Link href="/doctor/appointments/101/prescriptions/create" class="btn btn-lime">
+                <Link :href="`/doctor/appointments/${appData.id}/prescriptions/create`" class="btn btn-lime">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                         <path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/>
                     </svg>

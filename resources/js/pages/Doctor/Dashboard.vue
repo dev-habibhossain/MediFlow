@@ -1,7 +1,44 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
-const appointments = [
+const props = defineProps<{
+    stats?: {
+        appointments_today: number
+        total_patients: number
+        average_rating: number
+        pending_notes: number
+    }
+    nextBanner?: {
+        id: string
+        patient_name: string
+        reason: string
+        time_details: string
+        action_url: string
+    } | null
+    todayAppointments?: Array<{
+        id: string
+        time: string
+        patientName: string
+        avatarBg: string
+        avatarColor: string
+        avatarInitials: string
+        patientMeta: string
+        typeMode: string
+        status: string
+        statusLabel: string
+        actionLabel: string
+        actionUrl: string
+    }>
+    recentActivities?: Array<{
+        id: string
+        text: string
+        time: string
+        is_blue?: boolean
+    }>
+}>()
+
+const appointmentsList = computed(() => props.todayAppointments && props.todayAppointments.length > 0 ? props.todayAppointments : [
     {
         id: '101',
         time: '10:00 AM',
@@ -9,49 +46,43 @@ const appointments = [
         avatarBg: 'var(--lime)',
         avatarColor: 'var(--lime-text)',
         avatarInitials: 'HH',
-        patientMeta: '28 Yrs · Male · #MDF-9021',
+        patientMeta: 'Patient #MDF-9021',
         typeMode: 'In-Person Visit',
         status: 'confirmed',
         statusLabel: 'Confirmed',
         actionLabel: 'Manage',
-        actionUrl: '/doctor/appointments/MDF-9021',
+        actionUrl: '/doctor/appointments/101',
+    },
+])
+
+const statsData = computed(() => ({
+    appointments_today: props.stats?.appointments_today ?? 6,
+    total_patients: props.stats?.total_patients ?? 1240,
+    average_rating: props.stats?.average_rating ?? 4.9,
+    pending_notes: props.stats?.pending_notes ?? 2,
+}))
+
+const activitiesList = computed(() => props.recentActivities && props.recentActivities.length > 0 ? props.recentActivities : [
+    {
+        id: '1',
+        text: 'Prescription #RX-401 issued for Habib Hossain.',
+        time: '2 hours ago',
+        is_blue: false,
     },
     {
-        id: '102',
-        time: '11:30 AM',
-        patientName: 'Tanjila Ahmed',
-        avatarBg: '#E0F2FE',
-        avatarColor: '#0369A1',
-        avatarInitials: 'TA',
-        patientMeta: '34 Yrs · Female · #MDF-8812',
-        typeMode: 'Telehealth Call',
-        status: 'waiting',
-        statusLabel: 'Waiting Room',
-        actionLabel: 'Join Call',
-        actionUrl: '/doctor/appointments/MDF-9022',
+        id: '2',
+        text: 'Medical Record finalized for Habib Hossain.',
+        time: '4 hours ago',
+        is_blue: true,
     },
-    {
-        id: '103',
-        time: '02:00 PM',
-        patientName: 'Karim Alam',
-        avatarBg: '#FEF3C7',
-        avatarColor: '#B45309',
-        avatarInitials: 'KA',
-        patientMeta: '52 Yrs · Male · #MDF-7419',
-        typeMode: 'In-Person Visit',
-        status: 'confirmed',
-        statusLabel: 'Confirmed',
-        actionLabel: 'View',
-        actionUrl: '/doctor/appointments/MDF-8810',
-    },
-]
+])
 </script>
 
 <template>
     <Head title="Doctor Dashboard" />
 
     <!-- HERO BANNER -->
-    <div class="welcome-banner">
+    <div v-if="props.nextBanner" class="welcome-banner">
         <div class="welcome-text">
             <span class="banner-badge">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
@@ -59,11 +90,29 @@ const appointments = [
                 </svg>
                 Next Scheduled Consultation
             </span>
-            <h2>Habib Hossain (Cardiology Follow-Up)</h2>
-            <p>Today at 10:00 AM · In-Person Visit · Room 302, Harbor Ave Clinic</p>
+            <h2>{{ props.nextBanner.patient_name }} ({{ props.nextBanner.reason }})</h2>
+            <p>{{ props.nextBanner.time_details }}</p>
         </div>
-        <Link href="/doctor/appointments/MDF-9021" class="btn-banner-action">
+        <Link :href="props.nextBanner.action_url" class="btn-banner-action">
             <span>Start Consultation</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+        </Link>
+    </div>
+    <div v-else class="welcome-banner">
+        <div class="welcome-text">
+            <span class="banner-badge">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Doctor Command Center
+            </span>
+            <h2>Welcome to your Clinical Workspace</h2>
+            <p>Monitor patient queues, issue electronic prescriptions, and manage medical records.</p>
+        </div>
+        <Link href="/doctor/appointments" class="btn-banner-action">
+            <span>View Appointments</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
                 <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
             </svg>
@@ -75,7 +124,7 @@ const appointments = [
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Appointments Today</span>
-                <b>6</b>
+                <b>{{ statsData.appointments_today }}</b>
             </div>
             <div class="stat-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -87,7 +136,7 @@ const appointments = [
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Total Patients Treated</span>
-                <b>1,240</b>
+                <b>{{ statsData.total_patients.toLocaleString() }}</b>
             </div>
             <div class="stat-icon icon-green">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -100,7 +149,7 @@ const appointments = [
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Average Rating</span>
-                <b>4.9 / 5</b>
+                <b>{{ statsData.average_rating }} / 5</b>
             </div>
             <div class="stat-icon icon-amber">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -112,7 +161,7 @@ const appointments = [
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Pending Medical Notes</span>
-                <b>2</b>
+                <b>{{ statsData.pending_notes }}</b>
             </div>
             <div class="stat-icon icon-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -148,7 +197,7 @@ const appointments = [
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in appointments" :key="item.id" class="table-row">
+                        <tr v-for="item in appointmentsList" :key="item.id" class="table-row">
                             <td><b class="time-slot">{{ item.time }}</b></td>
                             <td>
                                 <div class="patient-cell">
@@ -240,18 +289,11 @@ const appointments = [
                     </h3>
                 </div>
                 <div class="feed-list">
-                    <div class="feed-item">
-                        <div class="feed-dot"></div>
+                    <div v-for="act in activitiesList" :key="act.id" class="feed-item">
+                        <div class="feed-dot" :class="{ 'dot-blue': act.is_blue }"></div>
                         <div class="feed-content">
-                            <p>Prescription #RX-401 issued for Habib Hossain (Amlodipine 5mg).</p>
-                            <span>2 hours ago</span>
-                        </div>
-                    </div>
-                    <div class="feed-item">
-                        <div class="feed-dot dot-blue"></div>
-                        <div class="feed-content">
-                            <p>Medical Record #REC-301 finalized for Habib Hossain.</p>
-                            <span>Yesterday</span>
+                            <p>{{ act.text }}</p>
+                            <span>{{ act.time }}</span>
                         </div>
                     </div>
                 </div>

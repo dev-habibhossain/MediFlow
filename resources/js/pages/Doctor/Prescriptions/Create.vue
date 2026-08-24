@@ -1,32 +1,64 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, useForm } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+
+const props = defineProps<{
+    appointment?: {
+        id: string
+        db_id: number
+    }
+    patient?: {
+        id: string
+        name: string
+        initials: string
+        gender: string
+        age: number
+        bloodGroup: string
+        allergies: string
+    }
+    doctor?: {
+        name: string
+        license: string
+    }
+}>()
+
+const appInfo = computed(() => props.appointment ?? {
+    id: '101',
+    db_id: 101,
+})
+
+const patientInfo = computed(() => props.patient ?? {
+    id: 'MDF-9021',
+    name: 'Habib Hossain',
+    initials: 'HH',
+    gender: 'Male',
+    age: 28,
+    bloodGroup: 'O+',
+    allergies: 'Penicillin (Mild)',
+})
+
+const doctorInfo = computed(() => props.doctor ?? {
+    name: 'Dr. Sarah Jenkins',
+    license: 'MD-90412',
+})
 
 const showToast = ref(false)
 
-const items = ref([
-    {
-        name: 'Amlodipine Besylate 5mg',
-        frequency: '1x Daily (Morning)',
-        duration: '90 Days',
-        refills: '2',
-        instructions: 'Take morning with food',
-    },
-    {
-        name: 'Atorvastatin Calcium 20mg',
-        frequency: '1x Daily (Bedtime)',
-        duration: '90 Days',
-        refills: '2',
-        instructions: 'Take at bedtime, avoid grapefruit',
-    },
-])
-
-const pharmacyNotes = ref(
-    'Maintain consistent daily administration times. If patient experiences dizziness or muscle pain, notify Cardiology Desk immediately.'
-)
+const form = useForm({
+    items: [
+        {
+            name: 'Amlodipine Besylate 5mg',
+            frequency: '1x Daily (Morning)',
+            duration: '90 Days',
+            refills: '2',
+            instructions: 'Take morning with food',
+        },
+    ],
+    pharmacyNotes: 'Maintain consistent daily administration times.',
+})
 
 function addRow() {
-    items.value.push({
+    form.items.push({
         name: '',
         frequency: '1x Daily (Morning)',
         duration: '30 Days',
@@ -36,19 +68,20 @@ function addRow() {
 }
 
 function removeRow(index: number) {
-    if (items.value.length > 1) {
-        items.value.splice(index, 1)
+    if (form.items.length > 1) {
+        form.items.splice(index, 1)
     } else {
         alert('Prescription must contain at least one medication line item.')
     }
 }
 
 function handleIssueRx() {
-    showToast.value = true
-    setTimeout(() => {
-        showToast.value = false
-        window.location.href = '/doctor/appointments/101'
-    }, 1200)
+    form.post(`/doctor/appointments/${appInfo.value.id}/prescriptions`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showToast.value = true
+        },
+    })
 }
 </script>
 
@@ -75,21 +108,20 @@ function handleIssueRx() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
-        <span>Safety Warning: Patient Habib Hossain has a recorded allergy to <strong>Penicillin (Mild)</strong>. Avoid prescribing beta-lactam antibiotics.</span>
+        <span>Safety Warning: Patient {{ patientInfo.name }} has a recorded allergy to <strong>{{ patientInfo.allergies }}</strong>. Avoid prescribing beta-lactam antibiotics.</span>
     </div>
 
-    <!-- PATIENT MINI SUMMARY -->
     <div class="patient-summary-box">
         <div class="patient-meta-group">
-            <div class="patient-avatar-md">HH</div>
+            <div class="patient-avatar-md">{{ patientInfo.initials }}</div>
             <div class="patient-info">
-                <b>Habib Hossain</b>
-                <span>Patient ID: #MDF-9021 · Male, 28 Yrs · Blood Type: O+</span>
+                <b>{{ patientInfo.name }}</b>
+                <span>Patient ID: #{{ patientInfo.id }} · {{ patientInfo.gender }}, {{ patientInfo.age }} Yrs · Blood Type: {{ patientInfo.bloodGroup }}</span>
             </div>
         </div>
 
         <div class="doctor-badge">
-            Prescribing Physician: <strong>Dr. Sarah Jenkins (MD-90412)</strong>
+            Prescribing Physician: <strong>{{ doctorInfo.name }} ({{ doctorInfo.license }})</strong>
         </div>
     </div>
 
@@ -119,7 +151,7 @@ function handleIssueRx() {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, idx) in items" :key="idx" class="med-row">
+                        <tr v-for="(item, idx) in form.items" :key="idx" class="med-row">
                             <td>
                                 <input v-model="item.name" type="text" class="form-control-sm" placeholder="e.g. Amlodipine 5mg" required />
                             </td>
@@ -164,7 +196,7 @@ function handleIssueRx() {
             <!-- SPECIAL PHARMACY & PATIENT NOTES -->
             <div class="form-group">
                 <label>Special Pharmacy Precautions & Directions</label>
-                <textarea v-model="pharmacyNotes" class="form-control" placeholder="Add additional directions for dispensing pharmacist or patient precautions..."></textarea>
+                <textarea v-model="form.pharmacyNotes" class="form-control" placeholder="Add additional directions for dispensing pharmacist..."></textarea>
             </div>
 
             <!-- BUTTON ROW -->

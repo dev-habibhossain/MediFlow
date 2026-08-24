@@ -1,26 +1,59 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3'
+import { Head, useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
-const form = ref({
-    name: 'Dr. Sarah Jenkins',
-    title: 'MD, FACC — Senior Cardiologist',
-    department: 'Cardiology',
-    licenseNumber: 'MD-7890123',
-    experienceYears: '12',
-    consultationFee: '120.00',
-    education: 'Harvard Medical School (Class of 2012), Residency at Massachusetts General Hospital.',
-    specialties: 'Hypertension, Preventive Cardiology, Lipid Disorders, Electrocardiography',
-    bio: 'Board-certified cardiologist specializing in preventive cardiovascular care and non-invasive diagnostic hypertension management with over 12 years of clinical excellence.',
-    avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300',
+const props = defineProps<{
+    profile?: {
+        name: string
+        title: string
+        department: string
+        licenseNumber: string
+        experienceYears: string
+        consultationFee: string
+        education: string
+        specialties: string
+        bio: string
+        avatarUrl: string
+    }
+}>()
+
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const showToast = ref(false)
+
+const form = useForm({
+    name: props.profile?.name ?? 'Dr. Sarah Jenkins',
+    title: props.profile?.title ?? 'MD, FACC — Senior Cardiologist',
+    department: props.profile?.department ?? 'Cardiology',
+    licenseNumber: props.profile?.licenseNumber ?? 'MD-7890123',
+    experienceYears: props.profile?.experienceYears ?? '12',
+    consultationFee: props.profile?.consultationFee ?? '120.00',
+    education: props.profile?.education ?? 'Harvard Medical School',
+    specialties: props.profile?.specialties ?? 'Hypertension, Preventive Cardiology',
+    bio: props.profile?.bio ?? 'Board-certified cardiologist specializing in preventive cardiovascular care.',
+    avatarUrl: props.profile?.avatarUrl ?? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300',
+    avatar: null as File | null,
 })
 
-function saveProfile() {
-    alert('Doctor Profile & Directory listing saved successfully!')
+function triggerUpload() {
+    fileInputRef.value?.click()
 }
 
-function triggerUpload() {
-    alert('Upload Photo triggered!')
+function handleFileChange(e: Event) {
+    const target = e.target as HTMLInputElement
+    if (target.files && target.files[0]) {
+        form.avatar = target.files[0]
+        form.avatarUrl = URL.createObjectURL(target.files[0])
+    }
+}
+
+function saveProfile() {
+    form.post('/doctor/profile', {
+        preserveScroll: true,
+        onSuccess: () => {
+            showToast.value = true
+            setTimeout(() => { showToast.value = false }, 3000)
+        },
+    })
 }
 </script>
 
@@ -57,6 +90,7 @@ function triggerUpload() {
                         <div>
                             <b>Profile Headshot Photo</b>
                             <p>Upload a high-resolution professional portrait (PNG/JPG up to 5MB).</p>
+                            <input ref="fileInputRef" type="file" style="display: none" accept="image/*" @change="handleFileChange" />
                             <button type="button" class="btn-sm btn-outline" @click="triggerUpload">Change Photo</button>
                         </div>
                     </div>

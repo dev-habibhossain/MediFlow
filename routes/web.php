@@ -21,6 +21,14 @@ use App\Http\Controllers\Booking\BookingSuccessController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\Doctor\DoctorAppointmentController;
+use App\Http\Controllers\Doctor\DoctorDashboardController;
+use App\Http\Controllers\Doctor\DoctorMedicalRecordController;
+use App\Http\Controllers\Doctor\DoctorPatientController;
+use App\Http\Controllers\Doctor\DoctorPerformanceController;
+use App\Http\Controllers\Doctor\DoctorPrescriptionController;
+use App\Http\Controllers\Doctor\DoctorProfileController;
+use App\Http\Controllers\Doctor\DoctorScheduleController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HomeController;
@@ -138,30 +146,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Doctor Portal Routes
     Route::prefix('doctor')->name('doctor.')->middleware(['role:Doctor'])->group(function () {
-        Route::get('/dashboard', fn () => inertia('Doctor/Dashboard'))->name('dashboard');
+        Route::get('/dashboard', DoctorDashboardController::class)->name('dashboard');
 
         // Appointments
-        Route::get('/appointments', fn () => inertia('Doctor/Appointments/Index'))->name('appointments.index');
-        Route::get('/appointments/{id}', fn () => inertia('Doctor/Appointments/Show'))->name('appointments.show');
+        Route::get('/appointments', [DoctorAppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('/appointments/{id}', [DoctorAppointmentController::class, 'show'])->name('appointments.show');
+        Route::patch('/appointments/{id}/status', [DoctorAppointmentController::class, 'updateStatus'])->name('appointments.update-status');
 
         // Patient History
-        Route::get('/patients/{id}/history', fn () => inertia('Doctor/Patients/History'))->name('patients.history');
+        Route::get('/patients/{id}/history', [DoctorPatientController::class, 'history'])->name('patients.history');
 
         // Medical Records
-        Route::get('/appointments/{id}/records/create', fn () => inertia('Doctor/Records/Create'))->name('records.create');
-        Route::get('/records/{id}/edit', fn () => inertia('Doctor/Records/Edit'))->name('records.edit');
+        Route::get('/appointments/{id}/records/create', [DoctorMedicalRecordController::class, 'create'])->name('records.create');
+        Route::post('/appointments/{id}/records', [DoctorMedicalRecordController::class, 'store'])->name('records.store');
+        Route::get('/records/{id}/edit', [DoctorMedicalRecordController::class, 'edit'])->name('records.edit');
+        Route::put('/records/{id}', [DoctorMedicalRecordController::class, 'update'])->name('records.update');
 
         // Prescriptions
-        Route::get('/appointments/{id}/prescriptions/create', fn () => inertia('Doctor/Prescriptions/Create'))->name('prescriptions.create');
-        Route::get('/prescriptions/{id}/supersede', fn () => inertia('Doctor/Prescriptions/Supersede'))->name('prescriptions.supersede');
+        Route::get('/appointments/{id}/prescriptions/create', [DoctorPrescriptionController::class, 'create'])->name('prescriptions.create');
+        Route::post('/appointments/{id}/prescriptions', [DoctorPrescriptionController::class, 'store'])->name('prescriptions.store');
+        Route::get('/prescriptions/{id}/supersede', [DoctorPrescriptionController::class, 'supersede'])->name('prescriptions.supersede');
+        Route::post('/prescriptions/{id}/supersede', [DoctorPrescriptionController::class, 'storeSupersede'])->name('prescriptions.store-supersede');
 
         // Schedule & Availability
-        Route::get('/schedule', fn () => inertia('Doctor/Schedule/Index'))->name('schedule.index');
-        Route::get('/schedule/exceptions', fn () => inertia('Doctor/Schedule/Exceptions'))->name('schedule.exceptions');
+        Route::get('/schedule', [DoctorScheduleController::class, 'index'])->name('schedule.index');
+        Route::post('/schedule', [DoctorScheduleController::class, 'update'])->name('schedule.update');
+        Route::get('/schedule/exceptions', [DoctorScheduleController::class, 'exceptions'])->name('schedule.exceptions');
+        Route::post('/schedule/exceptions', [DoctorScheduleController::class, 'storeException'])->name('schedule.exceptions.store');
+        Route::delete('/schedule/exceptions/{id}', [DoctorScheduleController::class, 'destroyException'])->name('schedule.exceptions.destroy');
 
         // Performance & Profile
-        Route::get('/performance', fn () => inertia('Doctor/Performance/Index'))->name('performance.index');
-        Route::get('/settings/profile', fn () => inertia('Doctor/Settings/Profile'))->name('settings.profile');
+        Route::get('/performance', [DoctorPerformanceController::class, 'index'])->name('performance.index');
+        Route::get('/settings/profile', [DoctorProfileController::class, 'edit'])->name('settings.profile');
+        Route::post('/settings/profile', [DoctorProfileController::class, 'update'])->name('settings.profile.update');
     });
 
     // Patient Portal Routes
