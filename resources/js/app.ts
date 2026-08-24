@@ -4,6 +4,7 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import DoctorLayout from '@/layouts/DoctorLayout.vue';
+import PatientLayout from '@/layouts/PatientLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 
@@ -28,6 +29,8 @@ createInertiaApp({
                 return AdminLayout;
             case name.startsWith('Doctor/'):
                 return DoctorLayout;
+            case name.startsWith('Patient/'):
+                return PatientLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):

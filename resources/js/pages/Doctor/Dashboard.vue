@@ -63,7 +63,10 @@ const appointments = [
             <p>Today at 10:00 AM · In-Person Visit · Room 302, Harbor Ave Clinic</p>
         </div>
         <Link href="/doctor/appointments/MDF-9021" class="btn-banner-action">
-            Start Consultation
+            <span>Start Consultation</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
         </Link>
     </div>
 
@@ -130,7 +133,7 @@ const appointments = [
                     </svg>
                     Today's Schedule Queue
                 </h3>
-                <Link href="/doctor/appointments" class="header-link">View full schedule</Link>
+                <Link href="/doctor/appointments" class="header-link">View full schedule →</Link>
             </div>
 
             <div class="table-responsive">
@@ -141,11 +144,11 @@ const appointments = [
                             <th>Patient Name</th>
                             <th>Type & Mode</th>
                             <th>Status</th>
-                            <th>Action</th>
+                            <th class="text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in appointments" :key="item.id">
+                        <tr v-for="item in appointments" :key="item.id" class="table-row">
                             <td><b class="time-slot">{{ item.time }}</b></td>
                             <td>
                                 <div class="patient-cell">
@@ -158,13 +161,13 @@ const appointments = [
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ item.typeMode }}</td>
+                            <td class="type-cell">{{ item.typeMode }}</td>
                             <td>
                                 <span class="badge" :class="item.status === 'confirmed' ? 'badge-confirmed' : 'badge-in-progress'">
-                                    {{ item.statusLabel }}
+                                    <span class="badge-dot"></span> {{ item.statusLabel }}
                                 </span>
                             </td>
-                            <td>
+                            <td class="text-right">
                                 <Link :href="item.actionUrl" class="btn-table-action primary">
                                     {{ item.actionLabel }}
                                 </Link>
@@ -293,8 +296,8 @@ const appointments = [
     background: rgba(221,241,92,0.15);
     border: 1px solid rgba(221,241,92,0.3);
     color: var(--lime);
-    font-size: 12.5px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     padding: 4px 12px;
     border-radius: 999px;
     margin-bottom: 12px;
@@ -303,22 +306,24 @@ const appointments = [
 .btn-banner-action {
     background: var(--lime);
     color: var(--lime-text);
-    height: 40px;
+    height: 42px;
     padding: 0 20px;
     font-size: 13.5px;
     font-weight: 700;
-    border-radius: var(--radius-sm);
+    border-radius: 999px;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+    gap: 8px;
     justify-content: center;
     z-index: 1;
-    transition: all 150ms ease;
+    box-shadow: 0 4px 14px rgba(221, 241, 92, 0.4);
+    transition: all 180ms ease;
 }
-.btn-banner-action:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-banner-action:hover { background: #d2e85a; transform: translateY(-2px); box-shadow: 0 6px 18px rgba(221, 241, 92, 0.55); color: var(--forest); }
 
 /* METRICS GRID */
-.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
 @media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 540px) { .metrics-grid { grid-template-columns: 1fr; } }
 
@@ -331,11 +336,14 @@ const appointments = [
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    transition: all 200ms ease;
 }
-.stat-meta span { font-size: 12.5px; font-weight: 600; color: var(--ink-muted); display: block; margin-bottom: 6px; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+
+.stat-meta span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 4px; }
 .stat-meta b { font-family: var(--font-mono); font-size: 26px; font-weight: 800; color: var(--forest); line-height: 1; display: block; }
-.stat-icon { width: 42px; height: 42px; border-radius: var(--radius-md); background: var(--cream); color: var(--forest); display: flex; align-items: center; justify-content: center; }
-.stat-icon svg { width: 20px; height: 20px; }
+.stat-icon { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--cream); color: var(--forest); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.stat-icon svg { width: 22px; height: 22px; }
 .stat-icon.icon-green { background: #DCFCE7; color: #15803D; }
 .stat-icon.icon-amber { background: #FEF3C7; color: #B45309; }
 .stat-icon.icon-blue { background: #E0F2FE; color: #0369A1; }
@@ -346,52 +354,60 @@ const appointments = [
 
 .side-col { display: flex; flex-direction: column; gap: 28px; }
 
-/* CONTENT SHADCN-STYLE CARD */
+/* CONTENT CARD */
 .card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
-.card-header { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
-.card-header h3 { font-size: 16px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 8px; }
+.card-header { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
+.card-header h3 { font-size: 15.5px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 8px; margin: 0; }
 .card-header h3 svg { width: 18px; height: 18px; color: var(--forest); }
-.header-link { font-size: 13px; font-weight: 700; color: var(--forest); text-decoration: underline; }
+.header-link { font-size: 13px; font-weight: 700; color: var(--forest); text-decoration: none; transition: opacity 150ms ease; }
+.header-link:hover { opacity: 0.8; text-decoration: underline; }
 
 /* DATA TABLE */
 .table-responsive { width: 100%; overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; text-align: left; }
-.data-table th { background: var(--cream); padding: 12px 24px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
-.data-table td { padding: 16px 24px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+.data-table th { background: var(--cream); padding: 12px 24px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
+.data-table td { padding: 16px 24px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
+.table-row { transition: background 150ms ease; }
+.table-row:hover { background: rgba(248, 246, 239, 0.6); }
 .data-table tr:last-child td { border-bottom: none; }
 
-.time-slot { font-family: var(--font-mono); font-size: 13px; color: var(--forest); }
+.time-slot { font-family: var(--font-mono); font-size: 13px; color: var(--forest); font-weight: 700; }
+.type-cell { color: var(--ink-muted); font-size: 13px; }
 
 .patient-cell { display: flex; align-items: center; gap: 12px; }
 .patient-avatar { width: 38px; height: 38px; border-radius: 50%; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .patient-meta b { display: block; font-size: 14px; font-weight: 700; color: var(--ink); }
 .patient-meta span { display: block; font-size: 12px; color: var(--ink-muted); }
 
-.badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; }
 .badge-confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.badge-confirmed .badge-dot { background: #16A34A; }
 .badge-in-progress { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.badge-in-progress .badge-dot { background: #D97706; }
 
-.btn-table-action { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--ink); transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
-.btn-table-action:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+.text-right { text-align: right; }
+
+.btn-table-action { height: 34px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--forest); font-size: 12.5px; font-weight: 700; transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; }
 .btn-table-action.primary { background: var(--forest); color: #fff; }
-.btn-table-action.primary:hover { background: var(--forest-2); }
+.btn-table-action.primary:hover { background: var(--forest-2); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 
 /* QUICK ACTIONS LIST */
 .quick-action-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
-.action-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); transition: all 150ms ease; text-decoration: none; }
+.action-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); transition: all 180ms ease; text-decoration: none; }
 .action-item:hover { border-color: var(--forest); background: var(--card); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-.action-icon { width: 38px; height: 38px; border-radius: var(--radius-sm); background: var(--lime-soft); color: var(--lime-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.action-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--lime-soft); color: var(--lime-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .action-icon.tile-amber { background: #FEF3C7; color: #B45309; }
 .action-icon.tile-blue { background: #E0F2FE; color: #0369A1; }
 .action-icon svg { width: 18px; height: 18px; }
-.action-info h4 { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0; }
-.action-info p { font-size: 12px; color: var(--ink-muted); margin: 0; }
+.action-info h4 { font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0; }
+.action-info p { font-size: 12px; color: var(--ink-muted); margin: 2px 0 0 0; }
 
 /* RECENT ACTIVITY FEED */
-.feed-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.feed-list { padding: 18px 24px; display: flex; flex-direction: column; gap: 16px; }
 .feed-item { display: flex; gap: 12px; align-items: flex-start; }
-.feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 6px; flex-shrink: 0; }
+.feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 5px; flex-shrink: 0; }
 .feed-dot.dot-blue { background: #0369A1; }
 .feed-content p { font-size: 13px; color: var(--ink); line-height: 1.4; margin: 0 0 2px 0; }
-.feed-content span { font-size: 11.5px; color: var(--ink-muted); font-family: var(--font-mono); }
+.feed-content span { font-size: 11px; color: var(--ink-muted); font-family: var(--font-mono); }
 </style>
