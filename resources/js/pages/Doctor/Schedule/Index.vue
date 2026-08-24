@@ -30,6 +30,8 @@ const form = useForm({
 })
 
 const showToast = ref(false)
+const bufferTime = ref(props.bufferTime ?? '5')
+const autoConfirm = ref(props.autoConfirm ?? true)
 
 function saveSchedule() {
     form.post('/doctor/schedule', {

@@ -57,7 +57,6 @@ const rawHistoryItems = computed(() => props.historyItems && props.historyItems.
         actionUrl: '/doctor/records/1/edit',
         searchTerms: 'cardiology ecg hypertension amlodipine chest tightness dr sarah jenkins rec-301',
     },
-])
     {
         id: 'RX-401',
         category: 'prescription',
@@ -99,7 +98,7 @@ const filteredItems = computed(() => {
     const query = searchQuery.value.toLowerCase().trim()
     return rawHistoryItems.value.filter((item: any) => {
         const matchesCategory = activeCategory.value === 'all' || item.category === activeCategory.value
-        const matchesSearch = !query || (item.searchTerms && item.searchTerms.includes(query)) || item.title.toLowerCase().includes(query)
+        const matchesSearch = !query || (item.searchTerms && item.searchTerms.includes(query)) || (item.title && item.title.toLowerCase().includes(query))
         return matchesCategory && matchesSearch
     })
 })
@@ -183,7 +182,7 @@ function viewLabPdf() {
         <div class="metric-tile">
             <div class="metric-info">
                 <label>Total Hospital Visits</label>
-                <b>{{ patient.visitsCount }}</b>
+                <b>{{ patientData.visitsCount }}</b>
                 <span>Since Nov 2024</span>
             </div>
             <div class="metric-icon">
@@ -196,7 +195,7 @@ function viewLabPdf() {
         <div class="metric-tile">
             <div class="metric-info">
                 <label>Active Prescriptions</label>
-                <b>{{ patient.activePrescriptionsCount }}</b>
+                <b>{{ patientData.activePrescriptionsCount }}</b>
                 <span>Amlodipine, Atorvastatin</span>
             </div>
             <div class="metric-icon icon-green">
@@ -209,7 +208,7 @@ function viewLabPdf() {
         <div class="metric-tile">
             <div class="metric-info">
                 <label>Lab Reports On File</label>
-                <b>{{ patient.labReportsCount }}</b>
+                <b>{{ patientData.labReportsCount }}</b>
                 <span>Latest: Lipid & CBC</span>
             </div>
             <div class="metric-icon icon-amber">
@@ -222,7 +221,7 @@ function viewLabPdf() {
         <div class="metric-tile">
             <div class="metric-info">
                 <label>Last Measured BP</label>
-                <b>{{ patient.lastBp }}</b>
+                <b>{{ patientData.lastBp }}</b>
                 <span>mmHg (Normal)</span>
             </div>
             <div class="metric-icon icon-blue">

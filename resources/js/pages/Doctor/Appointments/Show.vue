@@ -245,7 +245,7 @@ function printSummary() {
                         </svg>
                         Patient Information
                     </div>
-                    <Link :href="`/doctor/patients/${appData.patientDbId || appData.patientId || 1}/history`" class="history-link">
+                    <Link :href="`/doctor/patients/${appData.patientDbId || appData.patientId || '1'}/history`" class="history-link">
                         View Full History →
                     </Link>
                 </div>
@@ -462,7 +462,7 @@ function printSummary() {
                     Issue Prescription
                 </Link>
 
-                <Link :href="`/doctor/patients/${appData.patientDbId || appData.patientId || 1}/history`" class="btn btn-outline">
+                <Link :href="`/doctor/patients/${appData.patientDbId || appData.patientId || '1'}/history`" class="btn btn-outline">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                     </svg>

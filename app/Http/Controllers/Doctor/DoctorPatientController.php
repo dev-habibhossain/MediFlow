@@ -51,13 +51,16 @@ class DoctorPatientController extends Controller
         $dobFormatted = $patient->date_of_birth ? Carbon::parse($patient->date_of_birth)->format('F j, Y') : 'April 12, 1998';
 
         $visitsCount = $patient->medicalRecords()->count();
-        $activePrescriptionsCount = $patient->prescriptions()->where('status', 'active')->count();
+        $activePrescriptionsCount = $patient->prescriptions()->count();
 
         $latestRecordWithBp = $patient->medicalRecords()->latest()->first();
         $lastBp = '120/80';
         if ($latestRecordWithBp && isset($latestRecordWithBp->vitals['bp'])) {
             $lastBp = $latestRecordWithBp->vitals['bp'];
         }
+
+        $latestAppt = $patient->appointments()->latest()->first();
+        $latestAppointmentCode = $latestAppt?->appointment_code ?? $latestAppt?->id ?? '1';
 
         $patientData = [
             'id' => $patient->patient_code ?? 'MDF-9021',
@@ -68,12 +71,13 @@ class DoctorPatientController extends Controller
             'avatarColor' => 'var(--lime-text)',
             'metaText' => "Patient Record ID: #{$patient->patient_code} · Age: {$age} · DOB: {$dobFormatted} · Gender: ".ucfirst($patient->gender ?? 'Male'),
             'bloodType' => $patient->blood_group ?? 'O+',
-            'allergy' => $patient->allergies ?? 'Penicillin',
-            'condition' => 'Hypertension (Controlled)',
-            'visitsCount' => $visitsCount ?: 1,
-            'activePrescriptionsCount' => $activePrescriptionsCount ?: 2,
-            'labReportsCount' => 1,
+            'allergy' => $patient->allergies ?? 'None Reported',
+            'condition' => $latestRecordWithBp?->diagnosis ?? 'Routine Care',
+            'visitsCount' => $visitsCount ?: 0,
+            'activePrescriptionsCount' => $activePrescriptionsCount ?: 0,
+            'labReportsCount' => 0,
             'lastBp' => $lastBp,
+            'latestAppointmentCode' => $latestAppointmentCode,
         ];
 
         $historyItems = collect();

@@ -165,6 +165,7 @@ const reviewList = computed(() => props.reviews && props.reviews.length > 0 ? pr
                     </div>
                     <p class="review-text">"{{ rev.comment }}"</p>
                     <small class="review-date">{{ rev.date }}</small>
+                </div>
             </div>
         </div>
     </div>
