@@ -28,10 +28,10 @@ const props = defineProps<{
     }
 }>()
 
-const activeTab = ref(props.filters?.tab || 'today')
+const activeTab = ref(props.filters?.tab || 'all')
 const statusFilter = ref(props.filters?.status || 'All Statuses')
 const searchQuery = ref(props.filters?.search || '')
-const selectedDate = ref(props.filters?.date || new Date().toISOString().split('T')[0])
+const selectedDate = ref(props.filters?.date || '')
 
 function applyFilters(tab?: string) {
     if (tab) {
@@ -49,24 +49,7 @@ function applyFilters(tab?: string) {
     )
 }
 
-const list = computed(() => props.appointments && props.appointments.length > 0 ? props.appointments : [
-    {
-        id: '101',
-        db_id: 101,
-        date: 'Today',
-        time: '10:00 AM',
-        patientName: 'Habib Hossain',
-        patientRef: '#MDF-9021',
-        avatarBg: 'var(--lime)',
-        avatarColor: 'var(--lime-text)',
-        avatarInitials: 'HH',
-        visitType: 'In-Person',
-        status: 'confirmed',
-        statusLabel: 'Confirmed',
-        actionLabel: 'Manage',
-        actionUrl: '/doctor/appointments/101',
-    },
-])
+const list = computed(() => props.appointments ?? [])
 </script>
 
 <template>
@@ -77,10 +60,17 @@ const list = computed(() => props.appointments && props.appointments.length > 0 
         <div class="tab-group">
             <button
                 class="tab-btn"
+                :class="{ active: activeTab === 'all' }"
+                @click="applyFilters('all')"
+            >
+                All Appointments
+            </button>
+            <button
+                class="tab-btn"
                 :class="{ active: activeTab === 'today' }"
                 @click="applyFilters('today')"
             >
-                Today <span class="tab-badge">{{ props.todayCount ?? 6 }}</span>
+                Today <span class="tab-badge">{{ props.todayCount ?? 0 }}</span>
             </button>
             <button
                 class="tab-btn"
@@ -105,8 +95,9 @@ const list = computed(() => props.appointments && props.appointments.length > 0 
                 <option>Confirmed</option>
                 <option>Pending</option>
                 <option>Completed</option>
+                <option>Cancelled</option>
             </select>
-            <input v-model="searchQuery" type="text" class="search-input" placeholder="Search patient..." />
+            <input v-model="searchQuery" type="text" class="search-input" placeholder="Search patient..." @keyup.enter="applyFilters()" />
         </div>
     </div>
 
@@ -124,6 +115,11 @@ const list = computed(() => props.appointments && props.appointments.length > 0 
                     </tr>
                 </thead>
                 <tbody>
+                    <tr v-if="list.length === 0">
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--ink-muted);">
+                            No appointments found for the selected tab or criteria.
+                        </td>
+                    </tr>
                     <tr v-for="app in list" :key="app.id">
                         <td>
                             <b>{{ app.date }}</b><br />

@@ -32,7 +32,7 @@ class DoctorAppointmentController extends Controller
     {
         $doctor = $this->getDoctor();
 
-        $activeTab = $request->query('tab', 'today');
+        $activeTab = $request->query('tab', 'all');
         $selectedDate = $request->query('date');
         $statusFilter = $request->query('status', 'All Statuses');
         $searchQuery = $request->query('search');
@@ -43,12 +43,12 @@ class DoctorAppointmentController extends Controller
         if ($activeTab === 'today') {
             $query->whereDate('appointment_date', today());
         } elseif ($activeTab === 'upcoming') {
-            $query->whereDate('appointment_date', '>', today());
+            $query->whereDate('appointment_date', '>=', today());
         } elseif ($activeTab === 'past') {
             $query->whereDate('appointment_date', '<', today());
         }
 
-        if ($selectedDate) {
+        if (! empty($selectedDate)) {
             $query->whereDate('appointment_date', $selectedDate);
         }
 

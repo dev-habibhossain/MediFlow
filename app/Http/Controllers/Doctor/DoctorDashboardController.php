@@ -71,11 +71,20 @@ class DoctorDashboardController extends Controller
             ];
         }
 
-        // 3. Today's Schedule Queue
-        $todayAppointments = Appointment::with(['patient.user'])
+        // 3. Schedule Queue (Today's queue or recent appointments)
+        $todayQuery = Appointment::with(['patient.user'])
             ->where('doctor_id', $doctor->id)
-            ->whereDate('appointment_date', today())
+            ->whereDate('appointment_date', today());
+
+        if ($todayQuery->count() === 0) {
+            $todayQuery = Appointment::with(['patient.user'])
+                ->where('doctor_id', $doctor->id);
+        }
+
+        $todayAppointments = $todayQuery
+            ->orderBy('appointment_date', 'desc')
             ->orderBy('start_time', 'asc')
+            ->take(10)
             ->get()
             ->map(function ($app) {
                 $pUser = $app->patient?->user;
