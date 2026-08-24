@@ -30,6 +30,31 @@ const props = defineProps<{
             hr: string
             weight: string
         }
+        prescriptions?: Array<{
+            id: number
+            code: string
+            status: string
+            issuedAt: string
+            notes?: string
+            items: Array<{
+                id: number
+                name: string
+                dosage: string
+                frequency: string
+                duration: string
+                refills: number
+                instructions?: string
+            }>
+        }>
+        medicalRecord?: {
+            id: number
+            symptoms: string
+            diagnosis: string
+            icdCode: string
+            notes?: string
+            treatmentPlan?: string
+            createdAt: string
+        }
     }
 }>()
 
@@ -59,6 +84,8 @@ const appData = computed(() => props.appointment ?? {
         hr: '72',
         weight: '74.5',
     },
+    prescriptions: [],
+    medicalRecord: null,
 })
 
 const currentStatus = ref(appData.value.status)
@@ -223,6 +250,79 @@ function printSummary() {
                     <div class="vital-tile">
                         <label>Body Weight</label>
                         <b>{{ appData.vitals.weight }} <small style="font-size: 11px; font-weight: normal;">kg</small></b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ISSUED PRESCRIPTIONS CARD -->
+            <div v-if="appData.prescriptions && appData.prescriptions.length > 0" class="card-shell" style="margin-top: 20px;">
+                <div class="card-title">
+                    <div class="card-title-text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/>
+                        </svg>
+                        Issued Electronic Prescriptions ({{ appData.prescriptions.length }})
+                    </div>
+                </div>
+
+                <div v-for="rx in appData.prescriptions" :key="rx.id" style="padding: 16px; border-bottom: 1px solid var(--line);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div>
+                            <b style="font-size: 15px; color: var(--navy);">Rx #{{ rx.code }}</b>
+                            <span style="font-size: 12px; color: var(--slate); margin-left: 8px;">Issued {{ rx.issuedAt }}</span>
+                            <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; background: var(--sage-light); color: var(--forest); padding: 2px 8px; border-radius: 12px; margin-left: 8px;">{{ rx.status }}</span>
+                        </div>
+                        <Link :href="`/doctor/prescriptions/${rx.id}/supersede`" class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;">
+                            Supersede / Edit Rx →
+                        </Link>
+                    </div>
+
+                    <div v-if="rx.notes" style="font-size: 13px; color: var(--slate); margin-bottom: 12px; background: var(--cream); padding: 8px 12px; border-radius: var(--radius-sm);">
+                        <strong>Pharmacy Notes:</strong> {{ rx.notes }}
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div v-for="item in rx.items" :key="item.id" style="background: var(--card); border: 1px solid var(--line); padding: 10px 14px; border-radius: var(--radius-md);">
+                            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 13.5px;">
+                                <span>{{ item.name }}</span>
+                                <span style="color: var(--forest);">{{ item.frequency }} · {{ item.duration }}</span>
+                            </div>
+                            <div style="font-size: 12px; color: var(--slate); margin-top: 4px;">
+                                <span>Refills: {{ item.refills }}</span>
+                                <span v-if="item.instructions"> · Instructions: {{ item.instructions }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CLINICAL MEDICAL RECORD CARD -->
+            <div v-if="appData.medicalRecord" class="card-shell" style="margin-top: 20px;">
+                <div class="card-title">
+                    <div class="card-title-text">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        Clinical Medical Record
+                    </div>
+                    <Link :href="`/doctor/records/${appData.medicalRecord.id}/edit`" class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;">
+                        Edit Record →
+                    </Link>
+                </div>
+
+                <div style="padding: 16px;">
+                    <div style="margin-bottom: 12px;">
+                        <b style="font-size: 14.5px;">Diagnosis: {{ appData.medicalRecord.diagnosis }}</b>
+                        <span v-if="appData.medicalRecord.icdCode" style="font-size: 12px; color: var(--slate); margin-left: 8px;">(ICD-10: {{ appData.medicalRecord.icdCode }})</span>
+                    </div>
+                    <div v-if="appData.medicalRecord.symptoms" style="font-size: 13px; margin-bottom: 8px;">
+                        <strong>Symptoms:</strong> {{ appData.medicalRecord.symptoms }}
+                    </div>
+                    <div v-if="appData.medicalRecord.treatmentPlan" style="font-size: 13px; margin-bottom: 8px;">
+                        <strong>Treatment Plan:</strong> {{ appData.medicalRecord.treatmentPlan }}
+                    </div>
+                    <div v-if="appData.medicalRecord.notes" style="font-size: 13px; color: var(--slate); background: var(--cream); padding: 10px; border-radius: var(--radius-sm); margin-top: 8px;">
+                        <strong>Doctor Notes:</strong> {{ appData.medicalRecord.notes }}
                     </div>
                 </div>
             </div>

@@ -32,19 +32,36 @@ class DoctorPrescriptionController extends Controller
 
     public function create(string $appointmentId): Response
     {
-        $doctor = $this->getDoctor();
-
-        $appointment = Appointment::with(['patient.user'])
-            ->where('doctor_id', $doctor->id)
+        $appointment = Appointment::with(['patient.user', 'doctor.user', 'prescriptions.items'])
             ->where(function ($q) use ($appointmentId) {
                 $q->where('appointment_code', $appointmentId)->orWhere('id', $appointmentId);
             })
             ->firstOrFail();
 
+        $doctor = $appointment->doctor ?? $this->getDoctor();
         $patient = $appointment->patient;
         $pUser = $patient?->user;
         $pName = $pUser?->name ?? 'Patient Account';
         $initials = strtoupper(substr($pName, 0, 2));
+
+        $existingPrescriptions = $appointment->prescriptions->map(function ($rx) {
+            return [
+                'id' => $rx->id,
+                'code' => $rx->prescription_code,
+                'status' => $rx->status,
+                'issuedAt' => $rx->issued_at ? Carbon::parse($rx->issued_at)->format('M j, Y g:i A') : $rx->created_at->format('M j, Y g:i A'),
+                'notes' => $rx->special_instructions,
+                'items' => $rx->items->map(fn ($item) => [
+                    'id' => $item->id,
+                    'name' => $item->medication_name,
+                    'dosage' => $item->dosage,
+                    'frequency' => $item->frequency,
+                    'duration' => $item->duration,
+                    'refills' => $item->refills_allowed,
+                    'instructions' => $item->instructions,
+                ])->toArray(),
+            ];
+        })->toArray();
 
         return Inertia::render('Doctor/Prescriptions/Create', [
             'appointment' => [
@@ -64,18 +81,19 @@ class DoctorPrescriptionController extends Controller
                 'name' => $doctor->user?->name ?? 'Dr. Sarah Jenkins',
                 'license' => $doctor->license_number ?? 'MD-90412',
             ],
+            'existingPrescriptions' => $existingPrescriptions,
         ]);
     }
 
     public function store(Request $request, string $appointmentId): RedirectResponse
     {
-        $doctor = $this->getDoctor();
-
-        $appointment = Appointment::where('doctor_id', $doctor->id)
+        $appointment = Appointment::with(['medicalRecord', 'doctor'])
             ->where(function ($q) use ($appointmentId) {
                 $q->where('appointment_code', $appointmentId)->orWhere('id', $appointmentId);
             })
             ->firstOrFail();
+
+        $doctor = $appointment->doctor ?? $this->getDoctor();
 
         $validated = $request->validate([
             'items' => 'required|array|min:1',
@@ -94,8 +112,9 @@ class DoctorPrescriptionController extends Controller
             'patient_id' => $appointment->patient_id,
             'doctor_id' => $doctor->id,
             'appointment_id' => $appointment->id,
-            'status' => 'active',
-            'notes' => $validated['pharmacyNotes'] ?? null,
+            'medical_record_id' => $appointment->medicalRecord?->id,
+            'special_instructions' => $validated['pharmacyNotes'] ?? null,
+            'issued_at' => now(),
         ]);
 
         foreach ($validated['items'] as $itemData) {
@@ -119,7 +138,6 @@ class DoctorPrescriptionController extends Controller
         $doctor = $this->getDoctor();
 
         $prescription = Prescription::with(['patient.user', 'items', 'appointment'])
-            ->where('doctor_id', $doctor->id)
             ->where('id', $id)
             ->firstOrFail();
 
@@ -152,7 +170,7 @@ class DoctorPrescriptionController extends Controller
             'prescription' => [
                 'id' => $prescription->id,
                 'code' => $prescription->prescription_code,
-                'notes' => $prescription->notes,
+                'notes' => $prescription->special_instructions,
                 'items' => $items,
             ],
             'patient' => [
@@ -172,8 +190,7 @@ class DoctorPrescriptionController extends Controller
     {
         $doctor = $this->getDoctor();
 
-        $oldRx = Prescription::where('doctor_id', $doctor->id)
-            ->where('id', $id)
+        $oldRx = Prescription::where('id', $id)
             ->firstOrFail();
 
         $validated = $request->validate([
@@ -196,9 +213,10 @@ class DoctorPrescriptionController extends Controller
             'patient_id' => $oldRx->patient_id,
             'doctor_id' => $doctor->id,
             'appointment_id' => $oldRx->appointment_id,
+            'medical_record_id' => $oldRx->medical_record_id,
+            'special_instructions' => $validated['pharmacyNotes'] ?? null,
             'supersedes_id' => $oldRx->id,
-            'status' => 'active',
-            'notes' => $validated['pharmacyNotes'] ?? null,
+            'issued_at' => now(),
         ]);
 
         foreach ($validated['items'] as $itemData) {
@@ -217,5 +235,50 @@ class DoctorPrescriptionController extends Controller
 
         return redirect()->route('doctor.appointments.show', $appCode)
             ->with('success', "Prescription superseded. New Rx #{$newCode} generated.");
+    }
+
+    public function update(Request $request, string $id): RedirectResponse
+    {
+        $prescription = Prescription::findOrFail($id);
+
+        $validated = $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.name' => 'required|string',
+            'items.*.frequency' => 'required|string',
+            'items.*.duration' => 'required|string',
+            'items.*.refills' => 'required',
+            'items.*.instructions' => 'nullable|string',
+            'pharmacyNotes' => 'nullable|string',
+        ]);
+
+        $prescription->update([
+            'special_instructions' => $validated['pharmacyNotes'] ?? null,
+        ]);
+
+        $prescription->items()->delete();
+
+        foreach ($validated['items'] as $itemData) {
+            PrescriptionItem::create([
+                'prescription_id' => $prescription->id,
+                'medication_name' => $itemData['name'],
+                'dosage' => 'As Prescribed',
+                'frequency' => $itemData['frequency'],
+                'duration' => $itemData['duration'],
+                'refills_allowed' => (int) $itemData['refills'],
+                'instructions' => $itemData['instructions'] ?? null,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Prescription #{$prescription->prescription_code} updated successfully.");
+    }
+
+    public function destroy(string $id): RedirectResponse
+    {
+        $prescription = Prescription::findOrFail($id);
+        $code = $prescription->prescription_code;
+        $prescription->items()->delete();
+        $prescription->delete();
+
+        return redirect()->back()->with('success', "Prescription #{$code} deleted successfully.");
     }
 }

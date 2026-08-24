@@ -31,15 +31,13 @@ class DoctorMedicalRecordController extends Controller
 
     public function create(string $appointmentId): Response
     {
-        $doctor = $this->getDoctor();
-
-        $appointment = Appointment::with(['patient.user'])
-            ->where('doctor_id', $doctor->id)
+        $appointment = Appointment::with(['patient.user', 'doctor'])
             ->where(function ($q) use ($appointmentId) {
                 $q->where('appointment_code', $appointmentId)->orWhere('id', $appointmentId);
             })
             ->firstOrFail();
 
+        $doctor = $appointment->doctor ?? $this->getDoctor();
         $patient = $appointment->patient;
         $pUser = $patient?->user;
         $pName = $pUser?->name ?? 'Patient Account';
@@ -64,13 +62,13 @@ class DoctorMedicalRecordController extends Controller
 
     public function store(Request $request, string $appointmentId): RedirectResponse
     {
-        $doctor = $this->getDoctor();
-
-        $appointment = Appointment::where('doctor_id', $doctor->id)
+        $appointment = Appointment::with('doctor')
             ->where(function ($q) use ($appointmentId) {
                 $q->where('appointment_code', $appointmentId)->orWhere('id', $appointmentId);
             })
             ->firstOrFail();
+
+        $doctor = $appointment->doctor ?? $this->getDoctor();
 
         $validated = $request->validate([
             'symptoms' => 'required|string',

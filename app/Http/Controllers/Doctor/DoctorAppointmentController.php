@@ -116,15 +116,16 @@ class DoctorAppointmentController extends Controller
             'patient.user',
             'department',
             'medicalRecord',
-            'prescriptions',
+            'prescriptions.items',
             'payment',
+            'doctor',
         ])
-            ->where('doctor_id', $doctor->id)
             ->where(function ($q) use ($id) {
                 $q->where('appointment_code', $id)->orWhere('id', $id);
             })
             ->firstOrFail();
 
+        $doctor = $appointment->doctor ?? $this->getDoctor();
         $patient = $appointment->patient;
         $patientUser = $patient?->user;
         $pName = $patientUser?->name ?? 'Patient';
@@ -150,6 +151,35 @@ class DoctorAppointmentController extends Controller
         if ($appointment->end_time) {
             $timeFormatted .= ' – '.Carbon::parse($appointment->end_time)->format('g:i A');
         }
+
+        $prescriptions = $appointment->prescriptions->map(function ($rx) {
+            return [
+                'id' => $rx->id,
+                'code' => $rx->prescription_code,
+                'status' => $rx->status,
+                'issuedAt' => $rx->issued_at ? Carbon::parse($rx->issued_at)->format('M j, Y g:i A') : $rx->created_at->format('M j, Y g:i A'),
+                'notes' => $rx->special_instructions,
+                'items' => $rx->items->map(fn ($item) => [
+                    'id' => $item->id,
+                    'name' => $item->medication_name,
+                    'dosage' => $item->dosage,
+                    'frequency' => $item->frequency,
+                    'duration' => $item->duration,
+                    'refills' => $item->refills_allowed,
+                    'instructions' => $item->instructions,
+                ])->toArray(),
+            ];
+        })->toArray();
+
+        $medicalRecordData = $appointment->medicalRecord ? [
+            'id' => $appointment->medicalRecord->id,
+            'symptoms' => $appointment->medicalRecord->symptoms,
+            'diagnosis' => $appointment->medicalRecord->diagnosis,
+            'icdCode' => $appointment->medicalRecord->icd_code,
+            'notes' => $appointment->medicalRecord->doctor_notes,
+            'treatmentPlan' => $appointment->medicalRecord->treatment_plan,
+            'createdAt' => $appointment->medicalRecord->created_at->format('M j, Y g:i A'),
+        ] : null;
 
         return Inertia::render('Doctor/Appointments/Show', [
             'appointment' => [
@@ -179,6 +209,8 @@ class DoctorAppointmentController extends Controller
                     'hr' => $vitals['hr'] ?? $vitals['pulse'] ?? '72',
                     'weight' => $vitals['weight'] ?? $vitals['weight_kg'] ?? '74.5',
                 ],
+                'prescriptions' => $prescriptions,
+                'medicalRecord' => $medicalRecordData,
             ],
         ]);
     }

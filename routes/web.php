@@ -165,6 +165,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Prescriptions
         Route::get('/appointments/{id}/prescriptions/create', [DoctorPrescriptionController::class, 'create'])->name('prescriptions.create');
         Route::post('/appointments/{id}/prescriptions', [DoctorPrescriptionController::class, 'store'])->name('prescriptions.store');
+        Route::put('/prescriptions/{id}', [DoctorPrescriptionController::class, 'update'])->name('prescriptions.update');
+        Route::delete('/prescriptions/{id}', [DoctorPrescriptionController::class, 'destroy'])->name('prescriptions.destroy');
         Route::get('/prescriptions/{id}/supersede', [DoctorPrescriptionController::class, 'supersede'])->name('prescriptions.supersede');
         Route::post('/prescriptions/{id}/supersede', [DoctorPrescriptionController::class, 'storeSupersede'])->name('prescriptions.store-supersede');
 
