@@ -4,75 +4,76 @@ import { Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
 interface FaqItem {
+    id: number
+    category: string
     question: string
     answer: string
+    keywords?: string
 }
 
 const props = defineProps<{
-    faqs?: FaqItem[]
+    faqs: Record<string, FaqItem[]>
 }>()
 
 const search = ref('')
 const activeCategory = ref('all')
-const openPanelIndex = ref<number | null>(0)
+const openPanelIndex = ref<string | null>(null)
 
-// Comprehensive categorized FAQ dataset matching 6.faq.html
-const faqCategories = [
-    {
-        id: 'booking',
+/** Category presentation metadata — display labels and icons stay in frontend */
+const categoryMeta: Record<string, { title: string; icon: string; quickCards: { title: string; desc: string; keywords: string }[] }> = {
+    booking: {
         title: 'Booking & Consultations',
         icon: 'calendar',
         quickCards: [
             { title: 'No Phone Call Needed', desc: 'Pick a doctor, choose a live time slot, and confirm instantly through our online booking system.', keywords: 'phone booking online schedule slot' },
             { title: 'Free Rescheduling', desc: 'Change or cancel your visit up to 2 hours before your scheduled appointment at no charge.', keywords: 'reschedule cancel change time slot' }
-        ],
-        items: [
-            { question: 'How do same-day consultations work?', answer: 'Open slots appear on doctor schedules in real time when cancellations occur. You can reserve available same-day slots through the Doctors directory or visit our 24/7 Urgent Unit.', keywords: 'same day urgent walk in visit consultation' },
-            { question: 'Can I book an appointment for a family member?', answer: 'Yes! Inside your MediFlow patient account, you can add household dependents and select them during appointment checkout.', keywords: 'family child dependent parent account' }
         ]
     },
-    {
-        id: 'records',
+    records: {
         title: 'Records & Prescriptions',
         icon: 'file-text',
-        quickCards: [],
-        items: [
-            { question: 'Where can I download my prescription PDF?', answer: 'All doctor notes, diagnosis summaries, and digital prescriptions are attached to your visit history inside your patient account immediately after your consultation.', keywords: 'prescriptions notes history diagnosis download pdf portal' },
-            { question: 'How long does it take to receive lab test results?', answer: 'Standard blood panels and express diagnostics are processed within 4 to 12 hours. Reports are delivered directly to your portal with an automated notification.', keywords: 'lab results blood test x-ray report turnaround time portal' }
-        ]
+        quickCards: []
     },
-    {
-        id: 'billing',
+    billing: {
         title: 'Fees & Insurance',
         icon: 'credit-card',
-        quickCards: [],
-        items: [
-            { question: 'Are consultation fees shown before booking?', answer: 'Yes. Every physician profile displays their exact consultation fee upfront before you confirm your appointment. MediFlow charges zero extra administrative fees.', keywords: 'consultation fee pricing transparent cost upfront surprise billing' },
-            { question: 'How do health insurance claims work?', answer: 'We support direct billing with major partner insurance networks. Present your card during check-in or enter policy details online to generate pre-formatted claim receipts.', keywords: 'insurance health coverage claim reimbursement direct billing health card' }
-        ]
+        quickCards: []
     },
-    {
-        id: 'policies',
+    policies: {
         title: 'Clinic Policies',
         icon: 'shield',
-        quickCards: [],
-        items: [
-            { question: 'What should I bring for my first clinic visit?', answer: 'Please bring a government-issued photo ID, your insurance card, and any relevant past medical records. Arriving 10 minutes prior allows for quick reception check-in.', keywords: 'first visit ID arrival documents check in front desk' },
-            { question: 'Do you offer virtual/telehealth consultations?', answer: 'Yes. Many of our specialists offer video consultations. Look for the Telehealth badge on the doctor directory to book a virtual appointment.', keywords: 'telehealth online consultation video call virtual doctor' }
-        ]
+        quickCards: []
     }
-]
+}
 
-function togglePanel(index: number) {
+/** Build category objects by merging backend FAQ items with frontend metadata */
+const faqCategories = computed(() => {
+    return Object.entries(props.faqs || {}).map(([categoryId, items]) => {
+        const meta = categoryMeta[categoryId] || { title: categoryId, icon: 'shield', quickCards: [] }
+        return {
+            id: categoryId,
+            title: meta.title,
+            icon: meta.icon,
+            quickCards: meta.quickCards,
+            items: items.map(item => ({
+                ...item,
+                keywords: item.keywords || ''
+            }))
+        }
+    })
+})
+
+function togglePanel(index: string | null) {
     openPanelIndex.value = openPanelIndex.value === index ? null : index
 }
 
 // Search filtering logic
 const filteredCategories = computed(() => {
     const q = search.value.toLowerCase().trim()
-    if (!q) return faqCategories
+    const cats = faqCategories.value
+    if (!q) return cats
 
-    return faqCategories.map(cat => {
+    return cats.map(cat => {
         const matchingCards = cat.quickCards.filter(card =>
             card.title.toLowerCase().includes(q) ||
             card.desc.toLowerCase().includes(q) ||
@@ -131,7 +132,7 @@ const filteredCategories = computed(() => {
                             :class="['nav-cat-link', activeCategory === 'all' ? 'active' : '']"
                         >
                             <span>All Topics</span>
-                            <span class="badge">8</span>
+                            <span class="badge">{{ faqCategories.reduce((sum, cat) => sum + cat.items.length + cat.quickCards.length, 0) }}</span>
                         </button>
                         <button
                             v-for="cat in faqCategories"

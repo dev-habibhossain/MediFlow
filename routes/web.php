@@ -1,7 +1,19 @@
 <?php
 
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\Admin\AdminActivityLogController;
+use App\Http\Controllers\Admin\AdminAnnouncementController;
+use App\Http\Controllers\Admin\AdminAppointmentController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminDepartmentController;
+use App\Http\Controllers\Admin\AdminDoctorController;
+use App\Http\Controllers\Admin\AdminPatientController;
+use App\Http\Controllers\Admin\AdminPaymentController;
+use App\Http\Controllers\Admin\AdminReportController;
+use App\Http\Controllers\Admin\AdminReviewController;
+use App\Http\Controllers\Admin\AdminRoleController;
+use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Booking\BookingConfirmController;
 use App\Http\Controllers\Booking\BookingSelectSlotController;
 use App\Http\Controllers\Booking\BookingStoreController;
@@ -58,54 +70,70 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)->name('dashboard');
 
         // Doctors Management
-        Route::get('/doctors', fn () => inertia('Admin/Doctors/Index'))->name('doctors.index');
-        Route::get('/doctors/create', fn () => inertia('Admin/Doctors/Create'))->name('doctors.create');
-        Route::get('/doctors/{id}/edit', fn () => inertia('Admin/Doctors/Edit'))->name('doctors.edit');
-        Route::get('/doctors/{id}/schedule', fn () => inertia('Admin/Doctors/Schedule'))->name('doctors.schedule');
+        Route::get('/doctors', [AdminDoctorController::class, 'index'])->name('doctors.index');
+        Route::get('/doctors/create', [AdminDoctorController::class, 'create'])->name('doctors.create');
+        Route::post('/doctors', [AdminDoctorController::class, 'store'])->name('doctors.store');
+        Route::get('/doctors/{id}', [AdminDoctorController::class, 'edit'])->name('doctors.show');
+        Route::get('/doctors/{id}/edit', [AdminDoctorController::class, 'edit'])->name('doctors.edit');
+        Route::put('/doctors/{id}', [AdminDoctorController::class, 'update'])->name('doctors.update');
+        Route::get('/doctors/{id}/schedule', [AdminDoctorController::class, 'schedule'])->name('doctors.schedule');
+        Route::post('/doctors/{id}/schedule', [AdminDoctorController::class, 'updateSchedule'])->name('doctors.schedule.update');
+        Route::put('/doctors/{id}/schedule', [AdminDoctorController::class, 'updateSchedule'])->name('doctors.schedule.put');
+        Route::delete('/doctors/{id}', [AdminDoctorController::class, 'destroy'])->name('doctors.destroy');
 
         // Patients Management
-        Route::get('/patients', fn () => inertia('Admin/Patients/Index'))->name('patients.index');
-        Route::get('/patients/{id}', fn () => inertia('Admin/Patients/Show'))->name('patients.show');
+        Route::get('/patients', [AdminPatientController::class, 'index'])->name('patients.index');
+        Route::get('/patients/{id}', [AdminPatientController::class, 'show'])->name('patients.show');
+        Route::delete('/patients/{id}', [AdminPatientController::class, 'destroy'])->name('patients.destroy');
 
         // Departments Management
-        Route::get('/departments', fn () => inertia('Admin/Departments/Index'))->name('departments.index');
-        Route::get('/departments/create', fn () => inertia('Admin/Departments/Create'))->name('departments.create');
-        Route::get('/departments/{slug}', fn () => inertia('Admin/Departments/Edit'))->name('departments.edit');
+        Route::get('/departments', [AdminDepartmentController::class, 'index'])->name('departments.index');
+        Route::get('/departments/create', [AdminDepartmentController::class, 'create'])->name('departments.create');
+        Route::post('/departments', [AdminDepartmentController::class, 'store'])->name('departments.store');
+        Route::get('/departments/{slug}', [AdminDepartmentController::class, 'edit'])->name('departments.edit');
+        Route::put('/departments/{slug}', [AdminDepartmentController::class, 'update'])->name('departments.update');
+        Route::delete('/departments/{slug}', [AdminDepartmentController::class, 'destroy'])->name('departments.destroy');
 
         // Appointments Management
-        Route::get('/appointments', fn () => inertia('Admin/Appointments/Index'))->name('appointments.index');
-        Route::get('/appointments/{id}', fn () => inertia('Admin/Appointments/Show'))->name('appointments.show');
+        Route::get('/appointments', [AdminAppointmentController::class, 'index'])->name('appointments.index');
+        Route::get('/appointments/{id}', [AdminAppointmentController::class, 'show'])->name('appointments.show');
+        Route::put('/appointments/{id}', [AdminAppointmentController::class, 'updateStatus'])->name('appointments.update');
 
         // Analytics & Reports
-        Route::get('/reports', fn () => inertia('Admin/Reports/Index'))->name('reports.index');
-        Route::get('/reports/appointments', fn () => inertia('Admin/Reports/Appointments'))->name('reports.appointments');
-        Route::get('/reports/doctors', fn () => inertia('Admin/Reports/Doctors'))->name('reports.doctors');
-        Route::get('/reports/revenue', fn () => inertia('Admin/Reports/Revenue'))->name('reports.revenue');
+        Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/revenue', [AdminReportController::class, 'revenue'])->name('reports.revenue');
+        Route::get('/reports/appointments', [AdminReportController::class, 'appointments'])->name('reports.appointments');
+        Route::get('/reports/doctors', [AdminReportController::class, 'doctors'])->name('reports.doctors');
 
         // User & RBAC Management
-        Route::get('/users', fn () => inertia('Admin/Users/Index'))->name('users.index');
-        Route::get('/users/{id}', fn () => inertia('Admin/Users/Show'))->name('users.show');
-        Route::get('/roles', fn () => inertia('Admin/Roles/Index'))->name('roles.index');
-        Route::get('/activity-logs', fn () => inertia('Admin/ActivityLogs/Index'))->name('activity-logs.index');
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/{id}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::put('/users/{id}/role', [AdminUserController::class, 'updateRole'])->name('users.update-role');
+        Route::get('/roles', [AdminRoleController::class, 'index'])->name('roles.index');
+        Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->name('activity-logs.index');
 
         // Content & Broadcast Moderation
-        Route::get('/reviews', fn () => inertia('Admin/Reviews/Index'))->name('reviews.index');
-        Route::get('/announcements', fn () => inertia('Admin/Announcements/Index'))->name('announcements.index');
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::put('/reviews/{id}/toggle', [AdminReviewController::class, 'toggleVisibility'])->name('reviews.toggle');
+        Route::delete('/reviews/{id}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+        Route::get('/announcements', [AdminAnnouncementController::class, 'index'])->name('announcements.index');
+        Route::post('/announcements', [AdminAnnouncementController::class, 'store'])->name('announcements.store');
 
         // Payments & Invoices
-        Route::get('/payments', fn () => inertia('Admin/Payments/Index'))->name('payments.index');
-        Route::get('/payments/{id}', fn () => inertia('Admin/Payments/Show'))->name('payments.show');
+        Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+        Route::post('/payments/{id}/refund', [AdminPaymentController::class, 'refund'])->name('payments.refund');
 
         // Profile Settings (Admin Personal Settings)
         Route::get('/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
         Route::post('/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
 
         // System Settings
-        Route::get('/settings', fn () => inertia('Admin/Settings/Index'))->name('settings.index');
-        Route::get('/settings/general', fn () => inertia('Admin/Settings/General'))->name('settings.general');
-        Route::get('/settings/scheduling', fn () => inertia('Admin/Settings/Scheduling'))->name('settings.scheduling');
-        Route::get('/settings/notifications', fn () => inertia('Admin/Settings/Notifications'))->name('settings.notifications');
-        Route::get('/settings/holidays', fn () => inertia('Admin/Settings/Holidays'))->name('settings.holidays');
+        Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+        Route::get('/settings/general', [AdminSettingController::class, 'general'])->name('settings.general');
+        Route::get('/settings/scheduling', [AdminSettingController::class, 'scheduling'])->name('settings.scheduling');
+        Route::get('/settings/notifications', [AdminSettingController::class, 'notifications'])->name('settings.notifications');
+        Route::get('/settings/holidays', [AdminSettingController::class, 'holidays'])->name('settings.holidays');
     });
 
     // Doctor Portal Routes

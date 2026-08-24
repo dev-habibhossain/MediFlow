@@ -17,6 +17,8 @@ interface Doctor {
     bio?: string
     consultation_fee: string | number
     license_number: string
+    reviews_avg_rating: number | null
+    reviews_count: number
     user: {
         id: number
         name: string
@@ -180,9 +182,9 @@ const sortedDoctors = computed(() => {
                             <!-- Rating & Fee Row -->
                             <div class="doc-meta-row">
                                 <div class="doc-rating">
-                                    <b>4.{{ 8 + (idx % 2) }}</b>
-                                    <span class="stars">★★★★★</span>
-                                    <span class="review-count">({{ 95 + idx * 12 }})</span>
+                                    <b>{{ doc.reviews_avg_rating ? Number(doc.reviews_avg_rating).toFixed(1) : 'New' }}</b>
+                                    <span v-if="doc.reviews_avg_rating" class="stars">★★★★★</span>
+                                    <span class="review-count">({{ doc.reviews_count || 0 }} reviews)</span>
                                 </div>
                                 <div class="doc-fee">
                                     <b>${{ doc.consultation_fee }}</b> <small>/ visit</small>

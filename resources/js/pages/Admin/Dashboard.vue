@@ -1,297 +1,720 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
+import {
+    ArcElement,
+    BarElement,
+    CategoryScale,
+    Chart as ChartJS,
+    Filler,
+    Legend,
+    LinearScale,
+    LineElement,
+    PointElement,
+    Title,
+    Tooltip,
+} from 'chart.js'
+import { computed } from 'vue'
+import { Bar, Doughnut, Line } from 'vue-chartjs'
+
+ChartJS.register(
+    Title,
+    Tooltip,
+    Legend,
+    BarElement,
+    LineElement,
+    PointElement,
+    ArcElement,
+    CategoryScale,
+    LinearScale,
+    Filler
+)
+
+interface Stats {
+    total_doctors: number
+    doctors_this_month: number
+    active_patients: number
+    patients_this_month: number
+    appointments_today: number
+    completed_today: number
+    pending_today: number
+    monthly_revenue: string
+    revenue_growth: number
+}
+
+interface MonthlyVolumeItem {
+    month: string
+    count: number
+    height: string
+    is_current: boolean
+}
+
+interface RecentAppointment {
+    id: number
+    code: string
+    patient_name: string
+    patient_avatar?: string | null
+    patient_initials: string
+    doctor_name: string
+    department: string
+    date_time: string
+    status: string
+}
+
+interface DepartmentDist {
+    id: number
+    name: string
+    doctors_count: number
+    appointments_count: number
+    percentage: number
+}
+
+interface DoctorSnippet {
+    id: number
+    name: string
+    specialty: string
+    rating: number
+    fee: string
+    status: string
+    avatar?: string | null
+    initials: string
+}
+
+interface SystemConfig {
+    hospital_name: string
+    slot_duration: string
+    payment_gateway: string
+}
+
+const props = defineProps<{
+    stats: Stats
+    monthlyVolume: MonthlyVolumeItem[]
+    recentAppointments?: RecentAppointment[]
+    departmentDistribution?: DepartmentDist[]
+    doctorsRoster?: DoctorSnippet[]
+    systemConfig: SystemConfig
+}>()
+
+const currentDateStr = computed(() => {
+    return new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    })
+})
+
+// 1. FULL-WIDTH CONSULTATION GROWTH TREND CURVE (LINE CHART)
+const bigLineChartData = computed(() => {
+    const labels = props.monthlyVolume.map((item) => item.month)
+    const data = props.monthlyVolume.map((item) => item.count)
+
+    return {
+        labels,
+        datasets: [
+            {
+                label: 'Monthly Consultations Trend',
+                data,
+                fill: true,
+                tension: 0.4,
+                borderColor: '#0B251C',
+                borderWidth: 3,
+                backgroundColor: (context: any) => {
+                    const ctx = context.chart.ctx
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 260)
+                    gradient.addColorStop(0, 'rgba(11, 37, 28, 0.18)')
+                    gradient.addColorStop(1, 'rgba(194, 240, 194, 0.01)')
+                    return gradient
+                },
+                pointBackgroundColor: '#0B251C',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+            },
+        ],
+    }
+})
+
+const bigLineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            backgroundColor: '#0B251C',
+            titleFont: { family: 'Inter, sans-serif', weight: 'bold', size: 12 },
+            bodyFont: { family: 'Inter, sans-serif', size: 12 },
+            padding: 12,
+            cornerRadius: 10,
+            displayColors: false,
+            callbacks: {
+                label: (context: any) => ` Total Visits: ${context.parsed.y} consultations`,
+            },
+        },
+    },
+    scales: {
+        x: {
+            grid: { display: false },
+            ticks: { color: '#64748B', font: { family: 'Inter, sans-serif', size: 12, weight: 600 } },
+        },
+        y: {
+            grid: { color: '#F1F5F9' },
+            border: { dash: [4, 4] },
+            ticks: { color: '#94A3B8', font: { family: 'Courier, monospace', size: 11 } },
+        },
+    },
+}
+
+// 2. MONTHLY PATIENT TRAFFIC DENSITY (BAR CHART)
+const mediumPillarChartData = computed(() => {
+    const labels = props.monthlyVolume.map((item) => item.month)
+    const data = props.monthlyVolume.map((item) => item.count)
+    const backgroundColors = props.monthlyVolume.map((item) =>
+        item.is_current ? '#C2F0C2' : '#0B251C'
+    )
+
+    return {
+        labels,
+        datasets: [
+            {
+                label: 'Patient Traffic Density',
+                backgroundColor: backgroundColors,
+                borderRadius: 8,
+                barThickness: 24,
+                data,
+            },
+        ],
+    }
+})
+
+const mediumPillarChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#0B251C', cornerRadius: 8, padding: 10 },
+    },
+    scales: {
+        x: { grid: { display: false }, ticks: { color: '#64748B', font: { family: 'Inter, sans-serif', size: 11, weight: 600 } } },
+        y: { grid: { color: '#F1F5F9' }, ticks: { color: '#94A3B8', font: { family: 'Courier, monospace', size: 10 } } },
+    },
+}
+
+// 3. DEPARTMENT SPECIALIZATION SHARE (DOUGHNUT CHART)
+const smallCircleChartData = computed(() => {
+    const depts = props.departmentDistribution || []
+    const labels = depts.map((d) => d.name)
+    const data = depts.map((d) => d.percentage)
+
+    return {
+        labels: labels.length ? labels : ['Cardiology', 'Neurology', 'Pediatrics', 'Orthopedics'],
+        datasets: [
+            {
+                backgroundColor: ['#0B251C', '#C2F0C2', '#0284C7', '#D97706', '#10B981'],
+                borderWidth: 3,
+                borderColor: '#ffffff',
+                data: data.length ? data : [35, 25, 20, 20],
+            },
+        ],
+    }
+})
+
+const smallCircleChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom' as const,
+            labels: {
+                boxWidth: 10,
+                padding: 12,
+                font: { family: 'Inter, sans-serif', size: 11, weight: 'bold' },
+                color: '#0B251C',
+            },
+        },
+        tooltip: { backgroundColor: '#0B251C', cornerRadius: 8, padding: 10 },
+    },
+    cutout: '72%',
+}
 </script>
 
 <template>
-    <Head title="Admin Dashboard — MediFlow" />
+    <Head title="Executive Dashboard — MediFlow Admin" />
 
-    <!-- METRICS GRID -->
-    <div class="metrics-grid">
-        <div class="stat-card">
-            <div class="stat-meta">
-                <span>Total Doctors</span>
-                <b>28</b>
-                <small class="trend-up">↑ +2 added this month</small>
-            </div>
-            <div class="stat-icon icon-green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-            </div>
+    <!-- TOP HEADER BAR -->
+    <div class="dash-header mb-6">
+        <div>
+            <h1 class="page-title">Executive Command Dashboard</h1>
+            <p class="page-subtitle">Hospital operational metrics for {{ props.systemConfig.hospital_name }}</p>
         </div>
 
-        <div class="stat-card">
-            <div class="stat-meta">
-                <span>Active Patients</span>
-                <b>1,840</b>
-                <small class="trend-up">↑ +124 new registrations</small>
+        <div class="header-right">
+            <div class="status-badge font-mono">
+                <span class="pulse-dot"></span>
+                System Operational · Live
             </div>
-            <div class="stat-icon icon-blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                </svg>
-            </div>
-        </div>
 
-        <div class="stat-card">
-            <div class="stat-meta">
-                <span>Appointments Today</span>
-                <b>42</b>
-                <small class="sub-detail">36 Completed · 6 In Progress</small>
-            </div>
-            <div class="stat-icon icon-amber">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+            <div class="date-box font-mono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-meta">
-                <span>Monthly Revenue</span>
-                <b>$42,800</b>
-                <small class="trend-up">↑ +8.4% growth</small>
-            </div>
-            <div class="stat-icon icon-lime">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
-                </svg>
+                <span>{{ currentDateStr }}</span>
             </div>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD SPLIT GRID -->
-    <div class="dashboard-grid">
-        <!-- LEFT: APPOINTMENT TREND CHART & SYSTEM LOGS -->
-        <div class="left-col">
-            <!-- CHART CARD -->
-            <div class="card-shell">
-                <div class="card-header">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                        </svg>
-                        Monthly Appointment Volume
-                    </h3>
-                    <Link href="/admin/reports" class="header-link">Detailed volume report →</Link>
-                </div>
-
-                <div class="chart-box">
-                    <div class="chart-bars-wrap">
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 55%;"></div><span class="chart-label">Mar</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 70%;"></div><span class="chart-label">Apr</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 82%;"></div><span class="chart-label">May</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 78%;"></div><span class="chart-label">Jun</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar" style="height: 92%;"></div><span class="chart-label">Jul</span></div>
-                        <div class="chart-col"><div class="chart-bar-pillar chart-highlight" style="height: 96%;"></div><span class="chart-label">Aug</span></div>
-                    </div>
+    <!-- 1. TOP 4 KPI CARDS -->
+    <div class="kpi-grid mb-8">
+        <!-- CARD 1: ACTIVE DOCTORS -->
+        <div class="kpi-card accent-green">
+            <div class="kpi-top">
+                <span class="kpi-title">Active Doctors</span>
+                <div class="kpi-icon icon-green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
                 </div>
             </div>
+            <b class="kpi-val">{{ props.stats.total_doctors.toLocaleString() }}</b>
+            <div class="kpi-foot">
+                <span class="trend trend-green font-mono">↑ +{{ props.stats.doctors_this_month }}</span>
+                <span class="kpi-desc">Onboarded this month</span>
+            </div>
+        </div>
 
-            <!-- SYSTEM ACTIVITY LOG -->
-            <div class="card-shell">
-                <div class="card-header">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                        </svg>
-                        System Audit Feed
-                    </h3>
-                    <Link href="/admin/activity-logs" class="header-link">All logs →</Link>
+        <!-- CARD 2: TOTAL PATIENTS -->
+        <div class="kpi-card accent-sky">
+            <div class="kpi-top">
+                <span class="kpi-title">Total Patients</span>
+                <div class="kpi-icon icon-sky">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+                    </svg>
+                </div>
+            </div>
+            <b class="kpi-val">{{ props.stats.active_patients.toLocaleString() }}</b>
+            <div class="kpi-foot">
+                <span class="trend trend-sky font-mono">↑ +{{ props.stats.patients_this_month }}</span>
+                <span class="kpi-desc">New registrations</span>
+            </div>
+        </div>
+
+        <!-- CARD 3: APPOINTMENTS TODAY -->
+        <div class="kpi-card accent-amber">
+            <div class="kpi-top">
+                <span class="kpi-title">Appointments Today</span>
+                <div class="kpi-icon icon-amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+                    </svg>
+                </div>
+            </div>
+            <b class="kpi-val">{{ props.stats.appointments_today.toLocaleString() }}</b>
+            <div class="kpi-foot">
+                <span class="trend trend-amber font-mono">{{ props.stats.completed_today }} Done</span>
+                <span class="kpi-desc">{{ props.stats.pending_today }} Pending</span>
+            </div>
+        </div>
+
+        <!-- CARD 4: MONTHLY REVENUE -->
+        <div class="kpi-card accent-lime highlight-bg">
+            <div class="kpi-top">
+                <span class="kpi-title">Monthly Revenue</span>
+                <div class="kpi-icon icon-lime">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
+                    </svg>
+                </div>
+            </div>
+            <b class="kpi-val">${{ props.stats.monthly_revenue }}</b>
+            <div class="kpi-foot">
+                <span class="trend trend-lime font-mono">
+                    {{ props.stats.revenue_growth >= 0 ? '↑ +' : '↓ ' }}{{ props.stats.revenue_growth }}%
+                </span>
+                <span class="kpi-desc">vs last month</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. SITE-RELEVANT CLINICAL ANALYTICS SECTION -->
+    <!-- FULL-WIDTH CHART: CONSULTATION GROWTH & VOLUME -->
+    <div class="analytics-card full-width-card mb-6">
+        <div class="card-head-flex">
+            <div>
+                <h3 class="chart-title">Clinical Consultation Volume & Growth</h3>
+                <p class="chart-sub">6-Month trailing trend curve of completed patient visits</p>
+            </div>
+            <span class="chart-size-badge font-mono">CONSULTATION TREND</span>
+        </div>
+        <div class="big-chart-box">
+            <Line :data="bigLineChartData" :options="bigLineChartOptions" />
+        </div>
+    </div>
+
+    <!-- SECONDARY ANALYTICS ROW: TRAFFIC DENSITY & DEPARTMENT SHARE -->
+    <div class="secondary-analytics-row mb-8">
+        <!-- BAR CHART: PATIENT TRAFFIC DENSITY -->
+        <div class="analytics-card medium-card">
+            <div class="card-head-flex">
+                <div>
+                    <h3 class="chart-title">Monthly Patient Traffic Density</h3>
+                    <p class="chart-sub">Comparative monthly visit distribution & peak capacity</p>
+                </div>
+                <span class="chart-size-badge font-mono">PATIENT TRAFFIC</span>
+            </div>
+            <div class="medium-chart-box">
+                <Bar :data="mediumPillarChartData" :options="mediumPillarChartOptions" />
+            </div>
+        </div>
+
+        <!-- DOUGHNUT CHART: DEPARTMENT SPECIALIZATION SHARE -->
+        <div class="analytics-card small-circle-card">
+            <div class="card-head-flex">
+                <div>
+                    <h3 class="chart-title">Department Specialization Share</h3>
+                    <p class="chart-sub">Breakdown of patient consultations by medical department</p>
+                </div>
+                <span class="chart-size-badge font-mono">DEPARTMENT SHARE</span>
+            </div>
+            <div class="small-chart-box">
+                <Doughnut :data="smallCircleChartData" :options="smallCircleChartOptions" />
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. LOWER DATA SECTION: LIVE CONSULTATIONS TABLE & SIDEBAR WIDGETS -->
+    <div class="data-sections-grid">
+        <!-- LEFT: RECENT PATIENT CONSULTATIONS TABLE -->
+        <div class="data-col-left">
+            <div class="content-card mb-6">
+                <div class="card-head-flex">
+                    <div>
+                        <h3 class="section-heading">Live Patient Consultations</h3>
+                        <p class="section-sub">Incoming patient appointment roster</p>
+                    </div>
+                    <Link href="/admin/patients" class="header-link">Patient Registry →</Link>
                 </div>
 
-                <div class="activity-list">
-                    <div class="activity-item">
-                        <div class="activity-dot"></div>
-                        <div class="activity-content">
-                            <p>Dr. Marcus Vance onboarded to Neurology Department.</p>
-                            <span>10 minutes ago · Admin User #1</span>
-                        </div>
-                    </div>
+                <div class="table-wrap">
+                    <table class="clean-table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Department</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="app in (props.recentAppointments || [])" :key="app.id">
+                                <td>
+                                    <div class="patient-cell">
+                                        <img v-if="app.patient_avatar" :src="app.patient_avatar" :alt="app.patient_name" class="p-img" />
+                                        <div v-else class="p-init">{{ app.patient_initials }}</div>
+                                        <div>
+                                            <b class="p-name">{{ app.patient_name }}</b>
+                                            <span class="p-code font-mono">#{{ app.code }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><b>{{ app.doctor_name }}</b></td>
+                                <td><span class="dept-pill">{{ app.department }}</span></td>
+                                <td class="font-mono text-xs text-slate-500">{{ app.date_time }}</td>
+                                <td>
+                                    <span
+                                        class="status-pill"
+                                        :class="{
+                                            'st-confirmed': app.status === 'confirmed' || app.status === 'scheduled',
+                                            'st-completed': app.status === 'completed',
+                                            'st-cancelled': app.status === 'cancelled'
+                                        }"
+                                    >
+                                        ● {{ app.status }}
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <Link :href="`/admin/patients/${app.id}`" class="btn-table">
+                                        View Profile
+                                    </Link>
+                                </td>
+                            </tr>
 
-                    <div class="activity-item">
-                        <div class="activity-dot dot-blue"></div>
-                        <div class="activity-content">
-                            <p>Payment #INV-89201 processed for consultation #MDF-102.</p>
-                            <span>1 hour ago · Stripe Webhook</span>
-                        </div>
-                    </div>
-
-                    <div class="activity-item">
-                        <div class="activity-dot dot-amber"></div>
-                        <div class="activity-content">
-                            <p>Holiday Schedule exception added for Independence Day.</p>
-                            <span>Yesterday · Admin Console</span>
-                        </div>
-                    </div>
+                            <tr v-if="!props.recentAppointments || props.recentAppointments.length === 0">
+                                <td colspan="6" class="text-center py-6 text-slate-500 text-sm">
+                                    No recent appointment records found.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT SIDEBAR: QUICK ACTIONS & CONTROLS -->
-        <div class="right-col">
-            <!-- QUICK ACTIONS -->
-            <div class="card-shell">
-                <div class="card-header">
-                    <h3>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
-                        </svg>
-                        Management Actions
-                    </h3>
+        <!-- RIGHT: TOP PHYSICIANS & DEPARTMENT CAPACITY LOAD -->
+        <div class="data-col-right">
+            <!-- TOP ACTIVE PHYSICIANS -->
+            <div class="content-card mb-6">
+                <div class="card-head-flex">
+                    <div>
+                        <h3 class="section-heading">Top Active Physicians</h3>
+                        <p class="section-sub">Physician roster & ratings</p>
+                    </div>
+                    <Link href="/admin/doctors" class="header-link">All Doctors →</Link>
                 </div>
 
-                <div class="quick-action-list">
-                    <Link href="/admin/doctors/create" class="action-item">
-                        <div class="action-icon icon-lime">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
+                <div class="doctors-list">
+                    <div v-for="doc in (props.doctorsRoster || [])" :key="doc.id" class="doc-row">
+                        <div class="doc-avatar">
+                            <img v-if="doc.avatar" :src="doc.avatar" :alt="doc.name" />
+                            <div v-else class="doc-init">{{ doc.initials }}</div>
                         </div>
-                        <div class="action-info">
-                            <h4>Onboard New Doctor</h4>
-                            <p>Register new physician account</p>
+                        <div class="doc-meta">
+                            <b>{{ doc.name }}</b>
+                            <span>{{ doc.specialty }} · {{ doc.fee }}</span>
                         </div>
-                    </Link>
-
-                    <Link href="/admin/departments/create" class="action-item">
-                        <div class="action-icon icon-blue">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M3 21h18M3 7v14M21 7v14M6 3h12a2 2 0 0 1 2 2v2H4V5a2 2 0 0 1 2-2z"/>
-                            </svg>
+                        <div class="rating-badge font-mono">
+                            ★ {{ doc.rating }}
                         </div>
-                        <div class="action-info">
-                            <h4>Add Department</h4>
-                            <p>Create medical specialty unit</p>
-                        </div>
-                    </Link>
-
-                    <Link href="/admin/announcements" class="action-item">
-                        <div class="action-icon icon-amber">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                            </svg>
-                        </div>
-                        <div class="action-info">
-                            <h4>Broadcast Announcement</h4>
-                            <p>Send system-wide notification</p>
-                        </div>
-                    </Link>
-
-                    <Link href="/admin/settings" class="action-item">
-                        <div class="action-icon icon-forest">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="3"/>
-                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                            </svg>
-                        </div>
-                        <div class="action-info">
-                            <h4>System Settings Control</h4>
-                            <p>Configure hospital parameters</p>
-                        </div>
-                    </Link>
+                    </div>
                 </div>
             </div>
 
-            <!-- SYSTEM HEALTH & CONFIG SUMMARY -->
-            <div class="card-shell config-summary-card">
-                <b class="config-title">System Configuration</b>
-                <div class="config-list">
-                    <div class="config-row">
-                        <span>Hospital Name:</span> <strong>MediFlow Central</strong>
-                    </div>
-                    <div class="config-row">
-                        <span>Slot Duration:</span> <strong>30 Minutes</strong>
-                    </div>
-                    <div class="config-row">
-                        <span>Payment Gateway:</span> <strong class="text-green">Stripe Active</strong>
+            <!-- DEPARTMENT CAPACITY LOAD -->
+            <div class="content-card">
+                <div class="card-head-flex">
+                    <div>
+                        <h3 class="section-heading">Department Capacity Load</h3>
+                        <p class="section-sub">Volume share by medical unit</p>
                     </div>
                 </div>
-                <Link href="/admin/settings" class="config-link">
-                    Manage Hospital Settings →
-                </Link>
+
+                <div class="dept-list">
+                    <div v-for="dept in (props.departmentDistribution || [])" :key="dept.id" class="dept-item">
+                        <div class="dept-head">
+                            <span class="dept-name">{{ dept.name }}</span>
+                            <span class="dept-pct font-mono">{{ dept.percentage }}%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" :style="{ width: `${dept.percentage}%` }"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
-@media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 540px) { .metrics-grid { grid-template-columns: 1fr; } }
+/* HEADER */
+.dash-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
 
-.stat-card {
+.page-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--forest);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.02em;
+}
+
+.page-subtitle { font-size: 13.5px; color: var(--ink-muted); margin: 0; }
+
+.header-right { display: flex; align-items: center; gap: 12px; }
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #15803D;
+    background: #DCFCE7;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid #BBF7D0;
+}
+
+.pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #15803D;
+    box-shadow: 0 0 8px #15803D;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.date-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--forest);
+}
+
+/* 1. POLISHED KPI CARDS */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 580px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+.kpi-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-top-width: 4px;
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 20px rgba(11, 37, 28, 0.03);
     transition: all 200ms ease;
 }
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(11, 37, 28, 0.08); }
 
-.stat-meta span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); display: block; margin-bottom: 4px; }
-.stat-meta b { font-family: var(--font-mono); font-size: 26px; font-weight: 800; color: var(--forest); line-height: 1; display: block; }
-.stat-meta small.trend-up { font-size: 12px; color: #15803D; font-weight: 600; display: block; margin-top: 4px; }
-.stat-meta small.sub-detail { font-size: 12px; color: var(--ink-muted); font-weight: 600; display: block; margin-top: 4px; }
+.accent-green { border-top-color: #15803D; }
+.accent-sky { border-top-color: #0369A1; }
+.accent-amber { border-top-color: #B45309; }
+.accent-lime { border-top-color: var(--lime-text); }
 
-.stat-icon { width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--cream); color: var(--forest); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.stat-icon svg { width: 22px; height: 22px; }
-.stat-icon.icon-green { background: #DCFCE7; color: #15803D; }
-.stat-icon.icon-blue { background: #E0F2FE; color: #0369A1; }
-.stat-icon.icon-amber { background: #FEF3C7; color: #B45309; }
-.stat-icon.icon-lime { background: var(--lime-soft); color: var(--lime-text); }
+.highlight-bg { background: linear-gradient(180deg, #F7FCF7 0%, var(--card) 100%); }
 
-.dashboard-grid { display: grid; grid-template-columns: 1fr 340px; gap: 28px; align-items: start; }
-@media (max-width: 1100px) { .dashboard-grid { grid-template-columns: 1fr; } }
+.kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.kpi-title { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); }
 
-.left-col, .right-col { display: flex; flex-direction: column; gap: 28px; }
+.kpi-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-icon svg { width: 19px; height: 19px; }
 
-.card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
-.card-header { padding: 20px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
-.card-header h3 { font-size: 15.5px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 8px; margin: 0; }
-.card-header h3 svg { width: 18px; height: 18px; color: var(--forest); }
-.header-link { font-size: 13px; font-weight: 700; color: var(--forest); text-decoration: none; transition: opacity 150ms ease; }
-.header-link:hover { opacity: 0.8; text-decoration: underline; }
+.icon-green { background: #DCFCE7; color: #15803D; }
+.icon-sky { background: #E0F2FE; color: #0369A1; }
+.icon-amber { background: #FEF3C7; color: #B45309; }
+.icon-lime { background: var(--lime-soft); color: var(--lime-text); }
 
-.chart-box { padding: 24px; }
-.chart-bars-wrap { display: flex; align-items: flex-end; justify-content: space-between; height: 200px; padding-top: 20px; border-bottom: 1px solid var(--line); gap: 12px; }
-.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
-.chart-bar-pillar { width: 100%; max-width: 42px; background: var(--forest); border-radius: 6px 6px 0 0; transition: all 180ms ease; }
-.chart-bar-pillar:hover { background: #1e4029; transform: scaleY(1.02); }
-.chart-bar-pillar.chart-highlight { background: var(--lime); }
-.chart-bar-pillar.chart-highlight:hover { background: #d2e85a; }
-.chart-label { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--ink-muted); }
+.kpi-val { font-family: var(--font-mono); font-size: 30px; font-weight: 800; color: var(--forest); line-height: 1.1; display: block; margin-bottom: 8px; }
+.kpi-foot { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-muted); }
 
-.activity-list { padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; }
-.activity-item { display: flex; gap: 12px; align-items: flex-start; }
-.activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 5px; flex-shrink: 0; }
-.activity-dot.dot-blue { background: #0369A1; }
-.activity-dot.dot-amber { background: #B45309; }
-.activity-content p { font-size: 13px; color: var(--ink); line-height: 1.4; margin: 0 0 2px 0; }
-.activity-content span { font-size: 11px; color: var(--ink-muted); font-family: var(--font-mono); }
+.trend { font-size: 11.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px; }
+.trend-green { background: #DCFCE7; color: #15803D; }
+.trend-sky { background: #E0F2FE; color: #0369A1; }
+.trend-amber { background: #FEF3C7; color: #B45309; }
+.trend-lime { background: var(--lime); color: var(--lime-text); }
+.kpi-desc { font-weight: 500; }
 
-.quick-action-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
-.action-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); transition: all 180ms ease; text-decoration: none; }
-.action-item:hover { border-color: var(--forest); background: var(--card); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-.action-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.action-icon svg { width: 18px; height: 18px; }
-.action-icon.icon-lime { background: var(--lime-soft); color: var(--lime-text); }
-.action-icon.icon-blue { background: #E0F2FE; color: #0369A1; }
-.action-icon.icon-amber { background: #FEF3C7; color: #B45309; }
-.action-icon.icon-forest { background: var(--forest); color: var(--lime); }
-.action-info h4 { font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 0; }
-.action-info p { font-size: 12px; color: var(--ink-muted); margin: 2px 0 0 0; }
+/* 2. ANALYTICS CARDS & HIERARCHY */
+.analytics-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 4px 20px rgba(11, 37, 28, 0.03);
+    overflow: hidden;
+}
 
-.config-summary-card { padding: 20px 24px; }
-.config-title { font-size: 14px; color: var(--forest); display: block; margin-bottom: 10px; font-weight: 800; }
-.config-list { font-size: 12.5px; color: var(--ink-muted); display: flex; flex-direction: column; gap: 8px; }
-.config-row { display: flex; justify-content: space-between; align-items: center; }
-.text-green { color: #15803D; font-weight: 700; }
-.config-link { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--forest); text-decoration: none; margin-top: 14px; transition: opacity 150ms ease; }
-.config-link:hover { text-decoration: underline; opacity: 0.85; }
+.full-width-card { width: 100%; }
+
+.secondary-analytics-row {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 20px;
+}
+@media (max-width: 1024px) { .secondary-analytics-row { grid-template-columns: 1fr; } }
+
+.card-head-flex {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chart-title { font-size: 16px; font-weight: 800; color: var(--forest); margin: 0 0 2px 0; }
+.chart-sub { font-size: 12px; color: var(--ink-muted); margin: 0; }
+.chart-size-badge { font-size: 10.5px; font-weight: 800; color: var(--forest); background: var(--cream); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); }
+
+.big-chart-box { padding: 24px; height: 280px; position: relative; }
+.medium-chart-box { padding: 20px; height: 230px; position: relative; }
+.small-chart-box { padding: 20px; height: 230px; position: relative; }
+
+/* 3. LOWER DATA SECTION */
+.data-sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+    align-items: start;
+}
+@media (max-width: 1100px) { .data-sections-grid { grid-template-columns: 1fr; } }
+
+.content-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 4px 20px rgba(11, 37, 28, 0.03);
+    overflow: hidden;
+}
+
+.section-heading { font-size: 15px; font-weight: 800; color: var(--forest); margin: 0 0 2px 0; }
+.section-sub { font-size: 11.5px; color: var(--ink-muted); margin: 0; }
+
+.header-link { font-size: 12.5px; font-weight: 700; color: var(--forest); text-decoration: none; }
+.header-link:hover { text-decoration: underline; }
+
+/* TABLE */
+.table-wrap { width: 100%; overflow-x: auto; }
+.clean-table { width: 100%; border-collapse: collapse; text-align: left; }
+.clean-table th { background: #F8FAFC; padding: 12px 22px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
+.clean-table td { padding: 14px 22px; border-bottom: 1px solid var(--line); font-size: 13.5px; vertical-align: middle; }
+
+.patient-cell { display: flex; align-items: center; gap: 12px; }
+.p-img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; }
+.p-init { width: 34px; height: 34px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 11.5px; font-family: var(--font-mono); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.p-name { display: block; font-size: 13.5px; color: var(--forest); }
+.p-code { display: block; font-size: 11.5px; color: var(--ink-muted); }
+
+.dept-pill { font-size: 12px; font-weight: 600; color: var(--forest); background: var(--cream); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); }
+
+.status-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; text-transform: capitalize; }
+.st-confirmed { background: #DCFCE7; color: #15803D; }
+.st-completed { background: #E0F2FE; color: #0369A1; }
+.st-cancelled { background: #FEE2E2; color: #DC2626; }
+
+.btn-table { font-size: 12px; font-weight: 700; color: var(--forest); background: var(--cream); border: 1px solid var(--line); padding: 4px 12px; border-radius: 6px; text-decoration: none; transition: all 150ms ease; }
+.btn-table:hover { background: var(--forest); color: #ffffff; border-color: var(--forest); }
+
+/* SIDEBAR LISTS */
+.doctors-list { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.doc-row { display: flex; align-items: center; justify-content: space-between; }
+.doc-avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 1px solid var(--line); flex-shrink: 0; }
+.doc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.doc-init { width: 38px; height: 38px; border-radius: 50%; background: var(--forest); color: var(--lime); font-weight: 800; font-size: 12px; font-family: var(--font-mono); display: flex; align-items: center; justify-content: center; }
+.doc-meta { flex: 1; margin: 0 12px; }
+.doc-meta b { font-size: 13.5px; color: var(--forest); display: block; }
+.doc-meta span { font-size: 12px; color: var(--ink-muted); display: block; }
+.rating-badge { font-size: 12px; font-weight: 800; color: var(--forest); background: var(--cream); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); }
+
+.dept-list { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.dept-item {}
+.dept-head { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+.dept-name { font-weight: 700; color: var(--forest); }
+.dept-pct { font-size: 12px; color: var(--ink-muted); }
+.progress-track { height: 7px; background: #F1F5F9; border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--forest); border-radius: 999px; }
 </style>
