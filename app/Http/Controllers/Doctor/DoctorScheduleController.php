@@ -138,31 +138,6 @@ class DoctorScheduleController extends Controller
                 ];
             });
 
-        if ($exceptions->isEmpty()) {
-            $exceptions = collect([
-                [
-                    'id' => 'EXC-101',
-                    'db_id' => 101,
-                    'type' => 'Planned Vacation / Conference',
-                    'range' => 'Sep 04, 2026 — Sep 06, 2026',
-                    'days' => '3 Days',
-                    'reason' => 'Attending Annual Cardiology World Congress in Chicago.',
-                    'status' => 'approved',
-                    'statusLabel' => 'Approved by HR',
-                ],
-                [
-                    'id' => 'EXC-102',
-                    'db_id' => 102,
-                    'type' => 'Personal Leave',
-                    'range' => 'Oct 12, 2026 (Half-day)',
-                    'days' => '1 Day',
-                    'reason' => 'Family event in the afternoon.',
-                    'status' => 'pending',
-                    'statusLabel' => 'Pending Approval',
-                ],
-            ]);
-        }
-
         return Inertia::render('Doctor/Schedule/Exceptions', [
             'exceptions' => $exceptions,
         ]);

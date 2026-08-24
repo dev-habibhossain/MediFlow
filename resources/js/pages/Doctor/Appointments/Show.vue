@@ -59,31 +59,28 @@ const props = defineProps<{
 }>()
 
 const appData = computed(() => props.appointment ?? {
-    id: '101',
-    db_id: 101,
-    patientId: 'MDF-9021',
-    patientName: 'Habib Hossain',
-    patientInitials: 'HH',
-    age: 28,
-    gender: 'Male',
-    bloodGroup: 'O+',
-    allergies: 'Penicillin (Mild)',
-    visitsCompleted: 14,
-    date: 'Friday, Aug 7, 2026',
-    time: '10:00 AM – 10:30 AM EST',
-    mode: 'In-Person Visit',
-    location: 'Room 302, Harbor Ave Clinic',
-    phone: '(555) 340-2199',
-    email: 'habib@example.com',
-    paymentStatus: 'Paid ($120.00)',
-    receipt: 'Receipt #INV-88402',
-    reason: 'Routine follow-up consultation regarding recent blood pressure fluctuations.',
+    id: 'N/A',
+    db_id: 0,
+    patientId: '',
+    patientDbId: undefined,
+    patientName: 'Patient Not Found',
+    patientInitials: 'P',
+    age: 0,
+    gender: 'N/A',
+    bloodGroup: 'N/A',
+    allergies: 'None',
+    visitsCompleted: 0,
+    date: 'N/A',
+    time: 'N/A',
+    mode: 'N/A',
+    location: 'N/A',
+    phone: 'N/A',
+    email: 'N/A',
+    paymentStatus: 'N/A',
+    receipt: 'N/A',
+    reason: 'No reason specified',
     status: 'confirmed',
-    vitals: {
-        bp: '120/80',
-        hr: '72',
-        weight: '74.5',
-    },
+    vitals: { bp: 'N/A', hr: 'N/A', weight: 'N/A' },
     prescriptions: [],
     medicalRecord: null,
 })
@@ -228,7 +225,7 @@ function printSummary() {
                     {{ currentStatus === 'confirmed' ? 'Confirmed Visit' : currentStatus.replace('_', ' ').toUpperCase() }}
                 </span>
             </div>
-            <h1>Cardiology Follow-Up Consultation</h1>
+            <h1>{{ appData.reason || 'Appointment Consultation' }}</h1>
         </div>
     </div>
 
@@ -404,9 +401,6 @@ function printSummary() {
                         </svg>
                         Clinical Medical Record
                     </div>
-                    <Link :href="`/doctor/records/${appData.medicalRecord.id}/edit`" class="btn btn-outline" style="font-size: 12px; padding: 4px 10px;">
-                        Edit Record →
-                    </Link>
                 </div>
 
                 <div style="padding: 16px;">

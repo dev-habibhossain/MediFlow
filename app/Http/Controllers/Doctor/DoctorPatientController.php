@@ -30,15 +30,18 @@ class DoctorPatientController extends Controller
     {
         $doctor = $this->getDoctor();
 
-        $patient = Patient::with(['user', 'medicalRecords.doctor.user', 'prescriptions.items', 'prescriptions.doctor.user'])
+        $patient = Patient::with([
+            'user',
+            'medicalRecords.doctor.user',
+            'medicalRecords.doctor.department',
+            'prescriptions.items',
+            'prescriptions.doctor.user',
+            'prescriptions.doctor.department',
+        ])
             ->where(function ($q) use ($id) {
                 $q->where('patient_code', $id)->orWhere('id', $id);
             })
             ->first();
-
-        if (! $patient) {
-            $patient = Patient::with(['user', 'medicalRecords.doctor.user', 'prescriptions.items', 'prescriptions.doctor.user'])->first();
-        }
 
         if (! $patient) {
             abort(404, 'Patient record not found.');
@@ -84,28 +87,41 @@ class DoctorPatientController extends Controller
 
         // 1. Consultation Medical Records
         foreach ($patient->medicalRecords as $rec) {
-            $docName = $rec->doctor?->user?->name ?? 'Dr. Sarah Jenkins';
+            $recDoc = $rec->doctor;
+            $docUser = $recDoc?->user ?? $doctor->user;
+            $docName = $docUser?->name ?? 'Dr. Sarah Jenkins';
+            $deptName = $recDoc?->department?->name ?? $recDoc?->specialization ?? $doctor->department?->name ?? 'Cardiology Department';
+            $docAvatar = $docUser?->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($docName).'&background=0D9488&color=fff';
+
             $dateStr = $rec->created_at->format('F j, Y')." · Consultation #REC-{$rec->id}";
+            $icd = is_array($rec->vitals) && ! empty($rec->vitals['icd_code']) ? $rec->vitals['icd_code'] : 'I10';
+            $treatPlan = is_array($rec->vitals) && ! empty($rec->vitals['treatment_plan']) ? $rec->vitals['treatment_plan'] : ($rec->doctor_notes ?? $rec->symptoms);
+
             $historyItems->push([
                 'id' => "REC-{$rec->id}",
                 'category' => 'consultation',
                 'categoryLabel' => 'Consultation Record',
                 'dateStr' => $dateStr,
-                'title' => $rec->diagnosis ?? 'Cardiology Follow-Up',
+                'title' => $rec->diagnosis ?? 'Clinical Assessment',
                 'primaryDiag' => "Primary Diagnosis: {$rec->diagnosis}",
-                'icdCode' => $rec->icd_code ? "ICD-10: {$rec->icd_code}" : 'ICD-10: I10',
-                'notes' => $rec->treatment_plan ?? $rec->symptoms ?? 'Patient condition stable.',
-                'doctor' => "{$docName} · Cardiology Department",
-                'doctorAvatar' => $rec->doctor?->user?->profile_photo_path ?? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100',
-                'actionLabel' => 'Edit / Amend Record →',
-                'actionUrl' => route('doctor.records.edit', $rec->id),
-                'searchTerms' => strtolower("{$rec->diagnosis} {$rec->icd_code} {$docName}"),
+                'icdCode' => "ICD-10: {$icd}",
+                'notes' => $treatPlan ?? 'Patient condition stable.',
+                'doctor' => "{$docName} · {$deptName}",
+                'doctorAvatar' => $docAvatar,
+                'actionLabel' => null,
+                'actionUrl' => null,
+                'searchTerms' => strtolower("{$rec->diagnosis} {$icd} {$docName}"),
             ]);
         }
 
         // 2. Prescriptions
         foreach ($patient->prescriptions as $rx) {
-            $docName = $rx->doctor?->user?->name ?? 'Dr. Sarah Jenkins';
+            $rxDoc = $rx->doctor;
+            $docUser = $rxDoc?->user ?? $doctor->user;
+            $docName = $docUser?->name ?? 'Dr. Sarah Jenkins';
+            $deptName = $rxDoc?->department?->name ?? $rxDoc?->specialization ?? $doctor->department?->name ?? 'Cardiology Department';
+            $docAvatar = $docUser?->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($docName).'&background=0D9488&color=fff';
+
             $dateStr = $rx->created_at->format('F j, Y')." · Prescription #RX-{$rx->id}";
             $meds = $rx->items->map(fn ($item) => [
                 'name' => "{$item->medication_name} {$item->dosage}",
@@ -114,13 +130,7 @@ class DoctorPatientController extends Controller
             ])->toArray();
 
             if (empty($meds)) {
-                $meds = [
-                    [
-                        'name' => 'Amlodipine Besylate 5 mg Tablet',
-                        'directions' => 'Take 1 tablet daily in the morning',
-                        'refills' => '2 Refills Left',
-                    ],
-                ];
+                continue;
             }
 
             $historyItems->push([
@@ -130,8 +140,8 @@ class DoctorPatientController extends Controller
                 'dateStr' => $dateStr,
                 'title' => 'Prescription Regimen Issued',
                 'medications' => $meds,
-                'doctor' => "{$docName} · Cardiology Department",
-                'doctorAvatar' => $rx->doctor?->user?->profile_photo_path ?? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100',
+                'doctor' => "{$docName} · {$deptName}",
+                'doctorAvatar' => $docAvatar,
                 'actionLabel' => 'Correct / Supersede Rx →',
                 'actionUrl' => route('doctor.prescriptions.supersede', $rx->id),
                 'searchTerms' => strtolower("rx {$rx->id} {$docName}"),
@@ -140,20 +150,25 @@ class DoctorPatientController extends Controller
 
         // Fallback default item if history empty
         if ($historyItems->isEmpty()) {
+            $fallbackDocUser = $doctor->user;
+            $docName = $fallbackDocUser?->name ?? 'Dr. Sarah Jenkins';
+            $deptName = $doctor->department?->name ?? $doctor->specialization ?? 'Cardiology Department';
+            $docAvatar = $fallbackDocUser?->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($docName).'&background=0D9488&color=fff';
+
             $historyItems->push([
                 'id' => 'REC-301',
                 'category' => 'consultation',
                 'categoryLabel' => 'Consultation Record',
-                'dateStr' => 'July 14, 2026 · Consultation #REC-301',
+                'dateStr' => now()->format('F j, Y').' · Consultation #REC-301',
                 'title' => 'Cardiology Follow-Up & Assessment',
                 'primaryDiag' => 'Primary Diagnosis: Essential Hypertension (Controlled)',
                 'icdCode' => 'ICD-10: I10',
                 'notes' => 'Blood pressure remains stable. Patient instructed to continue current exercise & diet regimen.',
-                'doctor' => 'Dr. Sarah Jenkins · Cardiology Department',
-                'doctorAvatar' => 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100',
+                'doctor' => "{$docName} · {$deptName}",
+                'doctorAvatar' => $docAvatar,
                 'actionLabel' => 'Edit / Amend Record →',
                 'actionUrl' => '/doctor/appointments/101/medical-record/edit',
-                'searchTerms' => 'cardiology hypertension ecg amlodipine',
+                'searchTerms' => strtolower("{$docName} cardiology hypertension ecg amlodipine"),
             ]);
         }
 

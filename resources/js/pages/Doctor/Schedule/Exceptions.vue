@@ -22,17 +22,7 @@ const form = useForm({
     reasonNotes: '',
 })
 
-const exceptionList = computed(() => props.exceptions && props.exceptions.length > 0 ? props.exceptions : [
-    {
-        id: 'EXC-101',
-        type: 'Planned Vacation / Conference',
-        range: 'Sep 04, 2026 — Sep 06, 2026',
-        days: '3 Days',
-        reason: 'Attending Annual Cardiology World Congress in Chicago.',
-        status: 'approved',
-        statusLabel: 'Approved by HR',
-    },
-])
+const exceptionList = computed(() => props.exceptions ?? [])
 
 function addException() {
     form.post('/doctor/schedule/exceptions', {
@@ -125,6 +115,11 @@ function cancelException(id: string) {
                     </tr>
                 </thead>
                 <tbody>
+                    <tr v-if="exceptionList.length === 0">
+                        <td colspan="6" style="text-align: center; padding: 32px; color: var(--ink-muted); font-size: 13.5px;">
+                            No schedule exceptions on record. Submit a request above.
+                        </td>
+                    </tr>
                     <tr v-for="exc in exceptionList" :key="exc.id">
                         <td><b class="mono-id">{{ exc.id }}</b></td>
                         <td><b>{{ exc.type }}</b></td>

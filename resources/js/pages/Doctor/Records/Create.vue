@@ -36,22 +36,29 @@ const patientInfo = computed(() => props.patient ?? {
 const showToast = ref(false)
 
 const form = useForm({
-    symptoms: 'Exertional chest tightness, minor dyspnea after workout routine.',
-    primaryDiagnosis: 'Essential (Primary) Hypertension - Controlled',
+    symptoms: '',
+    primaryDiagnosis: '',
     icdCode: 'I10',
-    bpSystolic: 120,
-    bpDiastolic: 80,
-    heartRate: 72,
-    weight: 74.5,
-    soapSubjective: 'Patient presents for cardiology follow-up.',
-    soapObjective: 'Resting 12-lead ECG shows normal sinus rhythm. Lungs clear.',
-    soapPlan: 'Maintain current Amlodipine 5mg regimen.',
+    bpSystolic: '' as string | number,
+    bpDiastolic: '' as string | number,
+    heartRate: '' as string | number,
+    weight: '' as string | number,
+    soapSubjective: '',
+    soapObjective: '',
+    soapPlan: '',
     attachment: null as File | null,
 })
 
+function handleFileChange(event: Event) {
+    const target = event.target as HTMLInputElement
+    if (target.files && target.files[0]) {
+        form.attachment = target.files[0]
+    }
+}
+
 function handleSaveRecord() {
     form.post(`/doctor/appointments/${appInfo.value.id}/records`, {
-        preserveScroll: true,
+        preserveScroll: false,
         onSuccess: () => {
             showToast.value = true
         },
@@ -106,22 +113,25 @@ function handleSaveRecord() {
                 <!-- CHIEF SYMPTOMS -->
                 <div class="form-group full-width">
                     <label>Chief Complaints / Symptoms <span>*</span></label>
-                    <textarea v-model="form.symptoms" class="form-control" required placeholder="Describe primary symptoms reported by patient..."></textarea>
+                    <textarea v-model="form.symptoms" class="form-control" placeholder="Describe primary symptoms reported by patient..."></textarea>
+                    <span v-if="form.errors.symptoms" class="error-msg">{{ form.errors.symptoms }}</span>
                 </div>
 
                 <!-- DIAGNOSIS & ICD-10 CODE -->
                 <div class="form-group">
                     <label>Primary Diagnosis <span>*</span></label>
-                    <input v-model="form.primaryDiagnosis" type="text" class="form-control" required />
+                    <input v-model="form.primaryDiagnosis" type="text" class="form-control" placeholder="e.g. Essential Hypertension" />
+                    <span v-if="form.errors.primaryDiagnosis" class="error-msg">{{ form.errors.primaryDiagnosis }}</span>
                 </div>
 
                 <div class="form-group">
                     <label>ICD-10 Classification Code <span>*</span></label>
-                    <select v-model="form.icdCode" class="form-control" required>
+                    <select v-model="form.icdCode" class="form-control">
                         <option value="I10">I10 — Essential (Primary) Hypertension</option>
                         <option value="R07.89">R07.89 — Other Chest Pain / Tightness</option>
                         <option value="I20.9">I20.9 — Angina Pectoris, Unspecified</option>
                         <option value="R00.0">R00.0 — Tachycardia, Unspecified</option>
+                        <option value="Z00.00">Z00.00 — General Adult Medical Examination</option>
                     </select>
                 </div>
 
@@ -131,12 +141,12 @@ function handleSaveRecord() {
                 <div class="vitals-inputs-grid">
                     <div class="form-group">
                         <label>BP Systolic <span>*</span></label>
-                        <input v-model="form.bpSystolic" type="number" class="form-control" required placeholder="120" />
+                        <input v-model="form.bpSystolic" type="number" class="form-control" placeholder="120" />
                     </div>
 
                     <div class="form-group">
                         <label>BP Diastolic <span>*</span></label>
-                        <input v-model="form.bpDiastolic" type="number" class="form-control" required placeholder="80" />
+                        <input v-model="form.bpDiastolic" type="number" class="form-control" placeholder="80" />
                     </div>
 
                     <div class="form-group">
@@ -171,14 +181,16 @@ function handleSaveRecord() {
                 <!-- ATTACHMENT FILE UPLOAD -->
                 <div class="form-group full-width">
                     <label>Attach Diagnostic File (ECG, Lab Scan PDF)</label>
-                    <input type="file" class="form-control" style="padding: 8px 16px;" />
+                    <input type="file" class="form-control" style="padding: 8px 16px;" @change="handleFileChange" />
                 </div>
             </div>
 
             <!-- BUTTON ROW -->
             <div class="form-actions">
-                <Link href="/doctor/appointments/101" class="btn btn-outline">Cancel</Link>
-                <button type="submit" class="btn btn-primary">Save & Finalize Medical Record</button>
+                <Link :href="`/doctor/appointments/${appInfo.id}`" class="btn btn-outline">Cancel</Link>
+                <button type="submit" class="btn btn-primary" :disabled="form.processing">
+                    {{ form.processing ? 'Saving...' : 'Save & Finalize Medical Record' }}
+                </button>
             </div>
         </form>
     </div>
@@ -275,6 +287,8 @@ textarea.form-control { height: auto; min-height: 100px; padding: 12px 16px; res
 .btn-primary:hover { background: var(--forest-2); }
 .btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
 .btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+
+.error-msg { font-size: 12px; color: #DC2626; font-weight: 600; margin-top: 2px; display: block; }
 
 .toast-notice { position: fixed; bottom: 24px; right: 24px; background: var(--forest); color: #fff; padding: 14px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lift); display: flex; align-items: center; gap: 10px; z-index: 100; animation: slideUp 200ms ease-out; }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

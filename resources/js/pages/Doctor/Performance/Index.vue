@@ -12,6 +12,12 @@ const props = defineProps<{
         timeStatus: string
         completedPercentage: string
         completionDetail: string
+        prescriptionsIssued: number
+    }
+    ratingBreakdown?: {
+        fiveStar: number
+        fourStar: number
+        threeStar: number
     }
     reviews?: Array<{
         id: number
@@ -23,15 +29,18 @@ const props = defineProps<{
 }>()
 
 const metricsData = computed(() => props.metrics ?? {
-    monthlyConsultations: 142,
-    consultationGrowth: '↑ 12% vs last month',
-    patientSatisfaction: '4.95 / 5.0',
-    satisfactionCount: 98,
-    avgConsultationTime: '22 Mins',
+    monthlyConsultations: 0,
+    consultationGrowth: 'No data yet',
+    patientSatisfaction: 'N/A',
+    satisfactionCount: 0,
+    avgConsultationTime: '~22 Mins',
     timeStatus: 'Optimal (Target 20-25m)',
-    completedPercentage: '98.4%',
-    completionDetail: '138 of 140 fulfilled',
+    completedPercentage: '0%',
+    completionDetail: '0 of 0 fulfilled',
+    prescriptionsIssued: 0,
 })
+
+const breakdown = computed(() => props.ratingBreakdown ?? { fiveStar: 0, fourStar: 0, threeStar: 0 })
 
 const reviewList = computed(() => props.reviews && props.reviews.length > 0 ? props.reviews : [
     {
@@ -123,25 +132,25 @@ const reviewList = computed(() => props.reviews && props.reviews.length > 0 ? pr
                 <div class="bar-row">
                     <span class="star-label">5 Stars</span>
                     <div class="bar-bg">
-                        <div class="bar-fill" style="width: 92%;"></div>
+                        <div class="bar-fill" :style="{ width: breakdown.fiveStar + '%' }"></div>
                     </div>
-                    <span class="pct-label">92%</span>
+                    <span class="pct-label">{{ breakdown.fiveStar }}%</span>
                 </div>
 
                 <div class="bar-row">
                     <span class="star-label">4 Stars</span>
                     <div class="bar-bg">
-                        <div class="bar-fill" style="width: 6%;"></div>
+                        <div class="bar-fill" :style="{ width: breakdown.fourStar + '%' }"></div>
                     </div>
-                    <span class="pct-label">6%</span>
+                    <span class="pct-label">{{ breakdown.fourStar }}%</span>
                 </div>
 
                 <div class="bar-row">
                     <span class="star-label">3 Stars</span>
                     <div class="bar-bg">
-                        <div class="bar-fill" style="width: 2%;"></div>
+                        <div class="bar-fill" :style="{ width: breakdown.threeStar + '%' }"></div>
                     </div>
-                    <span class="pct-label">2%</span>
+                    <span class="pct-label">{{ breakdown.threeStar }}%</span>
                 </div>
             </div>
         </div>

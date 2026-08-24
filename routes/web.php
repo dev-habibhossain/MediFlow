@@ -159,8 +159,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Medical Records
         Route::get('/appointments/{id}/records/create', [DoctorMedicalRecordController::class, 'create'])->name('records.create');
         Route::post('/appointments/{id}/records', [DoctorMedicalRecordController::class, 'store'])->name('records.store');
-        Route::get('/records/{id}/edit', [DoctorMedicalRecordController::class, 'edit'])->name('records.edit');
-        Route::put('/records/{id}', [DoctorMedicalRecordController::class, 'update'])->name('records.update');
 
         // Prescriptions
         Route::get('/appointments/{id}/prescriptions/create', [DoctorPrescriptionController::class, 'create'])->name('prescriptions.create');

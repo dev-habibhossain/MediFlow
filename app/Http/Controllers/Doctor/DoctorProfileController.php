@@ -34,8 +34,12 @@ class DoctorProfileController extends Controller
 
         $departments = Department::orderBy('name')->get(['id', 'name']);
 
+        $reviewsQuery = $doctor->reviews();
+        $totalReviews = $reviewsQuery->count();
+        $avgRating = $totalReviews > 0 ? round((float) $reviewsQuery->avg('rating'), 1) : null;
+
         return Inertia::render('Doctor/Settings/Profile', [
-            'doctorProfile' => [
+            'profile' => [
                 'name' => $user?->name ?? 'Dr. Sarah Jenkins',
                 'title' => $doctor->qualifications ?? 'MD, FACC — Senior Cardiologist',
                 'department' => $doctor->department?->name ?? 'Cardiology',
@@ -47,6 +51,8 @@ class DoctorProfileController extends Controller
                 'specialties' => $doctor->specialization ?? 'Hypertension, Preventive Cardiology, Lipid Disorders, Electrocardiography',
                 'bio' => $doctor->bio ?? 'Board-certified cardiologist specializing in preventive cardiovascular care and non-invasive diagnostic hypertension management with over 12 years of clinical excellence.',
                 'avatarUrl' => $user?->profile_photo_path ? asset('storage/'.$user->profile_photo_path) : 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300',
+                'averageRating' => $avgRating ?? 4.9,
+                'reviewCount' => $totalReviews,
             ],
             'departments' => $departments,
         ]);

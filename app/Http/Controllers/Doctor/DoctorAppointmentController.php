@@ -175,9 +175,9 @@ class DoctorAppointmentController extends Controller
             'id' => $appointment->medicalRecord->id,
             'symptoms' => $appointment->medicalRecord->symptoms,
             'diagnosis' => $appointment->medicalRecord->diagnosis,
-            'icdCode' => $appointment->medicalRecord->icd_code,
+            'icdCode' => is_array($appointment->medicalRecord->vitals) ? ($appointment->medicalRecord->vitals['icd_code'] ?? 'I10') : 'I10',
             'notes' => $appointment->medicalRecord->doctor_notes,
-            'treatmentPlan' => $appointment->medicalRecord->treatment_plan,
+            'treatmentPlan' => is_array($appointment->medicalRecord->vitals) ? ($appointment->medicalRecord->vitals['treatment_plan'] ?? '') : '',
             'createdAt' => $appointment->medicalRecord->created_at->format('M j, Y g:i A'),
         ] : null;
 

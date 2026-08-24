@@ -14,7 +14,10 @@ const props = defineProps<{
         specialties: string
         bio: string
         avatarUrl: string
+        averageRating: number
+        reviewCount: number
     }
+    departments?: Array<{ id: number; name: string }>
 }>()
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -111,10 +114,13 @@ function saveProfile() {
                         <div class="form-group">
                             <label>Department Affiliation <span>*</span></label>
                             <select v-model="form.department" class="form-control" required>
-                                <option value="Cardiology">Cardiology Department</option>
-                                <option value="Neurology">Neurology Department</option>
-                                <option value="Pediatrics">Pediatrics Department</option>
-                                <option value="Orthopedics">Orthopedics Department</option>
+                                <option
+                                    v-for="dept in (props.departments ?? [])"
+                                    :key="dept.id"
+                                    :value="dept.name"
+                                >
+                                    {{ dept.name }} Department
+                                </option>
                             </select>
                         </div>
 
@@ -172,7 +178,7 @@ function saveProfile() {
                     <span class="public-dept">{{ form.department }} Department</span>
 
                     <div class="public-rating">
-                        ★★★★★ <span>4.9 (98 reviews)</span>
+                        ★★★★★ <span>{{ props.profile?.averageRating ?? 4.9 }} ({{ props.profile?.reviewCount ?? 0 }} reviews)</span>
                     </div>
 
                     <div class="public-fee-row">

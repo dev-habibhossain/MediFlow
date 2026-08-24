@@ -1,32 +1,67 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, useForm } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+
+const props = defineProps<{
+    prescription?: {
+        id: number
+        code: string
+        notes?: string
+        items: Array<{
+            name: string
+            frequency: string
+            duration: string
+            refills: string
+            instructions?: string
+        }>
+    }
+    patient?: {
+        id: string
+        name: string
+        initials: string
+        allergies?: string
+    }
+    doctor?: {
+        name: string
+        license: string
+    }
+}>()
+
+const rxInfo = computed(() => props.prescription ?? {
+    id: 0,
+    code: 'RX-???',
+    notes: '',
+    items: [{ name: '', frequency: '1x Daily (Morning)', duration: '30 Days', refills: '1', instructions: '' }],
+})
+
+const patientInfo = computed(() => props.patient ?? {
+    id: 'MDF-0000',
+    name: 'Patient',
+    initials: 'P',
+    allergies: 'None',
+})
+
+const doctorInfo = computed(() => props.doctor ?? {
+    name: 'Physician',
+    license: 'N/A',
+})
 
 const showToast = ref(false)
+const toastMsg = ref('')
 
-const supersedeReason = ref('Adjusted Amlodipine dosage from 5mg to 10mg based on 24h blood pressure telemetry log.')
-
-const items = ref([
-    {
-        name: 'Amlodipine Besylate 10mg',
-        frequency: '1x Daily (Morning)',
-        duration: '90 Days',
-        refills: '2',
-        instructions: 'Take morning with food',
-    },
-    {
-        name: 'Atorvastatin Calcium 20mg',
-        frequency: '1x Daily (Bedtime)',
-        duration: '90 Days',
-        refills: '2',
-        instructions: 'Take at bedtime, avoid grapefruit',
-    },
-])
-
-const pharmacyNotes = ref('Discontinue previous 5mg Amlodipine. Patient to transition directly to 10mg daily morning dose.')
+const form = useForm({
+    items: (props.prescription?.items ?? [{ name: '', frequency: '1x Daily (Morning)', duration: '30 Days', refills: '1', instructions: '' }]).map(i => ({
+        name: i.name,
+        frequency: i.frequency,
+        duration: i.duration,
+        refills: String(i.refills),
+        instructions: i.instructions ?? '',
+    })),
+    pharmacyNotes: props.prescription?.notes ?? '',
+})
 
 function addRow() {
-    items.value.push({
+    form.items.push({
         name: '',
         frequency: '1x Daily (Morning)',
         duration: '30 Days',
@@ -36,37 +71,40 @@ function addRow() {
 }
 
 function removeRow(index: number) {
-    if (items.value.length > 1) {
-        items.value.splice(index, 1)
+    if (form.items.length > 1) {
+        form.items.splice(index, 1)
     } else {
         alert('Prescription must contain at least one medication line item.')
     }
 }
 
 function handleSupersedeRx() {
-    showToast.value = true
-    setTimeout(() => {
-        showToast.value = false
-        window.location.href = '/doctor/patients/9021'
-    }, 1200)
+    form.post(`/doctor/prescriptions/${rxInfo.value.id}/supersede`, {
+        preserveScroll: false,
+        onSuccess: () => {
+            toastMsg.value = `Prescription #${rxInfo.value.code} superseded successfully. New Rx issued.`
+            showToast.value = true
+            setTimeout(() => { showToast.value = false }, 3000)
+        },
+    })
 }
 </script>
 
 <template>
-    <Head title="Supersede Prescription - MediFlow" />
+    <Head :title="`Supersede Rx #${rxInfo.code} - MediFlow`" />
 
     <!-- TOP HEADER -->
     <div class="top-nav-row">
-        <Link href="/doctor/patients/9021" class="back-btn">
-            ← Cancel & Back to Patient History
+        <Link :href="`/doctor/patients/${patientInfo.id}/history`" class="back-btn">
+            ← Cancel &amp; Back to Patient History
         </Link>
     </div>
 
     <!-- HEADER BANNER CARD -->
     <div class="rx-header-card">
         <div>
-            <span class="ref-badge">Superseding Original Rx #RX-401</span>
-            <h1>Correct & Supersede Prescription</h1>
+            <span class="ref-badge">Superseding Original Rx #{{ rxInfo.code }}</span>
+            <h1>Correct &amp; Supersede Prescription</h1>
         </div>
     </div>
 
@@ -77,22 +115,23 @@ function handleSupersedeRx() {
         </svg>
         <div>
             <h4>Pharmacy Protocol Notice</h4>
-            <p>Issuing this corrected prescription will immediately void Prescription <strong>#RX-401</strong> in the hospital central pharmacy system. The patient and assigned dispensing pharmacy will receive a cancellation broadcast for the previous order.</p>
+            <p>Issuing this corrected prescription will immediately void Prescription <strong>#{{ rxInfo.code }}</strong> in the hospital central pharmacy system. The patient and assigned dispensing pharmacy will receive a cancellation broadcast for the previous order.</p>
         </div>
     </div>
 
     <!-- PATIENT MINI SUMMARY -->
     <div class="patient-summary-box">
         <div class="patient-meta-group">
-            <div class="patient-avatar-md">HH</div>
+            <div class="patient-avatar-md">{{ patientInfo.initials }}</div>
             <div class="patient-info">
-                <b>Habib Hossain</b>
-                <span>Patient ID: #MDF-9021 · Male, 28 Yrs · Original Rx Issued: July 14, 2026</span>
+                <b>{{ patientInfo.name }}</b>
+                <span>Patient ID: #{{ patientInfo.id }} · Prescribing: {{ doctorInfo.name }} ({{ doctorInfo.license }})</span>
+                <span v-if="patientInfo.allergies" class="allergy-note">⚠ Allergy: {{ patientInfo.allergies }}</span>
             </div>
         </div>
 
         <div class="record-rev-badge">
-            New Record ID: <strong>#RX-401-REV1</strong>
+            Superseding: <strong>#{{ rxInfo.code }}</strong>
         </div>
     </div>
 
@@ -103,23 +142,17 @@ function handleSupersedeRx() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                     <path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/>
                 </svg>
-                Corrected Line Items & Regimen
+                Corrected Line Items &amp; Regimen
             </div>
         </div>
 
         <form @submit.prevent="handleSupersedeRx">
-            <!-- REASON FOR SUPERSEDING -->
-            <div class="reason-highlight-box">
-                <label>Reason for Correction / Superseding <span>*</span></label>
-                <input v-model="supersedeReason" type="text" class="form-control" required placeholder="E.g., Adjusted dosage..." />
-            </div>
-
             <!-- MEDICATION ITEMS TABLE -->
             <div class="table-wrap">
                 <table class="med-table">
                     <thead>
                         <tr>
-                            <th style="width: 28%;">Medication Name & Dosage</th>
+                            <th style="width: 28%;">Medication Name &amp; Dosage</th>
                             <th style="width: 20%;">Frequency / Timing</th>
                             <th style="width: 16%;">Duration</th>
                             <th style="width: 14%;">Refills</th>
@@ -128,7 +161,7 @@ function handleSupersedeRx() {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(item, idx) in items" :key="idx" class="med-row">
+                        <tr v-for="(item, idx) in form.items" :key="idx" class="med-row">
                             <td>
                                 <input v-model="item.name" type="text" class="form-control-sm" placeholder="e.g. Amlodipine 10mg" required />
                             </td>
@@ -137,6 +170,8 @@ function handleSupersedeRx() {
                                     <option value="1x Daily (Morning)">1x Daily (Morning)</option>
                                     <option value="1x Daily (Bedtime)">1x Daily (Bedtime)</option>
                                     <option value="2x Daily (12 Hours)">2x Daily (12 Hours)</option>
+                                    <option value="3x Daily (8 Hours)">3x Daily (8 Hours)</option>
+                                    <option value="As Needed (PRN)">As Needed (PRN)</option>
                                 </select>
                             </td>
                             <td>
@@ -147,6 +182,7 @@ function handleSupersedeRx() {
                                     <option value="0">0 Refills</option>
                                     <option value="1">1 Refill</option>
                                     <option value="2">2 Refills</option>
+                                    <option value="3">3 Refills</option>
                                 </select>
                             </td>
                             <td>
@@ -170,13 +206,15 @@ function handleSupersedeRx() {
             <!-- SPECIAL PHARMACY & PATIENT NOTES -->
             <div class="form-group">
                 <label>Special Pharmacy Directions (Superseded Version)</label>
-                <textarea v-model="pharmacyNotes" class="form-control" placeholder="Add additional directions for dispensing pharmacist..."></textarea>
+                <textarea v-model="form.pharmacyNotes" class="form-control" placeholder="Add additional directions for dispensing pharmacist..."></textarea>
             </div>
 
             <!-- BUTTON ROW -->
             <div class="form-actions">
-                <Link href="/doctor/patients/9021" class="btn btn-outline">Cancel Amendment</Link>
-                <button type="submit" class="btn btn-lime">Sign & Issue Superseded Rx #RX-401-REV1</button>
+                <Link :href="`/doctor/patients/${patientInfo.id}/history`" class="btn btn-outline">Cancel Amendment</Link>
+                <button type="submit" class="btn btn-lime" :disabled="form.processing">
+                    {{ form.processing ? 'Processing...' : `Sign & Issue Superseded Rx for #${rxInfo.code}` }}
+                </button>
             </div>
         </form>
     </div>
@@ -186,7 +224,7 @@ function handleSupersedeRx() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
             <polyline points="20 6 9 17 4 12"/>
         </svg>
-        Prescription #RX-401-REV1 issued! #RX-401 voided.
+        {{ toastMsg }}
     </div>
 </template>
 
@@ -254,6 +292,7 @@ function handleSupersedeRx() {
 .patient-avatar-md { width: 46px; height: 46px; border-radius: 50%; background: var(--lime); color: var(--lime-text); font-weight: 800; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .patient-info b { font-size: 15px; font-weight: 800; color: var(--forest); display: block; }
 .patient-info span { font-size: 12.5px; color: var(--ink-muted); display: block; }
+.allergy-note { font-size: 12px !important; color: #991B1B !important; font-weight: 700 !important; }
 .record-rev-badge { font-size: 12.5px; color: var(--ink-muted); font-family: var(--font-mono); }
 
 .form-card {
@@ -267,19 +306,6 @@ function handleSupersedeRx() {
 
 .card-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 14px; flex-wrap: wrap; gap: 12px; }
 .card-title-text { font-size: 16px; font-weight: 800; color: var(--forest); display: flex; align-items: center; gap: 10px; }
-
-.reason-highlight-box {
-    background: #FFFBEB;
-    padding: 16px;
-    border: 1px solid #FDE68A;
-    border-radius: var(--radius-md);
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.reason-highlight-box label { font-size: 13px; font-weight: 700; color: #92400E; }
-.reason-highlight-box label span { color: #DC2626; }
 
 .table-wrap { overflow-x: auto; margin-bottom: 20px; }
 .med-table { width: 100%; border-collapse: collapse; min-width: 760px; }
@@ -306,6 +332,7 @@ textarea.form-control:focus { background: var(--card); }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 28px; border-radius: 999px; font-size: 14.5px; font-weight: 600; text-decoration: none; cursor: pointer; transition: all 150ms ease; }
 .btn-lime { background: var(--lime); color: var(--lime-text); border: 1px solid #c4dc3c; font-weight: 700; }
 .btn-lime:hover { background: #d2e85a; }
+.btn-lime:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
 .btn-outline:hover { border-color: var(--forest); background: var(--cream); }
 

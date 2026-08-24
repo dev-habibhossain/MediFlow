@@ -35,7 +35,11 @@ class DoctorMedicalRecordController extends Controller
             ->where(function ($q) use ($appointmentId) {
                 $q->where('appointment_code', $appointmentId)->orWhere('id', $appointmentId);
             })
-            ->firstOrFail();
+            ->first();
+
+        if (! $appointment) {
+            abort(404, 'Appointment record not found.');
+        }
 
         $doctor = $appointment->doctor ?? $this->getDoctor();
         $patient = $appointment->patient;
@@ -45,7 +49,7 @@ class DoctorMedicalRecordController extends Controller
 
         return Inertia::render('Doctor/Records/Create', [
             'appointment' => [
-                'id' => $appointment->appointment_code,
+                'id' => $appointment->appointment_code ?? (string) $appointment->id,
                 'db_id' => $appointment->id,
                 'date' => $appointment->appointment_date ? Carbon::parse($appointment->appointment_date)->format('M j, Y') : 'Today',
             ],
@@ -66,7 +70,11 @@ class DoctorMedicalRecordController extends Controller
             ->where(function ($q) use ($appointmentId) {
                 $q->where('appointment_code', $appointmentId)->orWhere('id', $appointmentId);
             })
-            ->firstOrFail();
+            ->first();
+
+        if (! $appointment) {
+            abort(404, 'Appointment record not found.');
+        }
 
         $doctor = $appointment->doctor ?? $this->getDoctor();
 
@@ -90,122 +98,52 @@ class DoctorMedicalRecordController extends Controller
         }
 
         $vitals = [
-            'bp' => "{$validated['bpSystolic']}/{$validated['bpDiastolic']}",
-            'bp_systolic' => $validated['bpSystolic'],
-            'bp_diastolic' => $validated['bpDiastolic'],
-            'pulse' => $validated['heartRate'],
-            'weight_kg' => $validated['weight'],
+            'bp' => (isset($validated['bpSystolic']) && isset($validated['bpDiastolic'])) ? "{$validated['bpSystolic']}/{$validated['bpDiastolic']}" : '120/80',
+            'bp_systolic' => $validated['bpSystolic'] ?? 120,
+            'bp_diastolic' => $validated['bpDiastolic'] ?? 80,
+            'pulse' => $validated['heartRate'] ?? 72,
+            'weight_kg' => $validated['weight'] ?? 70,
+            'icd_code' => $validated['icdCode'] ?? 'I10',
+            'treatment_plan' => $validated['soapPlan'] ?? null,
         ];
 
-        MedicalRecord::create([
-            'patient_id' => $appointment->patient_id,
-            'doctor_id' => $doctor->id,
-            'appointment_id' => $appointment->id,
-            'symptoms' => $validated['symptoms'],
-            'diagnosis' => $validated['primaryDiagnosis'],
-            'icd_code' => $validated['icdCode'] ?? 'I10',
-            'vitals' => $vitals,
-            'doctor_notes' => trim(($validated['soapSubjective'] ?? '')."\n\n".($validated['soapObjective'] ?? '')),
-            'treatment_plan' => $validated['soapPlan'] ?? null,
-            'file_attachment_path' => $filePath,
-            'version' => 1,
+        $notesParts = array_filter([
+            $validated['soapSubjective'] ?? null ? "Subjective: {$validated['soapSubjective']}" : null,
+            $validated['soapObjective'] ?? null ? "Objective: {$validated['soapObjective']}" : null,
+            $validated['soapPlan'] ?? null ? "Treatment Plan: {$validated['soapPlan']}" : null,
         ]);
+        $doctorNotes = ! empty($notesParts) ? implode("\n\n", $notesParts) : $validated['symptoms'];
+
+        $record = MedicalRecord::updateOrCreate(
+            ['appointment_id' => $appointment->id],
+            [
+                'patient_id' => $appointment->patient_id,
+                'doctor_id' => $doctor->id,
+                'symptoms' => $validated['symptoms'],
+                'diagnosis' => $validated['primaryDiagnosis'],
+                'vitals' => $vitals,
+                'doctor_notes' => $doctorNotes,
+                'version' => 1,
+            ]
+        );
+
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filePath = $file->store('medical-records', 'public');
+            $record->attachments()->create([
+                'file_path' => $filePath,
+                'file_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getClientMimeType(),
+                'file_size' => $file->getSize(),
+                'uploaded_by' => auth()->id() ?? $doctor->user_id,
+            ]);
+        }
 
         $appointment->status = 'completed';
         $appointment->completed_at = now();
         $appointment->save();
 
-        return redirect()->route('doctor.appointments.show', $appointment->appointment_code)
-            ->with('success', 'Medical Record saved and visit completed successfully.');
-    }
-
-    public function edit(string $id): Response
-    {
-        $doctor = $this->getDoctor();
-
-        $record = MedicalRecord::with(['patient.user', 'appointment'])
-            ->where('doctor_id', $doctor->id)
-            ->where('id', $id)
-            ->firstOrFail();
-
-        $patient = $record->patient;
-        $pUser = $patient?->user;
-        $pName = $pUser?->name ?? 'Patient Account';
-        $initials = strtoupper(substr($pName, 0, 2));
-
-        $vitals = $record->vitals ?? [];
-
-        return Inertia::render('Doctor/Records/Edit', [
-            'record' => [
-                'id' => $record->id,
-                'symptoms' => $record->symptoms,
-                'primaryDiagnosis' => $record->diagnosis,
-                'icdCode' => $record->icd_code ?? 'I10',
-                'bpSystolic' => $vitals['bp_systolic'] ?? 120,
-                'bpDiastolic' => $vitals['bp_diastolic'] ?? 80,
-                'heartRate' => $vitals['pulse'] ?? 72,
-                'weight' => $vitals['weight_kg'] ?? 74.5,
-                'soapSubjective' => $record->doctor_notes,
-                'soapObjective' => '',
-                'soapPlan' => $record->treatment_plan,
-                'version' => $record->version,
-            ],
-            'appointment' => [
-                'id' => $record->appointment?->appointment_code ?? "MDF-{$record->appointment_id}",
-                'date' => $record->created_at->format('M j, Y'),
-            ],
-            'patient' => [
-                'id' => $patient?->patient_code ?? 'MDF-9021',
-                'name' => $pName,
-                'initials' => $initials,
-                'gender' => ucfirst($patient?->gender ?? 'Male'),
-                'age' => $patient?->date_of_birth ? Carbon::parse($patient->date_of_birth)->age : 28,
-                'bloodGroup' => $patient?->blood_group ?? 'O+',
-            ],
-        ]);
-    }
-
-    public function update(Request $request, string $id): RedirectResponse
-    {
-        $doctor = $this->getDoctor();
-
-        $record = MedicalRecord::where('doctor_id', $doctor->id)
-            ->where('id', $id)
-            ->firstOrFail();
-
-        $validated = $request->validate([
-            'symptoms' => 'required|string',
-            'primaryDiagnosis' => 'required|string',
-            'icdCode' => 'nullable|string',
-            'bpSystolic' => 'nullable|numeric',
-            'bpDiastolic' => 'nullable|numeric',
-            'heartRate' => 'nullable|numeric',
-            'weight' => 'nullable|numeric',
-            'soapSubjective' => 'nullable|string',
-            'soapPlan' => 'nullable|string',
-        ]);
-
-        $vitals = [
-            'bp' => "{$validated['bpSystolic']}/{$validated['bpDiastolic']}",
-            'bp_systolic' => $validated['bpSystolic'],
-            'bp_diastolic' => $validated['bpDiastolic'],
-            'pulse' => $validated['heartRate'],
-            'weight_kg' => $validated['weight'],
-        ];
-
-        $record->update([
-            'symptoms' => $validated['symptoms'],
-            'diagnosis' => $validated['primaryDiagnosis'],
-            'icd_code' => $validated['icdCode'] ?? 'I10',
-            'vitals' => $vitals,
-            'doctor_notes' => $validated['soapSubjective'],
-            'treatment_plan' => $validated['soapPlan'],
-            'version' => $record->version + 1,
-        ]);
-
-        $appCode = $record->appointment?->appointment_code ?? $record->appointment_id;
-
-        return redirect()->route('doctor.appointments.show', $appCode)
-            ->with('success', 'Medical Record amended successfully.');
+        return redirect()->route('doctor.patients.history', $appointment->patient_id)
+            ->with('success', 'Medical Record saved and added to patient history.');
     }
 }

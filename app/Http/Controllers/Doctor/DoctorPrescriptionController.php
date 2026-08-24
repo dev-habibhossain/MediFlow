@@ -154,18 +154,6 @@ class DoctorPrescriptionController extends Controller
             'instructions' => $item->instructions,
         ])->toArray();
 
-        if (empty($items)) {
-            $items = [
-                [
-                    'name' => 'Amlodipine Besylate 5mg',
-                    'frequency' => '1x Daily (Morning)',
-                    'duration' => '90 Days',
-                    'refills' => '2',
-                    'instructions' => 'Take in the morning',
-                ],
-            ];
-        }
-
         return Inertia::render('Doctor/Prescriptions/Supersede', [
             'prescription' => [
                 'id' => $prescription->id,

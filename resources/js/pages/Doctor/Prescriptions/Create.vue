@@ -39,23 +39,23 @@ const props = defineProps<{
 }>()
 
 const appInfo = computed(() => props.appointment ?? {
-    id: '101',
-    db_id: 101,
+    id: 'N/A',
+    db_id: 0,
 })
 
 const patientInfo = computed(() => props.patient ?? {
-    id: 'MDF-9021',
-    name: 'Habib Hossain',
-    initials: 'HH',
-    gender: 'Male',
-    age: 28,
-    bloodGroup: 'O+',
-    allergies: 'Penicillin (Mild)',
+    id: 'N/A',
+    name: 'Patient',
+    initials: 'P',
+    gender: 'N/A',
+    age: 0,
+    bloodGroup: 'N/A',
+    allergies: 'None',
 })
 
 const doctorInfo = computed(() => props.doctor ?? {
-    name: 'Dr. Sarah Jenkins',
-    license: 'MD-90412',
+    name: 'Physician',
+    license: 'N/A',
 })
 
 const showToast = ref(false)
@@ -307,7 +307,7 @@ function deletePrescription(id: number, code: string) {
     </div>
 
     <!-- PREVIOUSLY ISSUED MEDICATIONS FOR THIS APPOINTMENT -->
-    <div v-if="existingPrescriptions && existingPrescriptions.length > 0" class="form-card" style="margin-top: 32px;">
+    <div v-if="props.existingPrescriptions && props.existingPrescriptions.length > 0" class="form-card" style="margin-top: 32px;">
         <div class="card-title-row">
             <div class="card-title-text">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
