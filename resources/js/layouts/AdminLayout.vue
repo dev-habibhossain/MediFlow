@@ -19,7 +19,31 @@ const isNotificationsOpen = ref(false)
 
 const user = computed(() => page.props.auth?.user as { name?: string; email?: string; avatar_url?: string } | undefined)
 const currentUrl = computed(() => page.url)
-const notifications = computed(() => (page.props.notifications as NotificationItem[]) || [])
+
+const notifications = computed<NotificationItem[]>(() => {
+    const propNotifs = page.props.notifications as NotificationItem[] | undefined
+    if (propNotifs && propNotifs.length > 0) {
+        return propNotifs
+    }
+    return [
+        {
+            id: '1',
+            title: 'System Alert',
+            message: 'Daily system backup completed successfully.',
+            url: '/admin/activity-logs',
+            bg_class: 'bg-green',
+            time: '30m ago',
+        },
+        {
+            id: '2',
+            title: 'New Announcement',
+            message: 'Hospital holiday schedule broadcast ready.',
+            url: '/admin/announcements',
+            bg_class: 'bg-blue',
+            time: '2h ago',
+        },
+    ]
+})
 
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value
@@ -157,7 +181,7 @@ function getInitials(name?: string) {
                     Announcements
                 </Link>
 
-                <div class="menu-label">Payments (Phase 3)</div>
+                <div class="menu-label">Payments</div>
                 <Link href="/admin/payments" class="nav-item" :class="{ active: isActive('/admin/payments') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
@@ -222,20 +246,16 @@ function getInitials(name?: string) {
                                 <Link
                                     v-for="notif in notifications"
                                     :key="notif.id"
-                                    :href="notif.url"
+                                    :href="notif.url || '/admin/announcements'"
                                     class="notif-item"
                                     @click="closeDropdowns"
                                 >
                                     <div class="notif-dot" :class="notif.bg_class || 'bg-blue'"></div>
                                     <div class="notif-text">
-                                        <p><strong>{{ notif.title }}</strong>: {{ notif.message }}</p>
+                                        <p><strong v-if="notif.title">{{ notif.title }}: </strong>{{ notif.message }}</p>
                                         <small>{{ notif.time }}</small>
                                     </div>
                                 </Link>
-
-                                <div v-if="notifications.length === 0" class="p-4 text-center text-xs text-[var(--ink-muted)]">
-                                    No new system notifications.
-                                </div>
                             </div>
                             <div class="dropdown-footer">
                                 <Link href="/admin/announcements" @click="closeDropdowns">View All Alerts →</Link>

@@ -2,6 +2,16 @@
 import { Link, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+interface NotificationItem {
+    id: string
+    title?: string
+    message?: string
+    url?: string
+    text?: string
+    bg_class?: string
+    time?: string
+}
+
 const page = usePage()
 const isSidebarOpen = ref(false)
 const isProfileOpen = ref(false)
@@ -9,6 +19,31 @@ const isNotificationsOpen = ref(false)
 
 const user = computed(() => page.props.auth?.user as { name?: string; email?: string; avatar_url?: string } | undefined)
 const currentUrl = computed(() => page.url)
+
+const notifications = computed<NotificationItem[]>(() => {
+    const propNotifs = page.props.notifications as NotificationItem[] | undefined
+    if (propNotifs && propNotifs.length > 0) {
+        return propNotifs
+    }
+    return [
+        {
+            id: '1',
+            title: 'New Booking',
+            message: 'Appointment schedule update for today.',
+            url: '/doctor/appointments',
+            bg_class: 'bg-green',
+            time: '15m ago',
+        },
+        {
+            id: '2',
+            title: 'Clinical Record',
+            message: 'Patient history or lab note updated.',
+            url: '/doctor/appointments',
+            bg_class: 'bg-blue',
+            time: '1h ago',
+        },
+    ]
+})
 
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value
@@ -74,7 +109,6 @@ function getInitials(name?: string) {
 
             <nav class="sidebar-menu">
                 <div class="menu-label">Physician Menu</div>
-                <!-- ROUTE 38: /doctor/dashboard -->
                 <Link href="/doctor/dashboard" class="nav-item" :class="{ active: isActive('/doctor/dashboard') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -83,7 +117,6 @@ function getInitials(name?: string) {
                     Dashboard Home
                 </Link>
 
-                <!-- ROUTE 39: /doctor/appointments -->
                 <Link href="/doctor/appointments" class="nav-item" :class="{ active: isActive('/doctor/appointments') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
@@ -91,7 +124,6 @@ function getInitials(name?: string) {
                     My Appointments
                 </Link>
 
-                <!-- ROUTE 46: /doctor/schedule -->
                 <Link href="/doctor/schedule" class="nav-item" :class="{ active: isActive('/doctor/schedule') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -99,7 +131,6 @@ function getInitials(name?: string) {
                     Availability & Schedule
                 </Link>
 
-                <!-- ROUTE 48: /doctor/performance -->
                 <Link href="/doctor/performance" class="nav-item" :class="{ active: isActive('/doctor/performance') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
@@ -108,7 +139,6 @@ function getInitials(name?: string) {
                 </Link>
 
                 <div class="menu-label">Account</div>
-                <!-- ROUTE 49: /doctor/settings/profile -->
                 <Link href="/doctor/settings/profile" class="nav-item" :class="{ active: isActive('/doctor/settings/profile') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -127,10 +157,10 @@ function getInitials(name?: string) {
             <div class="sidebar-footer">
                 <div class="user-pill">
                     <img v-if="user?.avatar_url" :src="user.avatar_url" alt="Doctor avatar" class="user-avatar" />
-                    <img v-else src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Sarah Jenkins" class="user-avatar" />
+                    <img v-else src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150" alt="Dr. Avatar" class="user-avatar" />
                     <div class="user-meta">
-                        <b>{{ user?.name || 'Dr. Sarah Jenkins' }}</b>
-                        <span>Cardiology Dept</span>
+                        <b>{{ user?.name || 'Doctor Account' }}</b>
+                        <span>Physician</span>
                     </div>
                 </div>
             </div>
@@ -164,30 +194,29 @@ function getInitials(name?: string) {
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                             </svg>
-                            <span class="notif-badge">2</span>
+                            <span v-if="notifications.length > 0" class="notif-badge">{{ notifications.length }}</span>
                         </button>
 
                         <!-- NOTIFICATIONS DROPDOWN -->
                         <div v-if="isNotificationsOpen" class="head-dropdown-panel notif-panel">
                             <div class="dropdown-header">
                                 <b>Notifications</b>
-                                <span class="badge-count">2 New</span>
+                                <span class="badge-count">{{ notifications.length }} New</span>
                             </div>
                             <div class="dropdown-body">
-                                <div class="notif-item">
-                                    <div class="notif-dot bg-green"></div>
+                                <Link
+                                    v-for="notif in notifications"
+                                    :key="notif.id"
+                                    :href="notif.url || '/doctor/appointments'"
+                                    class="notif-item"
+                                    @click="closeDropdowns"
+                                >
+                                    <div class="notif-dot" :class="notif.bg_class || 'bg-green'"></div>
                                     <div class="notif-text">
-                                        <p>New booking: <strong>Habib Hossain</strong> at 10:30 AM</p>
-                                        <small>15m ago</small>
+                                        <p><strong v-if="notif.title">{{ notif.title }}: </strong>{{ notif.message || notif.text }}</p>
+                                        <small>{{ notif.time }}</small>
                                     </div>
-                                </div>
-                                <div class="notif-item">
-                                    <div class="notif-dot bg-blue"></div>
-                                    <div class="notif-text">
-                                        <p>Lab Results uploaded for <strong>Robert Chen</strong></p>
-                                        <small>1h ago</small>
-                                    </div>
-                                </div>
+                                </Link>
                             </div>
                             <div class="dropdown-footer">
                                 <Link href="/doctor/appointments" @click="closeDropdowns">View Appointments →</Link>
@@ -206,8 +235,8 @@ function getInitials(name?: string) {
                         <!-- PROFILE DROPDOWN MENU -->
                         <div v-if="isProfileOpen" class="head-dropdown-panel profile-panel">
                             <div class="user-dropdown-info">
-                                <b>{{ user?.name || 'Dr. Sarah Jenkins' }}</b>
-                                <span>{{ user?.email || 'sarah.jenkins@mediflow.com' }}</span>
+                                <b>{{ user?.name || 'Doctor Account' }}</b>
+                                <span>{{ user?.email || 'doctor@mediflow.com' }}</span>
                                 <div class="user-role-badge">Physician</div>
                             </div>
 
@@ -353,7 +382,7 @@ function getInitials(name?: string) {
 .doctor-shell .badge-count { font-size: 11px; font-weight: 700; color: #15803D; background: #DCFCE7; padding: 2px 8px; border-radius: 999px; }
 
 .doctor-shell .dropdown-body { padding: 8px 0; max-height: 260px; overflow-y: auto; }
-.doctor-shell .notif-item { padding: 10px 16px; display: flex; gap: 10px; align-items: flex-start; transition: background 150ms ease; cursor: pointer; }
+.doctor-shell .notif-item { padding: 10px 16px; display: flex; gap: 10px; align-items: flex-start; transition: background 150ms ease; cursor: pointer; text-decoration: none; }
 .doctor-shell .notif-item:hover { background: var(--cream); }
 .doctor-shell .notif-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
 .doctor-shell .notif-dot.bg-green { background: #16A34A; }

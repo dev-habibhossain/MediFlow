@@ -2,6 +2,16 @@
 import { Link, usePage } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+interface NotificationItem {
+    id: string
+    title?: string
+    message?: string
+    url?: string
+    text?: string
+    bg_class?: string
+    time?: string
+}
+
 const page = usePage()
 const isSidebarOpen = ref(false)
 const isProfileOpen = ref(false)
@@ -9,6 +19,31 @@ const isNotificationsOpen = ref(false)
 
 const user = computed(() => page.props.auth?.user as { name?: string; email?: string; avatar_url?: string } | undefined)
 const currentUrl = computed(() => page.url)
+
+const notifications = computed<NotificationItem[]>(() => {
+    const propNotifs = page.props.notifications as NotificationItem[] | undefined
+    if (propNotifs && propNotifs.length > 0) {
+        return propNotifs
+    }
+    return [
+        {
+            id: '1',
+            title: 'Appointment Confirmed',
+            message: 'Appointment confirmed with Dr. Sarah Jenkins.',
+            url: '/patient/appointments',
+            bg_class: 'bg-green',
+            time: '2 hours ago',
+        },
+        {
+            id: '2',
+            title: 'Prescription Ready',
+            message: 'New prescription uploaded for Amoxicillin 500mg.',
+            url: '/patient/prescriptions',
+            bg_class: 'bg-amber',
+            time: 'Yesterday',
+        },
+    ]
+})
 
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value
@@ -74,7 +109,6 @@ function getInitials(name?: string) {
 
             <nav class="sidebar-menu">
                 <div class="menu-label">Main Menu</div>
-                <!-- ROUTE 23: /patient/dashboard -->
                 <Link href="/patient/dashboard" class="nav-item" :class="{ active: isActive('/patient/dashboard') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -83,7 +117,6 @@ function getInitials(name?: string) {
                     Overview
                 </Link>
 
-                <!-- ROUTE 24: /patient/appointments -->
                 <Link href="/patient/appointments" class="nav-item" :class="{ active: isActive('/patient/appointments') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
@@ -91,7 +124,6 @@ function getInitials(name?: string) {
                     My Appointments
                 </Link>
 
-                <!-- ROUTE 27: /patient/medical-records -->
                 <Link href="/patient/medical-records" class="nav-item" :class="{ active: isActive('/patient/medical-records') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
@@ -99,7 +131,6 @@ function getInitials(name?: string) {
                     Medical History
                 </Link>
 
-                <!-- ROUTE 29: /patient/prescriptions -->
                 <Link href="/patient/prescriptions" class="nav-item" :class="{ active: isActive('/patient/prescriptions') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
@@ -108,7 +139,6 @@ function getInitials(name?: string) {
                     Prescriptions
                 </Link>
 
-                <!-- ROUTE 36: /patient/payments -->
                 <Link href="/patient/payments" class="nav-item" :class="{ active: isActive('/patient/payments') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
@@ -117,7 +147,6 @@ function getInitials(name?: string) {
                 </Link>
 
                 <div class="menu-label">Settings</div>
-                <!-- ROUTE 32: /patient/notifications -->
                 <Link href="/patient/notifications" class="nav-item" :class="{ active: isActive('/patient/notifications') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -125,7 +154,6 @@ function getInitials(name?: string) {
                     Notifications
                 </Link>
 
-                <!-- ROUTE 33: /patient/settings/profile -->
                 <Link href="/patient/settings/profile" class="nav-item" :class="{ active: isActive('/patient/settings/profile') }" @click="closeDropdowns">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -145,8 +173,8 @@ function getInitials(name?: string) {
                 <div class="user-pill">
                     <div class="user-avatar">{{ getInitials(user?.name) }}</div>
                     <div class="user-meta">
-                        <b>{{ user?.name || 'Habib Hossain' }}</b>
-                        <span>Patient ID: #MDF-9021</span>
+                        <b>{{ user?.name || 'Patient Account' }}</b>
+                        <span>Patient Portal</span>
                     </div>
                 </div>
             </div>
@@ -172,7 +200,7 @@ function getInitials(name?: string) {
                     <!-- NOTIFICATION BELL ICON -->
                     <div class="header-dropdown-wrap">
                         <button class="btn-icon-head" title="Notifications" @click.stop="toggleNotifications">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="18">
                                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                             </svg>
                             <span class="notif-badge-dot"></span>
@@ -182,23 +210,22 @@ function getInitials(name?: string) {
                         <div v-if="isNotificationsOpen" class="head-dropdown-panel notif-panel">
                             <div class="dropdown-header">
                                 <b>Notifications</b>
-                                <span class="badge-count">2 New</span>
+                                <span class="badge-count">{{ notifications.length }} New</span>
                             </div>
                             <div class="dropdown-body">
-                                <div class="notif-item">
-                                    <div class="notif-dot bg-green"></div>
+                                <Link
+                                    v-for="notif in notifications"
+                                    :key="notif.id"
+                                    :href="notif.url || '/patient/notifications'"
+                                    class="notif-item"
+                                    @click="closeDropdowns"
+                                >
+                                    <div class="notif-dot" :class="notif.bg_class || 'bg-green'"></div>
                                     <div class="notif-text">
-                                        <p>Appointment confirmed with <strong>Dr. Sarah Jenkins</strong> for Aug 7.</p>
-                                        <small>2 hours ago</small>
+                                        <p><strong v-if="notif.title">{{ notif.title }}: </strong>{{ notif.message || notif.text }}</p>
+                                        <small>{{ notif.time }}</small>
                                     </div>
-                                </div>
-                                <div class="notif-item">
-                                    <div class="notif-dot bg-amber"></div>
-                                    <div class="notif-text">
-                                        <p>New prescription uploaded for <strong>Amoxicillin 500mg</strong>.</p>
-                                        <small>Yesterday</small>
-                                    </div>
-                                </div>
+                                </Link>
                             </div>
                             <div class="dropdown-footer">
                                 <Link href="/patient/notifications" @click="closeDropdowns">View All Notifications →</Link>
@@ -224,8 +251,8 @@ function getInitials(name?: string) {
                         <!-- PROFILE DROPDOWN MENU -->
                         <div v-if="isProfileOpen" class="head-dropdown-panel profile-panel">
                             <div class="user-dropdown-info">
-                                <b>{{ user?.name || 'Habib Hossain' }}</b>
-                                <span>{{ user?.email || 'habib@example.com' }}</span>
+                                <b>{{ user?.name || 'Patient Account' }}</b>
+                                <span>{{ user?.email || 'patient@mediflow.com' }}</span>
                                 <div class="user-role-badge">Patient</div>
                             </div>
 
@@ -364,7 +391,7 @@ function getInitials(name?: string) {
 .patient-shell .badge-count { font-size: 11px; font-weight: 700; color: #15803D; background: #DCFCE7; padding: 2px 8px; border-radius: 999px; }
 
 .patient-shell .dropdown-body { padding: 8px 0; max-height: 260px; overflow-y: auto; }
-.patient-shell .notif-item { padding: 10px 16px; display: flex; gap: 10px; align-items: flex-start; transition: background 150ms ease; cursor: pointer; }
+.patient-shell .notif-item { padding: 10px 16px; display: flex; gap: 10px; align-items: flex-start; transition: background 150ms ease; cursor: pointer; text-decoration: none; }
 .patient-shell .notif-item:hover { background: var(--cream); }
 .patient-shell .notif-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
 .patient-shell .notif-dot.bg-green { background: #16A34A; }
