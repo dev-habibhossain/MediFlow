@@ -120,19 +120,30 @@ class DoctorScheduleController extends Controller
     {
         $doctor = $this->getDoctor();
 
+        $typeLabels = [
+            'vacation' => 'Planned Vacation / Leave',
+            'conference' => 'Medical Conference / Seminar',
+            'emergency' => 'Emergency Absence',
+            'overtime' => 'Overtime / Extra Duty Shift',
+            'unavailable' => 'Unavailable',
+            'extra_hours' => 'Extra Hours',
+        ];
+
         $exceptions = DoctorScheduleException::where('doctor_id', $doctor->id)
             ->orderBy('exception_date', 'desc')
             ->get()
-            ->map(function ($exc) {
+            ->map(function ($exc) use ($typeLabels) {
                 $dateFormatted = Carbon::parse($exc->exception_date)->format('M d, Y');
+                $typeKey = strtolower($exc->type ?? 'vacation');
+                $typeDisplay = $typeLabels[$typeKey] ?? ucfirst($exc->type ?? 'Vacation');
 
                 return [
                     'id' => "EXC-{$exc->id}",
                     'db_id' => $exc->id,
-                    'type' => ucfirst($exc->type ?? 'Vacation'),
+                    'type' => $typeDisplay,
                     'range' => $dateFormatted,
                     'days' => '1 Day',
-                    'reason' => $exc->reason ?? 'Schedule exception.',
+                    'reason' => $exc->reason ?? 'Schedule exception on record.',
                     'status' => 'approved',
                     'statusLabel' => 'Approved',
                 ];
@@ -148,28 +159,32 @@ class DoctorScheduleController extends Controller
         $doctor = $this->getDoctor();
 
         $validated = $request->validate([
-            'exceptionType' => 'required|string',
+            'exceptionType' => 'required|string|in:vacation,conference,emergency,overtime,unavailable,extra_hours',
             'startDate' => 'required|date',
             'endDate' => 'required|date|after_or_equal:startDate',
-            'reasonNotes' => 'required|string',
+            'reasonNotes' => 'required|string|max:255',
         ]);
 
         $start = Carbon::parse($validated['startDate']);
         $end = Carbon::parse($validated['endDate']);
 
         while ($start->lte($end)) {
-            DoctorScheduleException::create([
-                'doctor_id' => $doctor->id,
-                'exception_date' => $start->format('Y-m-d'),
-                'type' => $validated['exceptionType'],
-                'reason' => $validated['reasonNotes'],
-                'start_time' => '00:00:00',
-                'end_time' => '23:59:59',
-            ]);
+            DoctorScheduleException::updateOrCreate(
+                [
+                    'doctor_id' => $doctor->id,
+                    'exception_date' => $start->format('Y-m-d'),
+                    'type' => $validated['exceptionType'],
+                ],
+                [
+                    'reason' => $validated['reasonNotes'],
+                    'start_time' => '00:00:00',
+                    'end_time' => '23:59:59',
+                ]
+            );
             $start->addDay();
         }
 
-        return redirect()->back()->with('success', 'Schedule exception request submitted.');
+        return redirect()->back()->with('success', 'Schedule exception request submitted successfully.');
     }
 
     public function destroyException(string $id): RedirectResponse
@@ -182,6 +197,6 @@ class DoctorScheduleController extends Controller
             })
             ->delete();
 
-        return redirect()->back()->with('success', 'Schedule exception cancelled.');
+        return redirect()->back()->with('success', 'Schedule exception cancelled successfully.');
     }
 }
