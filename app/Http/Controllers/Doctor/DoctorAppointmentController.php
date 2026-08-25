@@ -217,13 +217,9 @@ class DoctorAppointmentController extends Controller
 
     public function updateStatus(Request $request, string $id): RedirectResponse
     {
-        $doctor = $this->getDoctor();
-
-        $appointment = Appointment::where('doctor_id', $doctor->id)
-            ->where(function ($q) use ($id) {
-                $q->where('appointment_code', $id)->orWhere('id', $id);
-            })
-            ->firstOrFail();
+        $appointment = Appointment::where(function ($q) use ($id) {
+            $q->where('appointment_code', $id)->orWhere('id', $id);
+        })->firstOrFail();
 
         $validated = $request->validate([
             'status' => 'required|string|in:confirmed,in_progress,completed,no_show,cancelled,scheduled,pending',
