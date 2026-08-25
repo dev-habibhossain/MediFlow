@@ -43,9 +43,13 @@ class DoctorAppointmentController extends Controller
         if ($activeTab === 'today') {
             $query->whereDate('appointment_date', today());
         } elseif ($activeTab === 'upcoming') {
-            $query->whereDate('appointment_date', '>=', today());
+            $query->whereDate('appointment_date', '>=', today())
+                ->whereNotIn('status', ['completed', 'cancelled', 'no_show']);
         } elseif ($activeTab === 'past') {
-            $query->whereDate('appointment_date', '<', today());
+            $query->where(function ($q) {
+                $q->whereDate('appointment_date', '<', today())
+                    ->orWhereIn('status', ['completed', 'cancelled', 'no_show']);
+            });
         }
 
         if (! empty($selectedDate)) {
@@ -53,26 +57,72 @@ class DoctorAppointmentController extends Controller
         }
 
         if ($statusFilter && $statusFilter !== 'All Statuses') {
-            $normalizedStatus = strtolower(str_replace(' ', '_', $statusFilter));
-            $query->where('status', $normalizedStatus);
+            if ($statusFilter === 'Active Queue') {
+                $query->whereIn('status', ['confirmed', 'pending']);
+            } elseif ($statusFilter === 'Finished') {
+                $query->whereIn('status', ['completed', 'cancelled', 'no_show']);
+            } else {
+                $normalizedStatus = strtolower(str_replace(' ', '_', $statusFilter));
+                $query->where('status', $normalizedStatus);
+            }
         }
 
         if ($searchQuery) {
-            $query->whereHas('patient.user', function ($q) use ($searchQuery) {
-                $q->where('name', 'like', "%{$searchQuery}%")
-                    ->orWhere('email', 'like', "%{$searchQuery}%");
-            })->orWhere('appointment_code', 'like', "%{$searchQuery}%");
+            $query->where(function ($q) use ($searchQuery) {
+                $q->whereHas('patient.user', function ($uq) use ($searchQuery) {
+                    $uq->where('name', 'like', "%{$searchQuery}%")
+                        ->orWhere('email', 'like', "%{$searchQuery}%");
+                })->orWhere('appointment_code', 'like', "%{$searchQuery}%");
+            });
         }
 
-        $appointments = $query->orderBy('appointment_date', 'desc')
-            ->orderBy('start_time', 'asc')
-            ->get()
-            ->map(function ($app) {
+        $now = Carbon::now();
+
+        $appointments = $query->get()
+            ->sortBy(function ($app) use ($now) {
+                $appDate = $app->appointment_date ? Carbon::parse($app->appointment_date) : null;
+                $startTimeStr = $app->start_time ?? '00:00:00';
+                $appDateTime = $appDate ? Carbon::parse($appDate->format('Y-m-d').' '.$startTimeStr) : null;
+
+                $isTimePassed = $appDateTime ? $appDateTime->lt($now) : false;
+                $isFinished = in_array($app->status, ['completed', 'cancelled', 'no_show']);
+                $isInProgress = $app->status === 'in_progress';
+
+                if (! $isFinished && ! $isInProgress && ! $isTimePassed) {
+                    $priority = 1; // Active waiting / upcoming at top
+                } elseif ($isInProgress) {
+                    $priority = 2; // Doctor seeing patient right now
+                } elseif ($isTimePassed && ! $isFinished) {
+                    $priority = 3; // Scheduled time passed
+                } else {
+                    $priority = 4; // Finished (completed, cancelled, no_show) at last
+                }
+
+                $timeKey = $appDateTime ? $appDateTime->timestamp : 0;
+                $secondarySort = ($priority === 1) ? $timeKey : -$timeKey;
+
+                return [$priority, $secondarySort];
+            })
+            ->values()
+            ->map(function ($app) use ($now) {
                 $pUser = $app->patient?->user;
                 $pName = $pUser?->name ?? 'Patient Account';
                 $initials = strtoupper(substr($pName, 0, 2));
                 $dateFormatted = $app->appointment_date ? Carbon::parse($app->appointment_date)->format('M j, Y') : 'Today';
                 $timeFormatted = $app->start_time ? Carbon::parse($app->start_time)->format('g:i A') : '10:00 AM';
+
+                $appDate = $app->appointment_date ? Carbon::parse($app->appointment_date) : null;
+                $startTimeStr = $app->start_time ?? '00:00:00';
+                $appDateTime = $appDate ? Carbon::parse($appDate->format('Y-m-d').' '.$startTimeStr) : null;
+
+                $isTimePassed = $appDateTime ? $appDateTime->lt($now) : false;
+                $isFinished = in_array($app->status, ['completed', 'cancelled', 'no_show']);
+                $isInProgress = $app->status === 'in_progress';
+
+                $statusLabel = ucfirst(str_replace('_', ' ', $app->status));
+                if ($isTimePassed && ! $isFinished && ! $isInProgress) {
+                    $statusLabel .= ' (Time Passed)';
+                }
 
                 return [
                     'id' => $app->appointment_code,
@@ -86,14 +136,18 @@ class DoctorAppointmentController extends Controller
                     'avatarInitials' => $initials,
                     'visitType' => 'In-Person',
                     'status' => $app->status,
-                    'statusLabel' => ucfirst(str_replace('_', ' ', $app->status)),
-                    'actionLabel' => 'Manage',
+                    'statusLabel' => $statusLabel,
+                    'isTimePassed' => $isTimePassed && ! $isFinished && ! $isInProgress,
+                    'isFinished' => $isFinished,
+                    'isInProgress' => $isInProgress,
+                    'actionLabel' => $isInProgress ? 'In Session' : ($isFinished ? 'View Details' : 'Manage'),
                     'actionUrl' => route('doctor.appointments.show', $app->appointment_code),
                 ];
             });
 
         $todayCount = Appointment::where('doctor_id', $doctor->id)
             ->whereDate('appointment_date', today())
+            ->whereNotIn('status', ['completed', 'cancelled', 'no_show'])
             ->count();
 
         return Inertia::render('Doctor/Appointments/Index', [

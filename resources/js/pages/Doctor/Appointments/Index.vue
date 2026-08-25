@@ -16,6 +16,9 @@ const props = defineProps<{
         visitType: string
         status: string
         statusLabel: string
+        isTimePassed?: boolean
+        isFinished?: boolean
+        isInProgress?: boolean
         actionLabel: string
         actionUrl: string
     }>
@@ -70,21 +73,21 @@ const list = computed(() => props.appointments ?? [])
                 :class="{ active: activeTab === 'today' }"
                 @click="applyFilters('today')"
             >
-                Today <span class="tab-badge">{{ props.todayCount ?? 0 }}</span>
+                Today's Queue <span class="tab-badge">{{ props.todayCount ?? 0 }}</span>
             </button>
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'upcoming' }"
                 @click="applyFilters('upcoming')"
             >
-                Upcoming
+                Upcoming Active
             </button>
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'past' }"
                 @click="applyFilters('past')"
             >
-                Past
+                Past & Finished
             </button>
         </div>
 
@@ -92,6 +95,8 @@ const list = computed(() => props.appointments ?? [])
             <input v-model="selectedDate" type="date" class="select-input" @change="applyFilters()" />
             <select v-model="statusFilter" class="select-input" @change="applyFilters()">
                 <option>All Statuses</option>
+                <option>Active Queue</option>
+                <option>In Progress</option>
                 <option>Confirmed</option>
                 <option>Pending</option>
                 <option>Completed</option>
@@ -120,7 +125,15 @@ const list = computed(() => props.appointments ?? [])
                             No appointments found for the selected tab or criteria.
                         </td>
                     </tr>
-                    <tr v-for="app in list" :key="app.id">
+                    <tr
+                        v-for="app in list"
+                        :key="app.id"
+                        :class="{
+                            'row-in-progress': app.isInProgress,
+                            'row-time-passed': app.isTimePassed,
+                            'row-finished': app.isFinished
+                        }"
+                    >
                         <td>
                             <b>{{ app.date }}</b><br />
                             <span class="time-sub">{{ app.time }}</span>
@@ -142,8 +155,11 @@ const list = computed(() => props.appointments ?? [])
                                 class="badge"
                                 :class="{
                                     'badge-confirmed': app.status === 'confirmed',
+                                    'badge-in-progress': app.isInProgress,
                                     'badge-pending': app.status === 'pending',
-                                    'badge-completed': app.status === 'completed'
+                                    'badge-completed': app.status === 'completed',
+                                    'badge-cancelled': app.status === 'cancelled' || app.status === 'no_show',
+                                    'badge-passed': app.isTimePassed
                                 }"
                             >
                                 {{ app.statusLabel }}
@@ -153,7 +169,11 @@ const list = computed(() => props.appointments ?? [])
                             <Link
                                 :href="app.actionUrl"
                                 class="btn-table-action"
-                                :class="{ primary: app.status === 'confirmed' }"
+                                :class="{
+                                    primary: app.status === 'confirmed',
+                                    in_progress_btn: app.isInProgress,
+                                    muted_btn: app.isFinished
+                                }"
                             >
                                 {{ app.actionLabel }}
                             </Link>
@@ -224,6 +244,10 @@ const list = computed(() => props.appointments ?? [])
 .data-table td { padding: 20px 24px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
 .data-table tr:last-child td { border-bottom: none; }
 
+.row-in-progress { background: #FEFCE8; }
+.row-time-passed { background: #F8FAFC; opacity: 0.88; }
+.row-finished { background: #FAF9F6; opacity: 0.8; }
+
 .time-sub { font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted); }
 
 .patient-cell { display: flex; align-items: center; gap: 12px; }
@@ -233,11 +257,17 @@ const list = computed(() => props.appointments ?? [])
 
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .badge-confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
+.badge-in-progress { background: #FEF3C7; color: #B45309; border: 1px solid #FCD34D; }
 .badge-pending { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
 .badge-completed { background: var(--cream-alt); color: var(--ink-muted); border: 1px solid var(--line); }
+.badge-cancelled { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
+.badge-passed { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
 
 .btn-table-action { height: 36px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--ink); transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .btn-table-action:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
 .btn-table-action.primary { background: var(--forest); color: #fff; }
 .btn-table-action.primary:hover { background: var(--forest-2); }
+.btn-table-action.in_progress_btn { background: #D97706; color: #fff; border-color: #D97706; }
+.btn-table-action.in_progress_btn:hover { background: #B45309; }
+.btn-table-action.muted_btn { background: var(--cream-alt); color: var(--ink-muted); }
 </style>
