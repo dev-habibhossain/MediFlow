@@ -161,7 +161,7 @@ function revokeSession(id: number) {
         </div>
 
         <div class="session-list">
-            <div v-for="sess in sessions" :key="sess.id" class="session-item" :class="{ opacity-50: sess.revoked }">
+            <div v-for="sess in sessions" :key="sess.id" class="session-item" :class="{ 'opacity-50': sess.revoked }">
                 <div class="session-left">
                     <div class="session-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">

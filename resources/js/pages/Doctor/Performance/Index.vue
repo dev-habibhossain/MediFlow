@@ -1,29 +1,56 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3'
+import { computed } from 'vue'
 
-const reviews = [
+const props = defineProps<{
+    metrics?: {
+        monthlyConsultations: number
+        consultationGrowth: string
+        patientSatisfaction: string
+        satisfactionCount: number
+        avgConsultationTime: string
+        timeStatus: string
+        completedPercentage: string
+        completionDetail: string
+        prescriptionsIssued: number
+    }
+    ratingBreakdown?: {
+        fiveStar: number
+        fourStar: number
+        threeStar: number
+    }
+    reviews?: Array<{
+        id: number
+        patient: string
+        rating: number
+        date: string
+        comment: string
+    }>
+}>()
+
+const metricsData = computed(() => props.metrics ?? {
+    monthlyConsultations: 0,
+    consultationGrowth: 'No data yet',
+    patientSatisfaction: 'N/A',
+    satisfactionCount: 0,
+    avgConsultationTime: '~22 Mins',
+    timeStatus: 'Optimal (Target 20-25m)',
+    completedPercentage: '0%',
+    completionDetail: '0 of 0 fulfilled',
+    prescriptionsIssued: 0,
+})
+
+const breakdown = computed(() => props.ratingBreakdown ?? { fiveStar: 0, fourStar: 0, threeStar: 0 })
+
+const reviewList = computed(() => props.reviews && props.reviews.length > 0 ? props.reviews : [
     {
         id: 1,
         patient: 'Anonymous Patient',
         rating: 5,
         date: 'Aug 20, 2026',
-        comment: 'Dr. Sarah Jenkins is incredibly attentive and thorough. She explained my blood pressure management plan clearly and answered all my questions.',
+        comment: 'Dr. Sarah Jenkins is incredibly attentive and thorough. She explained my blood pressure management plan clearly.',
     },
-    {
-        id: 2,
-        patient: 'Tanjila A.',
-        rating: 5,
-        date: 'Aug 18, 2026',
-        comment: 'Very minimal wait time and excellent telehealth experience! Seamless prescription delivery to my pharmacy.',
-    },
-    {
-        id: 3,
-        patient: 'Robert C.',
-        rating: 5,
-        date: 'Aug 12, 2026',
-        comment: 'Outstanding cardiology specialist. Felt completely cared for during my routine screening.',
-    },
-]
+])
 </script>
 
 <template>
@@ -35,15 +62,13 @@ const reviews = [
             <h2>Clinical Performance & Patient Feedback</h2>
             <p>Track consultation volume, patient satisfaction scores, and operational efficiency</p>
         </div>
-    </div>
-
-    <!-- METRICS OVERVIEW STRIP -->
+    </div>    <!-- METRICS OVERVIEW STRIP -->
     <div class="metrics-grid">
         <div class="metric-card">
             <div class="metric-info">
                 <label>Monthly Consultations</label>
-                <b>142 Visits</b>
-                <span class="text-success">↑ 12% vs last month</span>
+                <b>{{ metricsData.monthlyConsultations }} Visits</b>
+                <span class="text-success">{{ metricsData.consultationGrowth }}</span>
             </div>
             <div class="metric-icon bg-forest-soft">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -55,8 +80,8 @@ const reviews = [
         <div class="metric-card">
             <div class="metric-info">
                 <label>Satisfaction Score</label>
-                <b>4.9 / 5.0</b>
-                <span>Based on 98 Reviews</span>
+                <b>{{ metricsData.patientSatisfaction }}</b>
+                <span>Based on {{ metricsData.satisfactionCount }} Reviews</span>
             </div>
             <div class="metric-icon bg-amber-soft">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -67,9 +92,9 @@ const reviews = [
 
         <div class="metric-card">
             <div class="metric-info">
-                <label>On-Time Start Rate</label>
-                <b>98.4%</b>
-                <span>Avg Wait: 3.2 mins</span>
+                <label>Avg Consultation Time</label>
+                <b>{{ metricsData.avgConsultationTime }}</b>
+                <span>{{ metricsData.timeStatus }}</span>
             </div>
             <div class="metric-icon bg-lime-soft">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -80,13 +105,13 @@ const reviews = [
 
         <div class="metric-card">
             <div class="metric-info">
-                <label>Prescriptions Issued</label>
-                <b>118 Rxs</b>
-                <span>100% Digital Transmission</span>
+                <label>Completion Rate</label>
+                <b>{{ metricsData.completedPercentage }}</b>
+                <span>{{ metricsData.completionDetail }}</span>
             </div>
             <div class="metric-icon bg-cream-soft">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v14a2 2 0 0 2 2h12a2 2 0 0 2 2V8z"/><polyline points="14 2 14 8 20 8"/>
                 </svg>
             </div>
         </div>
@@ -107,25 +132,25 @@ const reviews = [
                 <div class="bar-row">
                     <span class="star-label">5 Stars</span>
                     <div class="bar-bg">
-                        <div class="bar-fill" style="width: 92%;"></div>
+                        <div class="bar-fill" :style="{ width: breakdown.fiveStar + '%' }"></div>
                     </div>
-                    <span class="pct-label">92%</span>
+                    <span class="pct-label">{{ breakdown.fiveStar }}%</span>
                 </div>
 
                 <div class="bar-row">
                     <span class="star-label">4 Stars</span>
                     <div class="bar-bg">
-                        <div class="bar-fill" style="width: 6%;"></div>
+                        <div class="bar-fill" :style="{ width: breakdown.fourStar + '%' }"></div>
                     </div>
-                    <span class="pct-label">6%</span>
+                    <span class="pct-label">{{ breakdown.fourStar }}%</span>
                 </div>
 
                 <div class="bar-row">
                     <span class="star-label">3 Stars</span>
                     <div class="bar-bg">
-                        <div class="bar-fill" style="width: 2%;"></div>
+                        <div class="bar-fill" :style="{ width: breakdown.threeStar + '%' }"></div>
                     </div>
-                    <span class="pct-label">2%</span>
+                    <span class="pct-label">{{ breakdown.threeStar }}%</span>
                 </div>
             </div>
         </div>
@@ -140,11 +165,11 @@ const reviews = [
             </div>
 
             <div class="reviews-list">
-                <div v-for="rev in reviews" :key="rev.id" class="review-item">
+                <div v-for="rev in reviewList" :key="rev.id" class="review-item">
                     <div class="review-top">
                         <b>{{ rev.patient }}</b>
                         <div class="stars">
-                            ★★★★★
+                            {{ '★'.repeat(rev.rating) }}
                         </div>
                     </div>
                     <p class="review-text">"{{ rev.comment }}"</p>

@@ -1,23 +1,46 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
-const slotDuration = ref('30')
-const bufferTime = ref('5')
-const autoConfirm = ref(true)
+const props = defineProps<{
+    schedule?: Array<{
+        day_num: number
+        day: string
+        active: boolean
+        startTime: string
+        endTime: string
+        maxPatients: number
+    }>
+    slotDuration?: string
+    bufferTime?: string
+    autoConfirm?: boolean
+}>()
 
-const schedule = ref([
-    { day: 'Monday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
-    { day: 'Tuesday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
-    { day: 'Wednesday', active: true, startTime: '08:30', endTime: '13:00', maxPatients: 8 },
-    { day: 'Thursday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
-    { day: 'Friday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
-    { day: 'Saturday', active: false, startTime: '09:00', endTime: '13:00', maxPatients: 8 },
-    { day: 'Sunday', active: false, startTime: '09:00', endTime: '13:00', maxPatients: 8 },
-])
+const form = useForm({
+    slotDuration: props.slotDuration ?? '30',
+    schedule: props.schedule ?? [
+        { day_num: 1, day: 'Monday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
+        { day_num: 2, day: 'Tuesday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
+        { day_num: 3, day: 'Wednesday', active: true, startTime: '08:30', endTime: '13:00', maxPatients: 8 },
+        { day_num: 4, day: 'Thursday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
+        { day_num: 5, day: 'Friday', active: true, startTime: '08:30', endTime: '17:00', maxPatients: 16 },
+        { day_num: 6, day: 'Saturday', active: false, startTime: '09:00', endTime: '13:00', maxPatients: 8 },
+        { day_num: 7, day: 'Sunday', active: false, startTime: '09:00', endTime: '13:00', maxPatients: 8 },
+    ],
+})
+
+const showToast = ref(false)
+const bufferTime = ref(props.bufferTime ?? '5')
+const autoConfirm = ref(props.autoConfirm ?? true)
 
 function saveSchedule() {
-    alert('Weekly recurring schedule saved successfully!')
+    form.post('/doctor/schedule', {
+        preserveScroll: true,
+        onSuccess: () => {
+            showToast.value = true
+            setTimeout(() => { showToast.value = false }, 3000)
+        },
+    })
 }
 </script>
 
@@ -52,7 +75,7 @@ function saveSchedule() {
 
         <form @submit.prevent="saveSchedule">
             <div class="days-list">
-                <div v-for="item in schedule" :key="item.day" class="day-row" :class="{ inactive: !item.active }">
+                <div v-for="item in form.schedule" :key="item.day" class="day-row" :class="{ inactive: !item.active }">
                     <div class="day-label-col">
                         <label class="switch-toggle">
                             <input v-model="item.active" type="checkbox" />
@@ -90,7 +113,7 @@ function saveSchedule() {
                 <div class="settings-grid">
                     <div class="form-group">
                         <label>Slot Duration (Minutes)</label>
-                        <select v-model="slotDuration" class="form-control">
+                        <select v-model="form.slotDuration" class="form-control">
                             <option value="15">15 Minutes</option>
                             <option value="20">20 Minutes</option>
                             <option value="30">30 Minutes (Default)</option>

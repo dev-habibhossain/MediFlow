@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'department_id',
     'specialization',
     'qualifications',
+    'education',
     'bio',
     'years_of_experience',
     'consultation_fee',

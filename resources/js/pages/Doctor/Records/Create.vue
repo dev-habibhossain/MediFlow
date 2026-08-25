@@ -1,28 +1,68 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { Head, Link, useForm } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
+
+const props = defineProps<{
+    appointment?: {
+        id: string
+        db_id: number
+        date: string
+    }
+    patient?: {
+        id: string
+        name: string
+        initials: string
+        gender: string
+        age: number
+        bloodGroup: string
+    }
+}>()
+
+const appInfo = computed(() => props.appointment ?? {
+    id: '101',
+    db_id: 101,
+    date: 'Today',
+})
+
+const patientInfo = computed(() => props.patient ?? {
+    id: 'MDF-9021',
+    name: 'Habib Hossain',
+    initials: 'HH',
+    gender: 'Male',
+    age: 28,
+    bloodGroup: 'O+',
+})
 
 const showToast = ref(false)
 
-const form = ref({
-    symptoms: 'Exertional chest tightness, minor dyspnea after workout routine. Mild headache reported in the morning.',
-    primaryDiagnosis: 'Essential (Primary) Hypertension - Controlled',
+const form = useForm({
+    symptoms: '',
+    primaryDiagnosis: '',
     icdCode: 'I10',
-    bpSystolic: 120,
-    bpDiastolic: 80,
-    heartRate: 72,
-    weight: 74.5,
-    soapSubjective: 'Patient Habib Hossain presents for cardiology follow-up. States chest tightness resolved after resting.',
-    soapObjective: 'Resting 12-lead ECG shows normal sinus rhythm. S1/S2 normal, no murmurs. Lungs clear.',
-    soapPlan: 'Maintain current Amlodipine 5mg regimen. Hydrate before exercise. Follow-up in 6 months.',
+    bpSystolic: '' as string | number,
+    bpDiastolic: '' as string | number,
+    heartRate: '' as string | number,
+    weight: '' as string | number,
+    soapSubjective: '',
+    soapObjective: '',
+    soapPlan: '',
+    attachment: null as File | null,
 })
 
+function handleFileChange(event: Event) {
+    const target = event.target as HTMLInputElement
+    if (target.files && target.files[0]) {
+        form.attachment = target.files[0]
+    }
+}
+
 function handleSaveRecord() {
-    showToast.value = true
-    setTimeout(() => {
-        showToast.value = false
-        window.location.href = '/doctor/appointments/101'
-    }, 1200)
+    form.post(`/doctor/appointments/${appInfo.value.id}/records`, {
+        preserveScroll: false,
+        onSuccess: () => {
+            showToast.value = true
+        },
+    })
 }
 </script>
 
@@ -31,15 +71,15 @@ function handleSaveRecord() {
 
     <!-- TOP HEADER -->
     <div class="top-nav-row">
-        <Link href="/doctor/appointments/101" class="back-btn">
-            ← Cancel & Return to Appointment #MDF-101
+        <Link :href="`/doctor/appointments/${appInfo.id}`" class="back-btn">
+            ← Cancel & Return to Appointment #{{ appInfo.id }}
         </Link>
     </div>
 
     <!-- HEADER BANNER -->
     <div class="record-header-card">
         <div>
-            <span class="ref-badge">New Record for Visit #MDF-101</span>
+            <span class="ref-badge">New Record for Visit #{{ appInfo.id }}</span>
             <h1>Create Patient Clinical Medical Record</h1>
         </div>
     </div>
@@ -47,15 +87,15 @@ function handleSaveRecord() {
     <!-- PATIENT MINI SUMMARY -->
     <div class="patient-summary-box">
         <div class="patient-meta-group">
-            <div class="patient-avatar-md">HH</div>
+            <div class="patient-avatar-md">{{ patientInfo.initials }}</div>
             <div class="patient-info">
-                <b>Habib Hossain</b>
-                <span>Patient ID: #MDF-9021 · Male, 28 Yrs · Blood Type: O+</span>
+                <b>{{ patientInfo.name }}</b>
+                <span>Patient ID: #{{ patientInfo.id }} · {{ patientInfo.gender }}, {{ patientInfo.age }} Yrs · Blood Type: {{ patientInfo.bloodGroup }}</span>
             </div>
         </div>
 
         <div class="date-badge">
-            Date: <strong>Aug 7, 2026</strong>
+            Date: <strong>{{ appInfo.date }}</strong>
         </div>
     </div>
 
@@ -73,22 +113,25 @@ function handleSaveRecord() {
                 <!-- CHIEF SYMPTOMS -->
                 <div class="form-group full-width">
                     <label>Chief Complaints / Symptoms <span>*</span></label>
-                    <textarea v-model="form.symptoms" class="form-control" required placeholder="Describe primary symptoms reported by patient..."></textarea>
+                    <textarea v-model="form.symptoms" class="form-control" placeholder="Describe primary symptoms reported by patient..."></textarea>
+                    <span v-if="form.errors.symptoms" class="error-msg">{{ form.errors.symptoms }}</span>
                 </div>
 
                 <!-- DIAGNOSIS & ICD-10 CODE -->
                 <div class="form-group">
                     <label>Primary Diagnosis <span>*</span></label>
-                    <input v-model="form.primaryDiagnosis" type="text" class="form-control" required />
+                    <input v-model="form.primaryDiagnosis" type="text" class="form-control" placeholder="e.g. Essential Hypertension" />
+                    <span v-if="form.errors.primaryDiagnosis" class="error-msg">{{ form.errors.primaryDiagnosis }}</span>
                 </div>
 
                 <div class="form-group">
                     <label>ICD-10 Classification Code <span>*</span></label>
-                    <select v-model="form.icdCode" class="form-control" required>
+                    <select v-model="form.icdCode" class="form-control">
                         <option value="I10">I10 — Essential (Primary) Hypertension</option>
                         <option value="R07.89">R07.89 — Other Chest Pain / Tightness</option>
                         <option value="I20.9">I20.9 — Angina Pectoris, Unspecified</option>
                         <option value="R00.0">R00.0 — Tachycardia, Unspecified</option>
+                        <option value="Z00.00">Z00.00 — General Adult Medical Examination</option>
                     </select>
                 </div>
 
@@ -98,12 +141,12 @@ function handleSaveRecord() {
                 <div class="vitals-inputs-grid">
                     <div class="form-group">
                         <label>BP Systolic <span>*</span></label>
-                        <input v-model="form.bpSystolic" type="number" class="form-control" required placeholder="120" />
+                        <input v-model="form.bpSystolic" type="number" class="form-control" placeholder="120" />
                     </div>
 
                     <div class="form-group">
                         <label>BP Diastolic <span>*</span></label>
-                        <input v-model="form.bpDiastolic" type="number" class="form-control" required placeholder="80" />
+                        <input v-model="form.bpDiastolic" type="number" class="form-control" placeholder="80" />
                     </div>
 
                     <div class="form-group">
@@ -138,14 +181,16 @@ function handleSaveRecord() {
                 <!-- ATTACHMENT FILE UPLOAD -->
                 <div class="form-group full-width">
                     <label>Attach Diagnostic File (ECG, Lab Scan PDF)</label>
-                    <input type="file" class="form-control" style="padding: 8px 16px;" />
+                    <input type="file" class="form-control" style="padding: 8px 16px;" @change="handleFileChange" />
                 </div>
             </div>
 
             <!-- BUTTON ROW -->
             <div class="form-actions">
-                <Link href="/doctor/appointments/101" class="btn btn-outline">Cancel</Link>
-                <button type="submit" class="btn btn-primary">Save & Finalize Medical Record</button>
+                <Link :href="`/doctor/appointments/${appInfo.id}`" class="btn btn-outline">Cancel</Link>
+                <button type="submit" class="btn btn-primary" :disabled="form.processing">
+                    {{ form.processing ? 'Saving...' : 'Save & Finalize Medical Record' }}
+                </button>
             </div>
         </form>
     </div>
@@ -242,6 +287,8 @@ textarea.form-control { height: auto; min-height: 100px; padding: 12px 16px; res
 .btn-primary:hover { background: var(--forest-2); }
 .btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
 .btn-outline:hover { border-color: var(--forest); background: var(--cream); }
+
+.error-msg { font-size: 12px; color: #DC2626; font-weight: 600; margin-top: 2px; display: block; }
 
 .toast-notice { position: fixed; bottom: 24px; right: 24px; background: var(--forest); color: #fff; padding: 14px 22px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lift); display: flex; align-items: center; gap: 10px; z-index: 100; animation: slideUp 200ms ease-out; }
 @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

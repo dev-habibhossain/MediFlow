@@ -2,10 +2,31 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+const props = defineProps<{
+    patient?: {
+        id: string
+        db_id?: number
+        name: string
+        initials: string
+        avatarBg: string
+        avatarColor: string
+        metaText: string
+        bloodType: string
+        allergy: string
+        condition: string
+        visitsCount: number
+        activePrescriptionsCount: number
+        labReportsCount: number
+        lastBp: string
+        latestAppointmentCode?: string
+    }
+    historyItems?: Array<any>
+}>()
+
 const activeCategory = ref('all')
 const searchQuery = ref('')
 
-const patient = {
+const patientData = computed(() => props.patient ?? {
     id: 'MDF-9021',
     name: 'Habib Hossain',
     initials: 'HH',
@@ -19,117 +40,90 @@ const patient = {
     activePrescriptionsCount: 2,
     labReportsCount: 5,
     lastBp: '120/80',
-}
+    latestAppointmentCode: 'MDF-55829',
+})
 
-const historyItems = [
-    {
-        id: 'REC-301',
-        category: 'consultation',
-        categoryLabel: 'Consultation Record',
-        dateStr: 'July 14, 2026 · Consultation #REC-301',
-        title: 'Cardiology Follow-Up & ECG Assessment',
-        primaryDiag: 'Primary Diagnosis: Essential Hypertension (Controlled)',
-        icdCode: 'ICD-10: I10',
-        notes: 'Blood pressure remains stable (120/80 mmHg). Resting ECG demonstrated normal sinus rhythm at 72 bpm. Adjusted dosage of Amlodipine Besylate to 5mg daily.',
-        doctor: 'Dr. Sarah Jenkins · Cardiology Department',
-        doctorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100',
-        actionLabel: 'Edit / Amend Record →',
-        actionUrl: '/doctor/appointments/101/medical-record/edit',
-        searchTerms: 'cardiology ecg hypertension amlodipine chest tightness dr sarah jenkins rec-301',
-    },
-    {
-        id: 'RX-401',
-        category: 'prescription',
-        categoryLabel: 'Active Prescription',
-        dateStr: 'July 14, 2026 · Prescription #RX-401',
-        title: 'Prescription Regimen Issued (90 Days Supply)',
-        medications: [
-            {
-                name: 'Amlodipine Besylate 5 mg Tablet',
-                directions: 'Take 1 tablet daily in the morning',
-                refills: '2 Refills Left',
-            },
-            {
-                name: 'Atorvastatin Calcium 20 mg Tablet',
-                directions: 'Take 1 tablet daily at bedtime',
-                refills: '2 Refills Left',
-            },
-        ],
-        doctor: 'Dr. Sarah Jenkins · Cardiology Department',
-        doctorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100',
-        actionLabel: 'Correct / Supersede Rx →',
-        actionUrl: '/doctor/prescriptions/401/supersede',
-        searchTerms: 'rx 401 amlodipine besylate atorvastatin calcium dr sarah jenkins',
-    },
-    {
-        id: 'LAB-9201',
-        category: 'lab',
-        categoryLabel: 'Diagnostic Lab Report',
-        dateStr: 'June 28, 2026 · Lab Test #LAB-9201',
-        title: 'Comprehensive Blood Count (CBC) & Lipid Panel',
-        notes: 'Total Cholesterol: 185 mg/dL (Desirable), HDL: 52 mg/dL, Triglycerides: 130 mg/dL. All blood count values within standard physiological reference ranges.',
-        attribution: 'MediFlow Central Diagnostic Laboratory · Verified by Dr. Emily Watson',
-        isLab: true,
-        searchTerms: 'lipid panel cbc blood count laboratory dr emily watson lab-9201',
-    },
-]
+const rawHistoryItems = computed(() => props.historyItems ?? [])
 
 const filteredItems = computed(() => {
     const query = searchQuery.value.toLowerCase().trim()
-    return historyItems.filter((item) => {
+    return rawHistoryItems.value.filter((item: any) => {
         const matchesCategory = activeCategory.value === 'all' || item.category === activeCategory.value
-        const matchesSearch = !query || item.searchTerms.includes(query) || item.title.toLowerCase().includes(query)
+        const matchesSearch = !query || (item.searchTerms && item.searchTerms.includes(query)) || (item.title && item.title.toLowerCase().includes(query))
         return matchesCategory && matchesSearch
     })
 })
 
+const consultationCount = computed(() => rawHistoryItems.value.filter((i: any) => i.category === 'consultation').length)
+const prescriptionCount = computed(() => rawHistoryItems.value.filter((i: any) => i.category === 'prescription').length)
+const labCount = computed(() => rawHistoryItems.value.filter((i: any) => i.category === 'lab').length)
+
 function viewLabPdf() {
-    alert('Opening lab PDF report scan...')
+    window.print()
 }
 </script>
 
 <template>
-    <Head :title="`Patient Clinical History - ${patient.name}`" />
+    <Head :title="`Patient Clinical History - ${patientData.name}`" />
 
     <!-- TOP BAR NAVIGATION -->
     <div class="top-nav-row">
-        <Link href="/doctor/appointments/MDF-9021" class="back-btn">
-            ← Back to Appointment #MDF-101
+        <Link href="/doctor/appointments" class="back-btn">
+            ← Back to Appointments List
         </Link>
         <button class="back-btn" @click="viewLabPdf">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
             </svg>
-            Print Medical Record
+            Export Clinical History PDF
         </button>
     </div>
 
     <!-- PATIENT PROFILE HEADER CARD -->
     <div class="patient-header-card">
         <div class="patient-info-left">
-            <div class="patient-avatar-xl" :style="{ background: patient.avatarBg, color: patient.avatarColor }">
-                {{ patient.initials }}
+            <div class="patient-avatar-xl" :style="{ background: patientData.avatarBg, color: patientData.avatarColor }">
+                {{ patientData.initials }}
             </div>
             <div class="patient-details-heading">
-                <h1>{{ patient.name }}</h1>
-                <p>{{ patient.metaText }}</p>
+                <h1>{{ patientData.name }}</h1>
+                <p>{{ patientData.metaText }}</p>
 
                 <div class="health-pills-row">
-                    <span class="health-pill blood">Blood Type: {{ patient.bloodType }}</span>
-                    <span class="health-pill allergy">Allergy: {{ patient.allergy }}</span>
-                    <span class="health-pill">{{ patient.condition }}</span>
+                    <span class="health-pill blood">Blood Type: {{ patientData.bloodType }}</span>
+                    <span class="health-pill allergy">Allergy: {{ patientData.allergy }}</span>
+                    <span class="health-pill condition">Condition: {{ patientData.condition }}</span>
                 </div>
             </div>
         </div>
 
+        <div class="patient-header-stats">
+            <div class="stat-box">
+                <span class="stat-val">{{ patientData.visitsCount }}</span>
+                <span class="stat-lbl">Visits Recorded</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val green">{{ patientData.activePrescriptionsCount }}</span>
+                <span class="stat-lbl">Active Rxs</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val blue">{{ patientData.labReportsCount }}</span>
+                <span class="stat-lbl">Lab Scans</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-val amber">{{ patientData.lastBp }}</span>
+                <span class="stat-lbl">Last Vitals BP</span>
+            </div>
+        </div>
+        
         <div class="header-action-group">
-            <Link href="/doctor/appointments/101/medical-record/create" class="btn-action-lg primary">
+            <Link :href="`/doctor/appointments/${patientData.latestAppointmentCode || 'MDF-55829'}/records/create`" class="btn-action-lg primary">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
                 Create Record
             </Link>
-            <Link href="/doctor/appointments/101/prescriptions/create" class="btn-action-lg lime">
+            <Link :href="`/doctor/appointments/${patientData.latestAppointmentCode || 'MDF-55829'}/prescriptions/create`" class="btn-action-lg lime">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                     <path d="M10.5 20.4l-6.9-6.9c-.8-.8-.8-2 0-2.8l11.3-11.3c.8-.8 2-.8 2.8 0l6.9 6.9c.8.8.8 2 0 2.8l-11.3 11.3c-.8.8-2 .8-2.8 0z"/>
                 </svg>
@@ -140,11 +134,11 @@ function viewLabPdf() {
 
     <!-- METRICS OVERVIEW STRIP -->
     <div class="metrics-grid">
-        <div class="metric-tile">
+            <div class="metric-tile">
             <div class="metric-info">
                 <label>Total Hospital Visits</label>
-                <b>{{ patient.visitsCount }}</b>
-                <span>Since Nov 2024</span>
+                <b>{{ patientData.visitsCount }}</b>
+                <span>All recorded appointments</span>
             </div>
             <div class="metric-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -156,8 +150,8 @@ function viewLabPdf() {
         <div class="metric-tile">
             <div class="metric-info">
                 <label>Active Prescriptions</label>
-                <b>{{ patient.activePrescriptionsCount }}</b>
-                <span>Amlodipine, Atorvastatin</span>
+                <b>{{ patientData.activePrescriptionsCount }}</b>
+                <span>Current active regimens</span>
             </div>
             <div class="metric-icon icon-green">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -169,7 +163,7 @@ function viewLabPdf() {
         <div class="metric-tile">
             <div class="metric-info">
                 <label>Lab Reports On File</label>
-                <b>{{ patient.labReportsCount }}</b>
+                <b>{{ patientData.labReportsCount }}</b>
                 <span>Latest: Lipid & CBC</span>
             </div>
             <div class="metric-icon icon-amber">
@@ -182,7 +176,7 @@ function viewLabPdf() {
         <div class="metric-tile">
             <div class="metric-info">
                 <label>Last Measured BP</label>
-                <b>{{ patient.lastBp }}</b>
+                <b>{{ patientData.lastBp }}</b>
                 <span>mmHg (Normal)</span>
             </div>
             <div class="metric-icon icon-blue">
@@ -197,16 +191,16 @@ function viewLabPdf() {
     <div class="toolbar-row">
         <div class="tab-group">
             <button class="tab-btn" :class="{ active: activeCategory === 'all' }" @click="activeCategory = 'all'">
-                All Activity <span class="tab-count">3</span>
+                All Activity <span class="tab-count">{{ rawHistoryItems.length }}</span>
             </button>
             <button class="tab-btn" :class="{ active: activeCategory === 'consultation' }" @click="activeCategory = 'consultation'">
-                Consultations <span class="tab-count">1</span>
+                Consultations <span class="tab-count">{{ consultationCount }}</span>
             </button>
             <button class="tab-btn" :class="{ active: activeCategory === 'prescription' }" @click="activeCategory = 'prescription'">
-                Prescriptions <span class="tab-count">1</span>
+                Prescriptions <span class="tab-count">{{ prescriptionCount }}</span>
             </button>
             <button class="tab-btn" :class="{ active: activeCategory === 'lab' }" @click="activeCategory = 'lab'">
-                Lab Tests <span class="tab-count">1</span>
+                Lab Tests <span class="tab-count">{{ labCount }}</span>
             </button>
         </div>
 
@@ -220,6 +214,12 @@ function viewLabPdf() {
 
     <!-- CLINICAL FEED -->
     <div class="history-feed">
+        <div v-if="filteredItems.length === 0" class="history-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <p>No clinical history records found{{ activeCategory !== 'all' ? ' in this category' : '' }}{{ searchQuery ? ` matching "${searchQuery}"` : '' }}.</p>
+        </div>
         <div v-for="item in filteredItems" :key="item.id" class="history-card">
             <div class="card-header-row">
                 <div class="card-date-meta">
@@ -459,4 +459,8 @@ function viewLabPdf() {
 
 .card-action-btn { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--cream); font-size: 12.5px; font-weight: 600; color: var(--forest); transition: all 150ms ease; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; cursor: pointer; }
 .card-action-btn:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+
+.history-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; background: var(--card); border: 1px dashed var(--line); border-radius: var(--radius-xl); color: var(--ink-muted); text-align: center; }
+.history-empty svg { color: var(--line); }
+.history-empty p { font-size: 14px; font-weight: 600; }
 </style>

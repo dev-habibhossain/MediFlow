@@ -1,31 +1,79 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3'
+import { Head, useForm } from '@inertiajs/vue3'
 import { ref } from 'vue'
 
-const form = ref({
-    name: 'Dr. Sarah Jenkins',
-    title: 'MD, FACC — Senior Cardiologist',
-    department: 'Cardiology',
-    licenseNumber: 'MD-7890123',
-    experienceYears: '12',
-    consultationFee: '120.00',
-    education: 'Harvard Medical School (Class of 2012), Residency at Massachusetts General Hospital.',
-    specialties: 'Hypertension, Preventive Cardiology, Lipid Disorders, Electrocardiography',
-    bio: 'Board-certified cardiologist specializing in preventive cardiovascular care and non-invasive diagnostic hypertension management with over 12 years of clinical excellence.',
-    avatarUrl: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300',
+const props = defineProps<{
+    profile?: {
+        name: string
+        title: string
+        department: string
+        department_id?: number
+        licenseNumber: string
+        experienceYears: string
+        consultationFee: string
+        education: string
+        specialties: string
+        bio: string
+        avatarUrl: string
+        averageRating: number
+        reviewCount: number
+    }
+    departments?: Array<{ id: number; name: string }>
+}>()
+
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const showToast = ref(false)
+
+const form = useForm({
+    name: props.profile?.name ?? '',
+    title: props.profile?.title ?? '',
+    department: props.profile?.department ?? (props.departments?.[0]?.name ?? ''),
+    licenseNumber: props.profile?.licenseNumber ?? '',
+    experienceYears: props.profile?.experienceYears ?? '0',
+    consultationFee: props.profile?.consultationFee ?? '0.00',
+    education: props.profile?.education ?? '',
+    specialties: props.profile?.specialties ?? '',
+    bio: props.profile?.bio ?? '',
+    avatarUrl: props.profile?.avatarUrl ?? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300',
+    avatar: null as File | null,
 })
 
-function saveProfile() {
-    alert('Doctor Profile & Directory listing saved successfully!')
+function triggerUpload() {
+    fileInputRef.value?.click()
 }
 
-function triggerUpload() {
-    alert('Upload Photo triggered!')
+function handleFileChange(e: Event) {
+    const target = e.target as HTMLInputElement
+    if (target.files && target.files[0]) {
+        form.avatar = target.files[0]
+        form.avatarUrl = URL.createObjectURL(target.files[0])
+    }
+}
+
+function saveProfile() {
+    form.post('/doctor/settings/profile', {
+        preserveScroll: true,
+        onSuccess: () => {
+            showToast.value = true
+            setTimeout(() => { showToast.value = false }, 3500)
+        },
+    })
 }
 </script>
 
 <template>
     <Head title="Doctor Profile Settings" />
+
+    <!-- SUCCESS TOAST FLASHER -->
+    <Transition name="fade">
+        <div v-if="showToast" class="toast-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>Doctor profile updated successfully!</span>
+        </div>
+    </Transition>
 
     <!-- PAGE HEADER -->
     <div class="page-title-row">
@@ -57,7 +105,9 @@ function triggerUpload() {
                         <div>
                             <b>Profile Headshot Photo</b>
                             <p>Upload a high-resolution professional portrait (PNG/JPG up to 5MB).</p>
+                            <input ref="fileInputRef" type="file" style="display: none" accept="image/*" @change="handleFileChange" />
                             <button type="button" class="btn-sm btn-outline" @click="triggerUpload">Change Photo</button>
+                            <span v-if="form.errors.avatar" class="error-msg">{{ form.errors.avatar }}</span>
                         </div>
                     </div>
 
@@ -65,11 +115,13 @@ function triggerUpload() {
                         <div class="form-group">
                             <label>Full Name & Prefix <span>*</span></label>
                             <input v-model="form.name" type="text" class="form-control" required />
+                            <span v-if="form.errors.name" class="error-msg">{{ form.errors.name }}</span>
                         </div>
 
                         <div class="form-group">
                             <label>Professional Title & Credentials <span>*</span></label>
                             <input v-model="form.title" type="text" class="form-control" required />
+                            <span v-if="form.errors.title" class="error-msg">{{ form.errors.title }}</span>
                         </div>
                     </div>
 
@@ -77,48 +129,63 @@ function triggerUpload() {
                         <div class="form-group">
                             <label>Department Affiliation <span>*</span></label>
                             <select v-model="form.department" class="form-control" required>
-                                <option value="Cardiology">Cardiology Department</option>
-                                <option value="Neurology">Neurology Department</option>
-                                <option value="Pediatrics">Pediatrics Department</option>
-                                <option value="Orthopedics">Orthopedics Department</option>
+                                <option
+                                    v-for="dept in (props.departments ?? [])"
+                                    :key="dept.id"
+                                    :value="dept.name"
+                                >
+                                    {{ dept.name }} Department
+                                </option>
                             </select>
+                            <span v-if="form.errors.department" class="error-msg">{{ form.errors.department }}</span>
                         </div>
 
                         <div class="form-group">
                             <label>License / Registration Number <span>*</span></label>
                             <input v-model="form.licenseNumber" type="text" class="form-control mono" required />
+                            <span v-if="form.errors.licenseNumber" class="error-msg">{{ form.errors.licenseNumber }}</span>
                         </div>
                     </div>
 
                     <div class="form-grid-dual" style="margin-top: 16px;">
                         <div class="form-group">
                             <label>Years of Clinical Practice</label>
-                            <input v-model="form.experienceYears" type="number" class="form-control mono" />
+                            <input v-model="form.experienceYears" type="number" min="0" max="70" class="form-control mono" />
+                            <span v-if="form.errors.experienceYears" class="error-msg">{{ form.errors.experienceYears }}</span>
                         </div>
 
                         <div class="form-group">
                             <label>Consultation Standard Fee ($)</label>
                             <input v-model="form.consultationFee" type="text" class="form-control mono" />
+                            <span v-if="form.errors.consultationFee" class="error-msg">{{ form.errors.consultationFee }}</span>
                         </div>
                     </div>
 
                     <div class="form-group" style="margin-top: 16px;">
                         <label>Specialization Keywords (Comma-separated)</label>
-                        <input v-model="form.specialties" type="text" class="form-control" />
+                        <input v-model="form.specialties" type="text" class="form-control" placeholder="e.g. Cardiology, Hypertension" />
+                        <span v-if="form.errors.specialties" class="error-msg">{{ form.errors.specialties }}</span>
                     </div>
 
                     <div class="form-group" style="margin-top: 16px;">
                         <label>Education & Training Background</label>
-                        <textarea v-model="form.education" class="form-control textarea" rows="2"></textarea>
+                        <textarea v-model="form.education" class="form-control textarea" rows="2" placeholder="e.g. Medical School, Residency, Fellowships"></textarea>
+                        <span v-if="form.errors.education" class="error-msg">{{ form.errors.education }}</span>
                     </div>
 
                     <div class="form-group" style="margin-top: 16px;">
                         <label>Professional Biography</label>
-                        <textarea v-model="form.bio" class="form-control textarea" rows="4"></textarea>
+                        <textarea v-model="form.bio" class="form-control textarea" rows="4" placeholder="Brief professional biography..."></textarea>
+                        <span v-if="form.errors.bio" class="error-msg">{{ form.errors.bio }}</span>
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Save Doctor Profile</button>
+                        <button type="submit" class="btn btn-primary" :disabled="form.processing">
+                            <svg v-if="form.processing" class="spin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"/>
+                            </svg>
+                            {{ form.processing ? 'Saving Profile...' : 'Save Doctor Profile' }}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -133,23 +200,24 @@ function triggerUpload() {
 
                 <div class="public-doctor-card">
                     <img :src="form.avatarUrl" alt="Doctor" class="public-avatar" />
-                    <h4>{{ form.name }}</h4>
-                    <span class="public-title">{{ form.title }}</span>
-                    <span class="public-dept">{{ form.department }} Department</span>
+                    <h4>{{ form.name || 'Dr. Physician' }}</h4>
+                    <span class="public-title">{{ form.title || 'Specialist' }}</span>
+                    <span class="public-dept">{{ form.department || 'General' }} Department</span>
 
                     <div class="public-rating">
-                        ★★★★★ <span>4.9 (98 reviews)</span>
+                        ★★★★★ <span>{{ props.profile?.averageRating ?? 5.0 }} ({{ props.profile?.reviewCount ?? 0 }} reviews)</span>
                     </div>
 
                     <div class="public-fee-row">
                         <span>Consultation Fee:</span>
-                        <b>${{ form.consultationFee }}</b>
+                        <b>${{ form.consultationFee || '0.00' }}</b>
                     </div>
 
-                    <p class="public-bio">{{ form.bio }}</p>
+                    <p v-if="form.bio" class="public-bio">{{ form.bio }}</p>
+                    <p v-else class="public-bio text-muted">No professional bio added yet.</p>
 
-                    <div class="public-tags">
-                        <span v-for="tag in form.specialties.split(',')" :key="tag" class="tag-pill">
+                    <div v-if="form.specialties && form.specialties.trim()" class="public-tags">
+                        <span v-for="tag in form.specialties.split(',').filter(t => t.trim())" :key="tag" class="tag-pill">
                             {{ tag.trim() }}
                         </span>
                     </div>
@@ -263,10 +331,42 @@ function triggerUpload() {
 .public-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .tag-pill { font-size: 11px; font-weight: 600; background: var(--cream); border: 1px solid var(--line); padding: 3px 8px; border-radius: 999px; }
 
-.btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 150ms ease; }
+.btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 24px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; transition: all 150ms ease; gap: 8px; }
 .btn-sm { display: inline-flex; align-items: center; justify-content: center; padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .btn-outline { background: transparent; color: var(--forest); border: 1.5px solid var(--line); }
 .btn-outline:hover { background: var(--cream); border-color: var(--forest); }
-.btn-primary { background: var(--forest); color: white; border: 1.5px solid var(--forest); }
-.btn-primary:hover { background: var(--forest-2); }
+.btn-primary { background: var(--forest); color: white; border: 1.5px solid var(--forest); cursor: pointer; }
+.btn-primary:hover:not(:disabled) { background: var(--forest-2); }
+.btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.error-msg { font-size: 11.5px; font-weight: 600; color: #DC2626; margin-top: 2px; }
+.text-muted { color: var(--ink-muted); font-style: italic; }
+
+.toast-banner {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #15803D;
+    color: #FFFFFF;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 25px rgba(21, 128, 61, 0.3);
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+.spin-icon {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.fade-enter-active, .fade-leave-active { transition: opacity 250ms ease, transform 250ms ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-10px); }
 </style>
