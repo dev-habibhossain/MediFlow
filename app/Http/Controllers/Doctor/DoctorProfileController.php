@@ -16,10 +16,13 @@ class DoctorProfileController extends Controller
     {
         $user = auth()->user();
         if ($user && $user->doctor) {
-            return $user->doctor;
+            $doctor = $user->doctor;
+            $doctor->loadMissing(['user', 'department', 'reviews']);
+
+            return $doctor;
         }
 
-        $doctor = Doctor::with(['user', 'department'])->first();
+        $doctor = Doctor::with(['user', 'department', 'reviews'])->first();
         if (! $doctor) {
             abort(404, 'Doctor profile not found.');
         }
@@ -34,24 +37,24 @@ class DoctorProfileController extends Controller
 
         $departments = Department::orderBy('name')->get(['id', 'name']);
 
-        $reviewsQuery = $doctor->reviews();
+        $reviewsQuery = $doctor->reviews()->where('is_visible', true);
         $totalReviews = $reviewsQuery->count();
-        $avgRating = $totalReviews > 0 ? round((float) $reviewsQuery->avg('rating'), 1) : null;
+        $avgRating = $totalReviews > 0 ? round((float) $reviewsQuery->avg('rating'), 1) : 5.0;
 
         return Inertia::render('Doctor/Settings/Profile', [
             'profile' => [
-                'name' => $user?->name ?? 'Dr. Sarah Jenkins',
-                'title' => $doctor->qualifications ?? 'MD, FACC — Senior Cardiologist',
-                'department' => $doctor->department?->name ?? 'Cardiology',
+                'name' => $user?->name ?? '',
+                'title' => $doctor->qualifications ?? '',
+                'department' => $doctor->department?->name ?? ($departments->first()?->name ?? 'General'),
                 'department_id' => $doctor->department_id,
-                'licenseNumber' => $doctor->license_number ?? 'MD-7890123',
-                'experienceYears' => (string) ($doctor->years_of_experience ?? 12),
-                'consultationFee' => number_format((float) ($doctor->consultation_fee ?? 120.00), 2, '.', ''),
-                'education' => 'Harvard Medical School (Class of 2012), Residency at Massachusetts General Hospital.',
-                'specialties' => $doctor->specialization ?? 'Hypertension, Preventive Cardiology, Lipid Disorders, Electrocardiography',
-                'bio' => $doctor->bio ?? 'Board-certified cardiologist specializing in preventive cardiovascular care and non-invasive diagnostic hypertension management with over 12 years of clinical excellence.',
-                'avatarUrl' => $user?->profile_photo_path ? asset('storage/'.$user->profile_photo_path) : 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300',
-                'averageRating' => $avgRating ?? 4.9,
+                'licenseNumber' => $doctor->license_number ?? '',
+                'experienceYears' => (string) ($doctor->years_of_experience ?? 0),
+                'consultationFee' => number_format((float) ($doctor->consultation_fee ?? 0.00), 2, '.', ''),
+                'education' => $doctor->education ?? '',
+                'specialties' => $doctor->specialization ?? '',
+                'bio' => $doctor->bio ?? '',
+                'avatarUrl' => $user?->avatar_url ?? 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=300',
+                'averageRating' => $avgRating,
                 'reviewCount' => $totalReviews,
             ],
             'departments' => $departments,
@@ -68,10 +71,11 @@ class DoctorProfileController extends Controller
             'title' => 'required|string|max:255',
             'department' => 'required|string',
             'licenseNumber' => 'required|string|max:100',
-            'experienceYears' => 'nullable|numeric',
-            'consultationFee' => 'nullable|numeric',
-            'specialties' => 'nullable|string',
-            'bio' => 'nullable|string',
+            'experienceYears' => 'nullable|integer|min:0|max:70',
+            'consultationFee' => 'nullable|numeric|min:0',
+            'specialties' => 'nullable|string|max:1000',
+            'education' => 'nullable|string|max:1000',
+            'bio' => 'nullable|string|max:2000',
             'avatar' => 'nullable|image|max:5120',
         ]);
 
@@ -79,20 +83,23 @@ class DoctorProfileController extends Controller
             $user->name = $validated['name'];
             if ($request->hasFile('avatar')) {
                 $path = $request->file('avatar')->store('profile-photos', 'public');
-                $user->profile_photo_path = $path;
+                $user->avatar_path = $path;
             }
             $user->save();
         }
 
-        $dept = Department::where('name', $validated['department'])->first();
+        $dept = Department::where('name', $validated['department'])
+            ->orWhere('id', $validated['department'])
+            ->first();
 
         $doctor->update([
             'qualifications' => $validated['title'],
             'department_id' => $dept?->id ?? $doctor->department_id,
             'license_number' => $validated['licenseNumber'],
-            'years_of_experience' => (int) ($validated['experienceYears'] ?? 12),
-            'consultation_fee' => (float) ($validated['consultationFee'] ?? 120.00),
-            'specialization' => $validated['specialties'] ?? null,
+            'years_of_experience' => (int) ($validated['experienceYears'] ?? 0),
+            'consultation_fee' => (float) ($validated['consultationFee'] ?? 0.00),
+            'specialization' => $validated['specialties'] ?? '',
+            'education' => $validated['education'] ?? null,
             'bio' => $validated['bio'] ?? null,
         ]);
 
