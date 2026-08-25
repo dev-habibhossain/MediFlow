@@ -59,6 +59,8 @@ class DoctorAppointmentController extends Controller
         if ($statusFilter && $statusFilter !== 'All Statuses') {
             if ($statusFilter === 'Active Queue') {
                 $query->whereIn('status', ['confirmed', 'pending']);
+            } elseif ($statusFilter === 'In Progress') {
+                $query->where('status', 'in_progress');
             } elseif ($statusFilter === 'Finished') {
                 $query->whereIn('status', ['completed', 'cancelled', 'no_show']);
             } else {
@@ -77,6 +79,14 @@ class DoctorAppointmentController extends Controller
         }
 
         $now = Carbon::now();
+        $avatarPalette = [
+            ['bg' => '#E0E7FF', 'color' => '#3730A3'],
+            ['bg' => '#DCFCE7', 'color' => '#15803D'],
+            ['bg' => '#FEF3C7', 'color' => '#B45309'],
+            ['bg' => '#F3E8FF', 'color' => '#6B21A8'],
+            ['bg' => '#FEE2E2', 'color' => '#B91C1C'],
+            ['bg' => '#E0F2FE', 'color' => '#0369A1'],
+        ];
 
         $appointments = $query->get()
             ->sortBy(function ($app) use ($now) {
@@ -104,7 +114,7 @@ class DoctorAppointmentController extends Controller
                 return [$priority, $secondarySort];
             })
             ->values()
-            ->map(function ($app) use ($now) {
+            ->map(function ($app) use ($now, $avatarPalette) {
                 $pUser = $app->patient?->user;
                 $pName = $pUser?->name ?? 'Patient Account';
                 $initials = strtoupper(substr($pName, 0, 2));
@@ -124,6 +134,9 @@ class DoctorAppointmentController extends Controller
                     $statusLabel .= ' (Time Passed)';
                 }
 
+                $colorPair = $avatarPalette[$app->id % count($avatarPalette)];
+                $visitType = $app->department?->name ? "{$app->department->name} Visit" : 'In-Person Visit';
+
                 return [
                     'id' => $app->appointment_code,
                     'db_id' => $app->id,
@@ -131,10 +144,10 @@ class DoctorAppointmentController extends Controller
                     'time' => $timeFormatted,
                     'patientName' => $pName,
                     'patientRef' => "#{$app->patient?->patient_code}",
-                    'avatarBg' => 'var(--lime)',
-                    'avatarColor' => 'var(--lime-text)',
+                    'avatarBg' => $colorPair['bg'],
+                    'avatarColor' => $colorPair['color'],
                     'avatarInitials' => $initials,
-                    'visitType' => 'In-Person',
+                    'visitType' => $visitType,
                     'status' => $app->status,
                     'statusLabel' => $statusLabel,
                     'isTimePassed' => $isTimePassed && ! $isFinished && ! $isInProgress,
@@ -145,17 +158,23 @@ class DoctorAppointmentController extends Controller
                 ];
             });
 
-        $todayCount = Appointment::where('doctor_id', $doctor->id)
-            ->whereDate('appointment_date', today())
-            ->whereNotIn('status', ['completed', 'cancelled', 'no_show'])
-            ->count();
+        $baseCountQuery = Appointment::where('doctor_id', $doctor->id);
+        $counts = [
+            'all' => (clone $baseCountQuery)->count(),
+            'today' => (clone $baseCountQuery)->whereDate('appointment_date', today())->whereNotIn('status', ['completed', 'cancelled', 'no_show'])->count(),
+            'upcoming' => (clone $baseCountQuery)->whereDate('appointment_date', '>=', today())->whereNotIn('status', ['completed', 'cancelled', 'no_show'])->count(),
+            'past' => (clone $baseCountQuery)->where(function ($q) {
+                $q->whereDate('appointment_date', '<', today())->orWhereIn('status', ['completed', 'cancelled', 'no_show']);
+            })->count(),
+        ];
 
         return Inertia::render('Doctor/Appointments/Index', [
             'appointments' => $appointments,
-            'todayCount' => $todayCount,
+            'todayCount' => $counts['today'],
+            'counts' => $counts,
             'filters' => [
                 'tab' => $activeTab,
-                'date' => $selectedDate ?? today()->format('Y-m-d'),
+                'date' => $selectedDate ?? '',
                 'status' => $statusFilter,
                 'search' => $searchQuery ?? '',
             ],

@@ -23,6 +23,12 @@ const props = defineProps<{
         actionUrl: string
     }>
     todayCount?: number
+    counts?: {
+        all: number
+        today: number
+        upcoming: number
+        past: number
+    }
     filters?: {
         tab: string
         date: string
@@ -52,6 +58,17 @@ function applyFilters(tab?: string) {
     )
 }
 
+function clearFilters() {
+    selectedDate.value = ''
+    statusFilter.value = 'All Statuses'
+    searchQuery.value = ''
+    applyFilters()
+}
+
+const hasActiveFilters = computed(() => {
+    return !!selectedDate.value || (statusFilter.value && statusFilter.value !== 'All Statuses') || !!searchQuery.value
+})
+
 const list = computed(() => props.appointments ?? [])
 </script>
 
@@ -66,28 +83,28 @@ const list = computed(() => props.appointments ?? [])
                 :class="{ active: activeTab === 'all' }"
                 @click="applyFilters('all')"
             >
-                All Appointments
+                All Appointments <span v-if="props.counts?.all" class="tab-badge">{{ props.counts.all }}</span>
             </button>
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'today' }"
                 @click="applyFilters('today')"
             >
-                Today's Queue <span class="tab-badge">{{ props.todayCount ?? 0 }}</span>
+                Today's Queue <span class="tab-badge">{{ props.counts?.today ?? props.todayCount ?? 0 }}</span>
             </button>
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'upcoming' }"
                 @click="applyFilters('upcoming')"
             >
-                Upcoming Active
+                Upcoming Active <span v-if="props.counts?.upcoming" class="tab-badge">{{ props.counts.upcoming }}</span>
             </button>
             <button
                 class="tab-btn"
                 :class="{ active: activeTab === 'past' }"
                 @click="applyFilters('past')"
             >
-                Past & Finished
+                Past & Finished <span v-if="props.counts?.past" class="tab-badge">{{ props.counts.past }}</span>
             </button>
         </div>
 
@@ -102,7 +119,10 @@ const list = computed(() => props.appointments ?? [])
                 <option>Completed</option>
                 <option>Cancelled</option>
             </select>
-            <input v-model="searchQuery" type="text" class="search-input" placeholder="Search patient..." @keyup.enter="applyFilters()" />
+            <input v-model="searchQuery" type="text" class="search-input" placeholder="Search patient or code..." @keyup.enter="applyFilters()" />
+            <button v-if="hasActiveFilters" class="clear-btn" title="Reset all filters" @click="clearFilters">
+                Clear
+            </button>
         </div>
     </div>
 
@@ -121,8 +141,17 @@ const list = computed(() => props.appointments ?? [])
                 </thead>
                 <tbody>
                     <tr v-if="list.length === 0">
-                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--ink-muted);">
-                            No appointments found for the selected tab or criteria.
+                        <td colspan="5" style="text-align: center; padding: 48px 20px; color: var(--ink-muted);">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                                </svg>
+                                <h4>No Appointments Found</h4>
+                                <p>There are no appointments matching your current tab or search criteria.</p>
+                                <button v-if="hasActiveFilters" class="btn-table-action" style="margin-top: 12px;" @click="clearFilters">
+                                    Reset Filters
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     <tr
@@ -233,9 +262,11 @@ const list = computed(() => props.appointments ?? [])
 }
 .tab-btn.active .tab-badge { background: rgba(255,255,255,0.2); color: #fff; }
 
-.filter-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.search-input { height: 40px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 13.5px; color: var(--ink); width: 240px; }
-.select-input { height: 40px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 13.5px; color: var(--ink); cursor: pointer; }
+.filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.search-input { height: 40px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 13.5px; color: var(--ink); width: 220px; }
+.select-input { height: 40px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--card); padding: 0 14px; font-size: 13.5px; color: var(--ink); cursor: pointer; }
+.clear-btn { height: 40px; padding: 0 14px; border-radius: var(--radius-md); border: 1px solid var(--line); background: var(--cream); color: var(--ink-muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 150ms ease; }
+.clear-btn:hover { background: #FEE2E2; color: #B91C1C; border-color: #FCA5A5; }
 
 .card-shell { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
 .table-responsive { width: 100%; overflow-x: auto; }
@@ -243,6 +274,11 @@ const list = computed(() => props.appointments ?? [])
 .data-table th { background: var(--cream); padding: 14px 24px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); border-bottom: 1px solid var(--line); }
 .data-table td { padding: 20px 24px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
 .data-table tr:last-child td { border-bottom: none; }
+
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.empty-state svg { opacity: 0.5; margin-bottom: 10px; }
+.empty-state h4 { font-size: 16px; font-weight: 700; color: var(--forest); margin: 0 0 4px 0; }
+.empty-state p { font-size: 13px; color: var(--ink-muted); margin: 0; }
 
 .row-in-progress { background: #FEFCE8; }
 .row-time-passed { background: #F8FAFC; opacity: 0.88; }
@@ -263,7 +299,7 @@ const list = computed(() => props.appointments ?? [])
 .badge-cancelled { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
 .badge-passed { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
 
-.btn-table-action { height: 36px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--ink); transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.btn-table-action { height: 36px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--ink); transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer; }
 .btn-table-action:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
 .btn-table-action.primary { background: var(--forest); color: #fff; }
 .btn-table-action.primary:hover { background: var(--forest-2); }
