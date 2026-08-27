@@ -2,97 +2,44 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+interface Appointment {
+    id: number
+    appointment_code: string
+    doctorName: string
+    doctorTitle: string
+    department: string
+    avatar: string
+    dateTime: string
+    rawDate: string
+    mode: string
+    location: string
+    status: string
+    category: 'upcoming' | 'past' | 'cancelled'
+    canReview: boolean
+}
+
+const props = defineProps<{
+    appointments: Appointment[]
+}>()
+
 const activeTab = ref<'upcoming' | 'past' | 'cancelled'>('upcoming')
 const searchQuery = ref('')
 const selectedMode = ref('all')
 
-const appointments = ref([
-    {
-        id: 101,
-        doctorName: 'Dr. Sarah Jenkins',
-        doctorTitle: 'Senior Cardiologist',
-        department: 'Cardiology',
-        avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150',
-        dateTime: 'Friday, Aug 7 at 10:00 AM',
-        rawDate: '2026-08-07',
-        mode: 'In-Person',
-        location: 'In-Person (120 Harbor Ave)',
-        status: 'Confirmed',
-        category: 'upcoming',
-        canReview: false,
-    },
-    {
-        id: 102,
-        doctorName: 'Dr. Marcus Vance',
-        doctorTitle: 'Neurologist Specialist',
-        department: 'Neurology',
-        avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=150',
-        dateTime: 'Tuesday, Aug 18 at 02:30 PM',
-        rawDate: '2026-08-18',
-        mode: 'Telehealth',
-        location: 'HD Telehealth Call',
-        status: 'Pending',
-        category: 'upcoming',
-        canReview: false,
-    },
-    {
-        id: 90,
-        doctorName: 'Dr. Emily Watson',
-        doctorTitle: 'Pediatric Specialist',
-        department: 'Pediatrics',
-        avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=150',
-        dateTime: 'July 14, 2026 at 11:15 AM',
-        rawDate: '2026-07-14',
-        mode: 'In-Person',
-        location: 'In-Person Visit',
-        status: 'Completed',
-        category: 'past',
-        canReview: true,
-    },
-    {
-        id: 82,
-        doctorName: 'Dr. Sarah Jenkins',
-        doctorTitle: 'Senior Cardiologist',
-        department: 'Cardiology',
-        avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150',
-        dateTime: 'June 20, 2026 at 09:30 AM',
-        rawDate: '2026-06-20',
-        mode: 'Telehealth',
-        location: 'HD Telehealth Call',
-        status: 'Completed',
-        category: 'past',
-        canReview: false,
-    },
-    {
-        id: 64,
-        doctorName: 'Dr. Alan Grant',
-        doctorTitle: 'Orthopedic Surgeon',
-        department: 'Orthopedics',
-        avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=150',
-        dateTime: 'May 10, 2026 at 03:00 PM',
-        rawDate: '2026-05-10',
-        mode: 'In-Person',
-        location: 'Cancelled by Patient',
-        status: 'Cancelled',
-        category: 'cancelled',
-        canReview: false,
-    },
-])
-
 const filteredAppointments = computed(() => {
-    return appointments.value.filter((apt) => {
+    return props.appointments.filter((apt) => {
         if (apt.category !== activeTab.value) return false
-        const matchesQuery = !searchQuery.value || 
-            apt.doctorName.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
+        const matchesQuery = !searchQuery.value ||
+            apt.doctorName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
             apt.department.toLowerCase().includes(searchQuery.value.toLowerCase())
         const matchesMode = selectedMode.value === 'all' || apt.mode === selectedMode.value
         return matchesQuery && matchesMode
     })
 })
 
-const upcomingCount = computed(() => appointments.value.filter((a) => a.category === 'upcoming').length)
-const pastCount = computed(() => appointments.value.filter((a) => a.category === 'past').length)
-const cancelledCount = computed(() => appointments.value.filter((a) => a.category === 'cancelled').length)
+const upcomingCount = computed(() => props.appointments.filter((a) => a.category === 'upcoming').length)
+const pastCount = computed(() => props.appointments.filter((a) => a.category === 'past').length)
+const cancelledCount = computed(() => props.appointments.filter((a) => a.category === 'cancelled').length)
 
 function resetFilters() {
     searchQuery.value = ''

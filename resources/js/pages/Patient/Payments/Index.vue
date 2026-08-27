@@ -2,75 +2,45 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+interface PaymentItem {
+    id: number
+    invCode: string
+    doctorName: string
+    desc: string
+    date: string
+    method: string
+    status: 'paid' | 'pending' | 'refunded'
+    amount: string
+    amountRaw: number
+    appointment_id: number | null
+    searchStr: string
+}
+
+interface PaymentStats {
+    total_paid: string
+    paid_count: number
+    total_pending: string
+    pending_count: number
+    total_refunded: string
+    refunded_count: number
+}
+
+const props = defineProps<{
+    payments: PaymentItem[]
+    stats: PaymentStats
+}>()
+
 const activeTab = ref('all')
 const searchQuery = ref('')
 const toastMessage = ref('')
 const showToast = ref(false)
 
-const payments = ref([
-    {
-        id: 102,
-        invCode: '#INV-89201',
-        doctorName: 'Dr. Marcus Vance',
-        desc: 'Neurology Telehealth Consultation',
-        date: 'Aug 18, 2026',
-        method: 'Online Stripe / Card',
-        status: 'pending',
-        amount: '$120.00',
-        searchStr: 'inv 89201 dr marcus vance neurology',
-    },
-    {
-        id: 101,
-        invCode: '#INV-88402',
-        doctorName: 'Dr. Sarah Jenkins',
-        desc: 'Cardiology In-Person Visit',
-        date: 'July 14, 2026',
-        method: 'Visa ending in 4242',
-        status: 'paid',
-        amount: '$120.00',
-        searchStr: 'inv 88402 dr sarah jenkins cardiology',
-    },
-    {
-        id: 99,
-        invCode: '#INV-87109',
-        doctorName: 'Dr. Emily Watson',
-        desc: 'Pediatric General Checkup',
-        date: 'June 10, 2026',
-        method: 'Mastercard ending in 8801',
-        status: 'paid',
-        amount: '$120.00',
-        searchStr: 'inv 87109 dr emily watson pediatrics',
-    },
-    {
-        id: 95,
-        invCode: '#INV-86001',
-        doctorName: 'Dr. Sarah Jenkins',
-        desc: 'Cardiology Initial Consultation',
-        date: 'May 02, 2026',
-        method: 'Pay at Clinic / Cash',
-        status: 'paid',
-        amount: '$120.00',
-        searchStr: 'inv 86001 dr sarah jenkins cardiology',
-    },
-    {
-        id: 80,
-        invCode: '#INV-84310',
-        doctorName: 'Dr. Alan Grant',
-        desc: 'Orthopedics Consultation (Cancelled)',
-        date: 'April 15, 2026',
-        method: 'Refunded to Card',
-        status: 'refunded',
-        amount: '$100.00',
-        searchStr: 'inv 84310 dr alan grant orthopedics',
-    },
-])
-
-const paidCount = computed(() => payments.value.filter((p) => p.status === 'paid').length)
-const pendingCount = computed(() => payments.value.filter((p) => p.status === 'pending').length)
-const refundedCount = computed(() => payments.value.filter((p) => p.status === 'refunded').length)
+const paidCount = computed(() => props.stats.paid_count)
+const pendingCount = computed(() => props.stats.pending_count)
+const refundedCount = computed(() => props.stats.refunded_count)
 
 const filteredPayments = computed(() => {
-    return payments.value.filter((p) => {
+    return props.payments.filter((p) => {
         const matchesTab = activeTab.value === 'all' || p.status === activeTab.value
         const q = searchQuery.value.toLowerCase().trim()
         const matchesQuery = !q || p.searchStr.toLowerCase().includes(q)
@@ -99,8 +69,8 @@ function clearSearch() {
         <div class="metric-card card-paid">
             <div class="metric-info">
                 <label>Total Paid</label>
-                <b>$360.00</b>
-                <span>Across 3 consultations</span>
+                <b>{{ props.stats.total_paid }}</b>
+                <span>Across {{ paidCount }} consultation{{ paidCount !== 1 ? 's' : '' }}</span>
             </div>
             <div class="metric-icon green-bg">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -112,8 +82,8 @@ function clearSearch() {
         <div class="metric-card card-pending">
             <div class="metric-info">
                 <label>Pending Fees</label>
-                <b>$120.00</b>
-                <span>1 Unpaid consultation</span>
+                <b>{{ props.stats.total_pending }}</b>
+                <span>{{ pendingCount }} Unpaid consultation{{ pendingCount !== 1 ? 's' : '' }}</span>
             </div>
             <div class="metric-icon yellow-bg">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -125,8 +95,8 @@ function clearSearch() {
         <div class="metric-card card-refunded">
             <div class="metric-info">
                 <label>Total Refunded</label>
-                <b>$100.00</b>
-                <span>1 Cancelled visit</span>
+                <b>{{ props.stats.total_refunded }}</b>
+                <span>{{ refundedCount }} Cancelled visit{{ refundedCount !== 1 ? 's' : '' }}</span>
             </div>
             <div class="metric-icon gray-bg">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -140,7 +110,7 @@ function clearSearch() {
     <div class="toolbar-row">
         <div class="tab-group">
             <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
-                All Invoices <span class="tab-badge">{{ payments.length }}</span>
+                All Invoices <span class="tab-badge">{{ props.payments.length }}</span>
             </button>
             <button class="tab-btn" :class="{ active: activeTab === 'paid' }" @click="activeTab = 'paid'">
                 Paid <span class="tab-badge">{{ paidCount }}</span>

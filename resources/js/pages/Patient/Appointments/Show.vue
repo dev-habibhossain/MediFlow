@@ -1,6 +1,38 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+
+interface PaymentInfo {
+    status: string
+    amount: string
+    paid_at: string | null
+}
+
+interface AppointmentDetail {
+    id: number
+    appointment_code: string
+    status: string
+    reason: string | null
+    date_formatted: string
+    time_formatted: string
+    end_formatted: string | null
+    doctor_name: string
+    doctor_avatar: string | null
+    specialty: string
+    department: string
+    doctor_experience: string | null
+    consultation_fee: string
+    can_reschedule: boolean
+    can_cancel: boolean
+    can_review: boolean
+    payment: PaymentInfo | null
+    patient_name: string
+    patient_email: string
+}
+
+const props = defineProps<{
+    appointment: AppointmentDetail
+}>()
 
 const isCancelModalOpen = ref(false)
 
@@ -13,13 +45,21 @@ function closeCancelModal() {
 }
 
 function confirmCancellation() {
-    alert('Your appointment #MDF-101 has been cancelled successfully.')
     router.visit('/patient/appointments')
 }
+
+const statusBadgeClass = computed(() => {
+    switch (props.appointment.status.toLowerCase()) {
+        case 'confirmed': return 'badge-confirmed'
+        case 'completed': return 'badge-completed'
+        case 'cancelled': return 'badge-cancelled'
+        default: return 'badge-pending'
+    }
+})
 </script>
 
 <template>
-    <Head title="Appointment #MDF-101 Detail" />
+    <Head :title="`Appointment ${appointment.appointment_code} Detail`" />
 
     <!-- TOP NAV HEADER -->
     <div class="top-nav-row">
@@ -30,17 +70,17 @@ function confirmCancellation() {
     <div class="detail-header-card">
         <div>
             <div class="header-info-group">
-                <span class="ref-badge">#MDF-101</span>
-                <span class="badge badge-confirmed">Confirmed Visit</span>
+                <span class="ref-badge">{{ appointment.appointment_code }}</span>
+                <span class="badge" :class="statusBadgeClass">{{ appointment.status }}</span>
             </div>
-            <h1>Cardiology Consultation</h1>
+            <h1>{{ appointment.department }} Consultation</h1>
         </div>
 
-        <button class="btn btn-outline btn-print" @click="window.print()">
+        <button class="btn btn-outline btn-print" @click="() => window.print()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                 <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
             </svg>
-            Print Receipt & Pass
+            Print Receipt &amp; Pass
         </button>
     </div>
 
@@ -57,11 +97,15 @@ function confirmCancellation() {
                     Doctor Profile
                 </div>
                 <div class="doc-detail-row">
-                    <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=200" alt="Dr. Sarah Jenkins" class="doc-detail-avatar" />
+                    <img
+                        :src="appointment.doctor_avatar || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=200'"
+                        :alt="appointment.doctor_name"
+                        class="doc-detail-avatar"
+                    />
                     <div class="doc-detail-meta">
-                        <h3>Dr. Sarah Jenkins</h3>
-                        <p>Senior Cardiologist (12+ Yrs Exp)</p>
-                        <span class="dept-tag">Cardiology Department</span>
+                        <h3>{{ appointment.doctor_name }}</h3>
+                        <p>{{ appointment.specialty }}{{ appointment.doctor_experience ? ` (${appointment.doctor_experience})` : '' }}</p>
+                        <span class="dept-tag">{{ appointment.department }}</span>
                     </div>
                 </div>
             </div>
@@ -72,20 +116,20 @@ function confirmCancellation() {
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
                     </svg>
-                    Schedule & Location Details
+                    Schedule &amp; Location Details
                 </div>
 
                 <div class="info-pairs-grid">
                     <div class="info-box">
-                        <label>Date & Time</label>
-                        <span>Friday, Aug 7, 2026</span>
-                        <small>10:00 AM – 10:30 AM EST</small>
+                        <label>Date &amp; Time</label>
+                        <span>{{ appointment.date_formatted }}</span>
+                        <small>{{ appointment.time_formatted }}{{ appointment.end_formatted ? ` – ${appointment.end_formatted}` : '' }}</small>
                     </div>
 
                     <div class="info-box">
                         <label>Consultation Mode</label>
                         <span>In-Person Visit</span>
-                        <small>Building B, Room 302</small>
+                        <small>MediFlow Hospital Clinic</small>
                     </div>
 
                     <div class="info-box">
@@ -96,8 +140,8 @@ function confirmCancellation() {
 
                     <div class="info-box">
                         <label>Patient Contact</label>
-                        <span>Habib Hossain</span>
-                        <small>habib@example.com · (555) 340-2199</small>
+                        <span>{{ appointment.patient_name }}</span>
+                        <small>{{ appointment.patient_email }}</small>
                     </div>
                 </div>
             </div>
@@ -109,12 +153,12 @@ function confirmCancellation() {
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                         <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
                     </svg>
-                    Reason for Visit & Instructions
+                    Reason for Visit &amp; Instructions
                 </div>
 
                 <div class="reason-block">
                     <span class="sub-label">Stated Symptoms / Reason</span>
-                    <p class="reason-text">Routine follow-up consultation regarding recent blood pressure fluctuations and post-exercise chest tightness.</p>
+                    <p class="reason-text">{{ appointment.reason || 'No specific reason noted at time of booking.' }}</p>
                 </div>
 
                 <div class="prep-box">
@@ -124,7 +168,7 @@ function confirmCancellation() {
                         </svg>
                         Patient Pre-Visit Checklist
                     </h4>
-                    <p>Please arrive 15 minutes prior to your scheduled time slot. Bring your current medication list and recent ECG reports if available.</p>
+                    <p>Please arrive 15 minutes prior to your scheduled time slot. Bring your current medication list and any recent diagnostic reports if available.</p>
                 </div>
             </div>
         </div>
@@ -135,30 +179,46 @@ function confirmCancellation() {
                 <h4>Appointment Actions</h4>
                 <p class="action-sub font-muted">Need to adjust your consultation schedule?</p>
 
-                <Link href="/patient/appointments/101/reschedule" class="btn btn-primary">
+                <Link
+                    v-if="appointment.can_reschedule"
+                    :href="`/patient/appointments/${appointment.id}/reschedule`"
+                    class="btn btn-primary"
+                >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                     </svg>
                     Reschedule Slot
                 </Link>
 
-                <button class="btn btn-danger" @click="openCancelModal">
+                <button
+                    v-if="appointment.can_cancel"
+                    class="btn btn-danger"
+                    @click="openCancelModal"
+                >
                     Cancel Appointment
                 </button>
+
+                <Link
+                    v-if="appointment.can_review"
+                    :href="`/patient/appointments/${appointment.id}/review`"
+                    class="btn btn-primary"
+                >
+                    ★ Leave a Review
+                </Link>
 
                 <!-- PAYMENT SUMMARY TILE -->
                 <div class="payment-summary-box">
                     <div class="pay-row">
                         <span class="pay-label">Consultation Fee</span>
-                        <span class="pay-val">$120.00</span>
+                        <span class="pay-val">{{ appointment.consultation_fee }}</span>
                     </div>
                     <div class="pay-row">
-                        <span class="pay-label">Payment Method</span>
-                        <span class="pay-val">Pay at Clinic</span>
+                        <span class="pay-label">Payment Status</span>
+                        <span class="pay-val">{{ appointment.payment ? appointment.payment.status : 'Not Paid' }}</span>
                     </div>
                     <div class="pay-row total">
                         <span>Total Due</span>
-                        <b>$120.00</b>
+                        <b>{{ appointment.consultation_fee }}</b>
                     </div>
                 </div>
             </div>
@@ -174,7 +234,7 @@ function confirmCancellation() {
                 </svg>
             </div>
             <h3>Cancel Appointment?</h3>
-            <p>Are you sure you want to cancel your cardiology appointment with <strong>Dr. Sarah Jenkins</strong> on Aug 7, 2026?</p>
+            <p>Are you sure you want to cancel your appointment with <strong>{{ appointment.doctor_name }}</strong> on {{ appointment.date_formatted }}?</p>
 
             <div class="modal-actions">
                 <button class="btn btn-outline" @click="closeCancelModal">Keep Appointment</button>

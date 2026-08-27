@@ -1,23 +1,108 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
+
+interface NextAppointment {
+    id: number
+    appointment_code: string
+    doctor_name: string
+    doctor_avatar: string
+    specialty: string
+    date_formatted: string
+    time_formatted: string
+    type: string
+    status: string
+    reason?: string
+}
+
+interface UpcomingAppointment {
+    id: number
+    appointment_code: string
+    doctor_name: string
+    doctor_avatar: string
+    specialty: string
+    date_formatted: string
+    time_formatted: string
+    type: string
+    status: string
+}
+
+interface NotificationFeedItem {
+    id: string
+    text: string
+    time: string
+    bg_class?: string
+    url?: string
+}
+
+interface PatientStats {
+    upcoming_visits: number
+    active_prescriptions: number
+    medical_records: number
+    completed_visits: number
+}
+
+interface PatientInfo {
+    id: number
+    code: string
+    name: string
+    email: string
+}
+
+const props = defineProps<{
+    patientInfo?: PatientInfo
+    stats: PatientStats
+    nextAppointment?: NextAppointment | null
+    upcomingAppointments: UpcomingAppointment[]
+    recentNotifications: NotificationFeedItem[]
+}>()
+
+function getStatusBadgeClass(status: string) {
+    switch (status.toLowerCase()) {
+        case 'confirmed':
+            return 'badge-confirmed'
+        case 'completed':
+            return 'badge-completed'
+        case 'in progress':
+            return 'badge-in-progress'
+        case 'cancelled':
+            return 'badge-cancelled'
+        default:
+            return 'badge-pending'
+    }
+}
 </script>
 
 <template>
-    <Head title="Patient Dashboard" />
+    <Head title="Patient Dashboard - MediFlow" />
 
     <!-- HERO WELCOME BANNER -->
     <div class="welcome-banner">
-        <div class="welcome-text">
-            <span class="banner-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                </svg>
-                Next Scheduled Consultation
-            </span>
-            <h2>Dr. Sarah Jenkins (Cardiology)</h2>
-            <p>Friday, Aug 7, 2026 at 10:00 AM · In-Person Visit (120 Harbor Ave Clinic)</p>
-        </div>
-        <Link href="/patient/appointments/101" class="btn-banner-action">View Details</Link>
+        <template v-if="nextAppointment">
+            <div class="welcome-text">
+                <span class="banner-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    Next Scheduled Consultation
+                </span>
+                <h2>{{ nextAppointment.doctor_name }} ({{ nextAppointment.specialty }})</h2>
+                <p>{{ nextAppointment.date_formatted }} at {{ nextAppointment.time_formatted }} · {{ nextAppointment.type }}</p>
+            </div>
+            <Link :href="`/patient/appointments/${nextAppointment.id}`" class="btn-banner-action">View Details</Link>
+        </template>
+        <template v-else>
+            <div class="welcome-text">
+                <span class="banner-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                        <path d="M12 21s-7-4.35-9.5-8.5C.6 8.9 2.3 5 6 5c2 0 3.3 1.1 4 2 .7-.9 2-2 4-2 3.7 0 5.4 3.9 3.5 7.5C19 16.65 12 21 12 21z"/>
+                    </svg>
+                    Ready to schedule?
+                </span>
+                <h2>No upcoming consultations</h2>
+                <p>Book an appointment with top specialists across Cardiology, Pediatrics, Neurology, and more.</p>
+            </div>
+            <Link href="/appointments/book" class="btn-banner-action">Book Appointment →</Link>
+        </template>
     </div>
 
     <!-- METRICS GRID -->
@@ -25,7 +110,7 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Upcoming Visits</span>
-                <b>2</b>
+                <b>{{ stats?.upcoming_visits ?? 0 }}</b>
             </div>
             <div class="stat-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -37,7 +122,7 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Active Prescriptions</span>
-                <b>3</b>
+                <b>{{ stats?.active_prescriptions ?? 0 }}</b>
             </div>
             <div class="stat-icon icon-green">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -49,7 +134,7 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Medical Records</span>
-                <b>5</b>
+                <b>{{ stats?.medical_records ?? 0 }}</b>
             </div>
             <div class="stat-icon icon-blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -61,7 +146,7 @@ import { Head, Link } from '@inertiajs/vue3'
         <div class="stat-card">
             <div class="stat-meta">
                 <span>Completed Visits</span>
-                <b>14</b>
+                <b>{{ stats?.completed_visits ?? 0 }}</b>
             </div>
             <div class="stat-icon icon-muted">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -85,7 +170,7 @@ import { Head, Link } from '@inertiajs/vue3'
                 <Link href="/patient/appointments" class="header-link">View all</Link>
             </div>
 
-            <div class="table-responsive">
+            <div v-if="upcomingAppointments && upcomingAppointments.length > 0" class="table-responsive">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -97,53 +182,48 @@ import { Head, Link } from '@inertiajs/vue3'
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr v-for="app in upcomingAppointments" :key="app.id">
                             <td>
                                 <div class="doc-cell">
-                                    <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100" alt="Dr. Sarah Jenkins" />
+                                    <img :src="app.doctor_avatar" :alt="app.doctor_name" />
                                     <div class="doc-meta">
-                                        <b>Dr. Sarah Jenkins</b>
-                                        <span>Cardiology</span>
+                                        <b>{{ app.doctor_name }}</b>
+                                        <span>{{ app.specialty }}</span>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <b class="date-text">Aug 7, 2026</b>
-                                <span class="time-sub">10:00 AM</span>
+                                <b class="date-text">{{ app.date_formatted }}</b>
+                                <span class="time-sub">{{ app.time_formatted }}</span>
                             </td>
-                            <td>In-Person</td>
-                            <td><span class="badge badge-confirmed">Confirmed</span></td>
+                            <td>{{ app.type }}</td>
+                            <td>
+                                <span class="badge" :class="getStatusBadgeClass(app.status)">
+                                    {{ app.status }}
+                                </span>
+                            </td>
                             <td>
                                 <div class="action-menu">
-                                    <Link href="/patient/appointments/101" class="btn-table-action">View</Link>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>
-                                <div class="doc-cell">
-                                    <img src="https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=100" alt="Dr. Marcus Vance" />
-                                    <div class="doc-meta">
-                                        <b>Dr. Marcus Vance</b>
-                                        <span>Neurology</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <b class="date-text">Aug 18, 2026</b>
-                                <span class="time-sub">02:30 PM</span>
-                            </td>
-                            <td>Telehealth Call</td>
-                            <td><span class="badge badge-pending">Pending</span></td>
-                            <td>
-                                <div class="action-menu">
-                                    <Link href="/patient/appointments/102/reschedule" class="btn-table-action">Reschedule</Link>
+                                    <Link :href="`/patient/appointments/${app.id}`" class="btn-table-action">View</Link>
+                                    <Link :href="`/patient/appointments/${app.id}/reschedule`" class="btn-table-action text-muted">Reschedule</Link>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div v-else class="empty-state-wrap">
+                <div class="empty-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                    </svg>
+                </div>
+                <h4>No upcoming appointments scheduled</h4>
+                <p>Need medical advice or a routine checkup? Schedule a consultation today.</p>
+                <Link href="/appointments/book" class="btn-table-action primary-btn">
+                    + Book New Appointment
+                </Link>
             </div>
         </div>
 
@@ -205,25 +285,23 @@ import { Head, Link } from '@inertiajs/vue3'
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                         </svg>
-                        Notifications Summary
+                        Notifications & Activity
                     </h3>
                     <Link href="/patient/notifications" class="header-link">View all</Link>
                 </div>
                 <div class="feed-list">
-                    <div class="feed-item">
-                        <div class="feed-dot"></div>
+                    <Link
+                        v-for="item in recentNotifications"
+                        :key="item.id"
+                        :href="item.url || '/patient/notifications'"
+                        class="feed-item"
+                    >
+                        <div class="feed-dot" :class="item.bg_class || 'bg-green'"></div>
                         <div class="feed-content">
-                            <p>Appointment confirmed with Dr. Sarah Jenkins for Aug 7.</p>
-                            <span>2 hours ago</span>
+                            <p>{{ item.text }}</p>
+                            <span>{{ item.time }}</span>
                         </div>
-                    </div>
-                    <div class="feed-item">
-                        <div class="feed-dot bg-amber"></div>
-                        <div class="feed-content">
-                            <p>New prescription uploaded for Amoxicillin 500mg.</p>
-                            <span>Yesterday</span>
-                        </div>
-                    </div>
+                    </Link>
                 </div>
             </div>
         </div>
@@ -288,6 +366,7 @@ import { Head, Link } from '@inertiajs/vue3'
     text-decoration: none;
     z-index: 1;
     transition: transform 150ms ease;
+    white-space: nowrap;
 }
 .btn-banner-action:hover { transform: translateY(-1px); }
 
@@ -355,10 +434,22 @@ import { Head, Link } from '@inertiajs/vue3'
 .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .badge-confirmed { background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0; }
 .badge-pending { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+.badge-completed { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+.badge-in-progress { background: #FCE7F3; color: #BE185D; border: 1px solid #FBCFE8; }
+.badge-cancelled { background: #FEE2E2; color: #B91C1C; border: 1px solid #FCA5A5; }
 
 .action-menu { display: flex; gap: 8px; }
 .btn-table-action { height: 32px; padding: 0 12px; border-radius: var(--radius-sm); border: 1px solid var(--line); font-size: 12.5px; font-weight: 600; color: var(--ink); text-decoration: none; transition: all 150ms ease; display: inline-flex; align-items: center; justify-content: center; }
 .btn-table-action:hover { border-color: var(--forest); background: var(--forest); color: #fff; }
+.btn-table-action.text-muted { color: var(--ink-muted); }
+.btn-table-action.primary-btn { background: var(--forest); color: #fff; border-color: var(--forest); }
+.btn-table-action.primary-btn:hover { background: var(--forest-2); }
+
+.empty-state-wrap { padding: 40px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.empty-icon-box { width: 48px; height: 48px; border-radius: 50%; background: var(--cream); color: var(--ink-muted); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.empty-icon-box svg { width: 24px; height: 24px; }
+.empty-state-wrap h4 { font-size: 15px; font-weight: 700; color: var(--forest); margin: 0 0 6px 0; }
+.empty-state-wrap p { font-size: 13px; color: var(--ink-muted); margin: 0 0 16px 0; max-width: 360px; }
 
 /* QUICK ACTIONS LIST */
 .quick-action-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
@@ -373,10 +464,12 @@ import { Head, Link } from '@inertiajs/vue3'
 .action-info p { font-size: 12px; color: var(--ink-muted); margin: 0; }
 
 /* NOTIFICATION FEED */
-.feed-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 16px; }
-.feed-item { display: flex; gap: 12px; align-items: flex-start; }
+.feed-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+.feed-item { display: flex; gap: 12px; align-items: flex-start; text-decoration: none; padding: 6px 8px; border-radius: var(--radius-sm); transition: background 150ms ease; }
+.feed-item:hover { background: var(--cream); }
 .feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--forest); margin-top: 6px; flex-shrink: 0; }
+.feed-dot.bg-green { background: #16A34A; }
 .feed-dot.bg-amber { background: #B45309; }
-.feed-content p { font-size: 13px; color: var(--ink); line-height: 1.4; margin: 0 0 2px 0; }
-.feed-content span { font-size: 11.5px; color: var(--ink-muted); font-family: var(--font-mono); }
+.feed-content p { font-size: 12.5px; color: var(--ink); line-height: 1.4; margin: 0 0 2px 0; }
+.feed-content span { font-size: 11px; color: var(--ink-muted); font-family: var(--font-mono); }
 </style>

@@ -2,81 +2,40 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+interface VitalItem {
+    label: string
+    value: string
+    unit: string
+    sub: string
+    icon: string
+}
+
+interface MedicalRecord {
+    id: number
+    year: string
+    date: string
+    category: string
+    typeLabel: string
+    tagClass: string
+    title: string
+    description: string
+    doctorName: string
+    doctorDept: string
+    avatar: string | null
+    highlight: boolean
+    buttonText: string
+}
+
+const props = defineProps<{
+    records: MedicalRecord[]
+    latestVitals: VitalItem[]
+}>()
+
 const activeCat = ref('all')
 const searchQuery = ref('')
 
-const vitals = ref([
-    { label: 'Blood Pressure', value: '120/80', unit: 'mmHg', sub: 'Last recorded: July 14, 2026', icon: 'heart' },
-    { label: 'Heart Rate', value: '72', unit: 'bpm', sub: 'Normal Resting Rate', icon: 'pulse' },
-    { label: 'Body Weight', value: '74.5', unit: 'kg', sub: 'BMI: 22.8 (Optimal)', icon: 'scale' },
-    { label: 'Blood Sugar', value: '98', unit: 'mg/dL', sub: 'Fasting Glucose', icon: 'drop' },
-])
-
-const records = ref([
-    {
-        id: 301,
-        year: '2026',
-        date: 'July 14, 2026',
-        category: 'consultation',
-        typeLabel: 'Consultation',
-        tagClass: 'tag-consultation',
-        title: 'Cardiology Follow-Up & ECG Assessment',
-        description: 'Routine cardiovascular evaluation following reported minor exertion-related chest tightness. Resting ECG revealed normal sinus rhythm. Adjusted anti-hypertensive medication dosage.',
-        doctorName: 'Dr. Sarah Jenkins',
-        doctorDept: 'Cardiology Department',
-        avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100',
-        highlight: true,
-        buttonText: 'View Full Record →',
-    },
-    {
-        id: 302,
-        year: '2026',
-        date: 'June 28, 2026',
-        category: 'lab',
-        typeLabel: 'Lab Report',
-        tagClass: 'tag-lab',
-        title: 'Comprehensive Blood Count (CBC) & Lipid Panel',
-        description: 'Total Cholesterol: 185 mg/dL (Desirable), HDL: 52 mg/dL, Triglycerides: 130 mg/dL. All blood count values within standard physiological reference ranges.',
-        doctorName: 'Dr. Emily Watson',
-        doctorDept: 'MediFlow Diagnostics Lab',
-        avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=100',
-        highlight: false,
-        buttonText: 'View Report PDF →',
-    },
-    {
-        id: 303,
-        year: '2025',
-        date: 'November 12, 2025',
-        category: 'consultation',
-        typeLabel: 'Consultation',
-        tagClass: 'tag-consultation',
-        title: 'Annual Health Examination & Preventive Screening',
-        description: 'General wellness physical examination. Patient reported excellent physical endurance. Vaccination history updated (Tdap booster administered).',
-        doctorName: 'Dr. Alan Grant',
-        doctorDept: 'General Practice',
-        avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=100',
-        highlight: false,
-        buttonText: 'View Full Record →',
-    },
-    {
-        id: 304,
-        year: '2025',
-        date: 'August 04, 2025',
-        category: 'vital',
-        typeLabel: 'Vitals Telemetry',
-        tagClass: 'tag-vital',
-        title: '24-Hour Ambulatory Blood Pressure Telemetry',
-        description: 'Ambulatory monitoring telemetry session. Mean daytime BP: 124/82 mmHg, Mean nocturnal BP: 112/72 mmHg. Normal nocturnal dipper pattern preserved.',
-        doctorName: 'MediFlow Telemetry Division',
-        doctorDept: 'Cardiology Telemetry',
-        avatar: '',
-        highlight: false,
-        buttonText: 'View Telemetry Data →',
-    },
-])
-
 const filteredRecords = computed(() => {
-    return records.value.filter((rec) => {
+    return props.records.filter((rec) => {
         const matchesCat = activeCat.value === 'all' || rec.category === activeCat.value
         const q = searchQuery.value.toLowerCase().trim()
         const matchesSearch = !q || rec.title.toLowerCase().includes(q) || rec.description.toLowerCase().includes(q) || rec.doctorName.toLowerCase().includes(q)
@@ -85,9 +44,9 @@ const filteredRecords = computed(() => {
 })
 
 const groupedRecords = computed(() => {
-    const map: Record<string, typeof records.value> = {}
+    const map: Record<string, typeof props.records> = {}
     filteredRecords.value.forEach((rec) => {
-        if (!map[rec.year]) map[rec.year] = []
+        if (!map[rec.year]) { map[rec.year] = [] }
         map[rec.year].push(rec)
     })
     return map
@@ -98,29 +57,31 @@ const groupedRecords = computed(() => {
     <Head title="Medical History" />
 
     <!-- LATEST VITALS SUMMARY STRIP -->
-    <div class="vitals-grid">
-        <div v-for="v in vitals" :key="v.label" class="vital-card">
-            <div class="vital-info">
-                <label>{{ v.label }}</label>
-                <b>{{ v.value }} <small class="unit-text">{{ v.unit }}</small></b>
-                <span>{{ v.sub }}</span>
-            </div>
-            <div class="vital-icon">
-                <svg v-if="v.icon === 'heart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-                <svg v-else-if="v.icon === 'pulse'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                </svg>
-                <svg v-else-if="v.icon === 'scale'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
-                </svg>
-                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-                </svg>
+    <template v-if="props.latestVitals && props.latestVitals.length > 0">
+        <div class="vitals-grid">
+            <div v-for="v in props.latestVitals" :key="v.label" class="vital-card">
+                <div class="vital-info">
+                    <label>{{ v.label }}</label>
+                    <b>{{ v.value }} <small class="unit-text">{{ v.unit }}</small></b>
+                    <span>{{ v.sub }}</span>
+                </div>
+                <div class="vital-icon">
+                    <svg v-if="v.icon === 'heart'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                    <svg v-else-if="v.icon === 'pulse'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
+                    <svg v-else-if="v.icon === 'scale'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                    </svg>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                    </svg>
+                </div>
             </div>
         </div>
-    </div>
+    </template>
 
     <!-- FILTER CONTROLS -->
     <div class="filter-row">
