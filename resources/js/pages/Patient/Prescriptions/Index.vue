@@ -2,57 +2,44 @@
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
+interface PrescriptionMedication {
+    name: string
+    dose: string
+    freq: string
+}
+
+interface Prescription {
+    id: number
+    code: string
+    doctorName: string
+    doctorDept: string
+    avatar: string
+    issuedDate: string
+    status: 'active' | 'expired'
+    refillsText: string
+    medications: PrescriptionMedication[]
+    special_instructions: string | null
+}
+
+interface PrescriptionStats {
+    active_count: number
+    expired_count: number
+    total_count: number
+}
+
+const props = defineProps<{
+    prescriptions: Prescription[]
+    stats: PrescriptionStats
+}>()
+
 const activeTab = ref('all')
 const searchQuery = ref('')
 
-const prescriptions = ref([
-    {
-        id: 401,
-        code: '#RX-401',
-        doctorName: 'Dr. Sarah Jenkins',
-        doctorDept: 'Cardiology Dept',
-        avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150',
-        issuedDate: 'July 14, 2026',
-        status: 'active',
-        refillsText: '2 Refills Remaining',
-        medications: [
-            { name: 'Amlodipine Besylate', dose: '5 mg Oral Tablet', freq: '1x Daily (Morning)' },
-            { name: 'Atorvastatin Calcium', dose: '20 mg Oral Tablet', freq: '1x Daily (Night)' },
-        ],
-    },
-    {
-        id: 388,
-        code: '#RX-388',
-        doctorName: 'Dr. Emily Watson',
-        doctorDept: 'Pediatrics / General',
-        avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=150',
-        issuedDate: 'June 10, 2026',
-        status: 'active',
-        refillsText: '1 Refill Remaining',
-        medications: [
-            { name: 'Amoxicillin Trihydrate', dose: '500 mg Capsule · 7 Day Course', freq: 'Every 8 Hours' },
-        ],
-    },
-    {
-        id: 250,
-        code: '#RX-250',
-        doctorName: 'Dr. Marcus Vance',
-        doctorDept: 'Neurology Dept',
-        avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&q=80&w=150',
-        issuedDate: 'March 02, 2026',
-        status: 'expired',
-        refillsText: '0 Refills Remaining',
-        medications: [
-            { name: 'Sumatriptan Succinate', dose: '50 mg Tablet · As Needed', freq: 'Max 2 / Day' },
-        ],
-    },
-])
-
-const activeCount = computed(() => prescriptions.value.filter((p) => p.status === 'active').length)
-const expiredCount = computed(() => prescriptions.value.filter((p) => p.status === 'expired').length)
+const activeCount = computed(() => props.stats.active_count)
+const expiredCount = computed(() => props.stats.expired_count)
 
 const filteredPrescriptions = computed(() => {
-    return prescriptions.value.filter((p) => {
+    return props.prescriptions.filter((p) => {
         const matchesTab = activeTab.value === 'all' || p.status === activeTab.value
         const q = searchQuery.value.toLowerCase().trim()
         const matchesSearch = !q || p.code.toLowerCase().includes(q) || p.doctorName.toLowerCase().includes(q) || p.medications.some((m) => m.name.toLowerCase().includes(q))
@@ -95,7 +82,7 @@ const filteredPrescriptions = computed(() => {
         <div class="metric-card">
             <div class="metric-info">
                 <label>Total Prescriptions Issued</label>
-                <b>{{ prescriptions.length }}</b>
+                <b>{{ props.stats.total_count }}</b>
                 <span>Lifetime record</span>
             </div>
             <div class="metric-icon gray-bg">
@@ -110,7 +97,7 @@ const filteredPrescriptions = computed(() => {
     <div class="toolbar-row">
         <div class="tab-group">
             <button class="tab-btn" :class="{ active: activeTab === 'all' }" @click="activeTab = 'all'">
-                All <span class="tab-badge">{{ prescriptions.length }}</span>
+                All <span class="tab-badge">{{ props.stats.total_count }}</span>
             </button>
             <button class="tab-btn" :class="{ active: activeTab === 'active' }" @click="activeTab = 'active'">
                 Active <span class="tab-badge">{{ activeCount }}</span>
