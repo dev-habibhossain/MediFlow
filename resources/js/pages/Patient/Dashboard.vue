@@ -1,73 +1,73 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3';
 
 interface NextAppointment {
-    id: number
-    appointment_code: string
-    doctor_name: string
-    doctor_avatar: string
-    specialty: string
-    date_formatted: string
-    time_formatted: string
-    type: string
-    status: string
-    reason?: string
+    id: number;
+    appointment_code: string;
+    doctor_name: string;
+    doctor_avatar: string;
+    specialty: string;
+    date_formatted: string;
+    time_formatted: string;
+    type: string;
+    status: string;
+    reason?: string;
 }
 
 interface UpcomingAppointment {
-    id: number
-    appointment_code: string
-    doctor_name: string
-    doctor_avatar: string
-    specialty: string
-    date_formatted: string
-    time_formatted: string
-    type: string
-    status: string
+    id: number;
+    appointment_code: string;
+    doctor_name: string;
+    doctor_avatar: string;
+    specialty: string;
+    date_formatted: string;
+    time_formatted: string;
+    type: string;
+    status: string;
 }
 
 interface NotificationFeedItem {
-    id: string
-    text: string
-    time: string
-    bg_class?: string
-    url?: string
+    id: string;
+    text: string;
+    time: string;
+    bg_class?: string;
+    url?: string;
 }
 
 interface PatientStats {
-    upcoming_visits: number
-    active_prescriptions: number
-    medical_records: number
-    completed_visits: number
+    upcoming_visits: number;
+    active_prescriptions: number;
+    medical_records: number;
+    completed_visits: number;
 }
 
 interface PatientInfo {
-    id: number
-    code: string
-    name: string
-    email: string
+    id: number;
+    code: string;
+    name: string;
+    email: string;
 }
 
 const props = defineProps<{
-    patientInfo?: PatientInfo
-    stats: PatientStats
-    nextAppointment?: NextAppointment | null
-    upcomingAppointments: UpcomingAppointment[]
-    recentNotifications: NotificationFeedItem[]
-}>()
+    patientInfo?: PatientInfo;
+    stats: PatientStats;
+    nextAppointment?: NextAppointment | null;
+    upcomingAppointments: UpcomingAppointment[];
+    recentNotifications: NotificationFeedItem[];
+}>();
 
 function getStatusBadgeClass(status: string) {
     switch (status) {
         case 'confirmed':
-            return 'badge-confirmed'
+            return 'badge-confirmed';
         case 'completed':
-            return 'badge-completed'
+            return 'badge-completed';
         case 'in progress':
-            return 'badge-in-progress'
+            return 'badge-in-progress';
         case 'cancelled':
-            return 'badge-cancelled'
+            return 'badge-cancelled';
         default:
-            return 'badge-pending'
+            return 'badge-pending';
     }
 }
 </script>
@@ -133,7 +133,7 @@ function getStatusBadgeClass(status: string) {
                     Pediatrics, Neurology, and more.
                 </p>
             </div>
-            <Link href="/appointments/book" class="btn-banner-action"
+            <Link href="/doctors" class="btn-banner-action"
                 >Book Appointment →</Link
             >
         </template>
@@ -317,10 +317,7 @@ function getStatusBadgeClass(status: string) {
                     Need medical advice or a routine checkup? Schedule a
                     consultation today.
                 </p>
-                <Link
-                    href="/appointments/book"
-                    class="btn-table-action primary-btn"
-                >
+                <Link href="/doctors" class="btn-table-action primary-btn">
                     + Book New Appointment
                 </Link>
             </div>
@@ -345,7 +342,7 @@ function getStatusBadgeClass(status: string) {
                     </h3>
                 </div>
                 <div class="quick-action-list">
-                    <Link href="/appointments/book" class="action-item">
+                    <Link href="/doctors" class="action-item">
                         <div class="action-icon">
                             <svg
                                 viewBox="0 0 24 24"
