@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import PatientLayout from '@/layouts/PatientLayout.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 
 interface Schedule {
@@ -26,7 +27,9 @@ interface Review {
 interface Doctor {
     id: number;
     specialization: string;
-    qualification: string;
+    qualifications?: string;
+    qualification?: string;
+    years_of_experience?: number;
     experience_years?: number;
     bio?: string;
     consultation_fee: string | number;
@@ -38,12 +41,13 @@ interface Doctor {
         email: string;
         phone: string;
         avatar_path?: string;
+        avatar_url?: string;
     };
-    department: {
+    department?: {
         id: number;
         name: string;
         slug: string;
-    };
+    } | null;
     schedules: Schedule[];
     reviews: Review[];
 }
@@ -51,6 +55,51 @@ interface Doctor {
 const props = defineProps<{
     doctor: Doctor;
 }>();
+
+const page = usePage();
+const isPatient = computed(() => {
+    const role = (
+        page.props.auth?.user as { role?: string } | undefined
+    )?.role?.toLowerCase();
+
+    return role === 'patient';
+});
+const activeLayout = computed(() =>
+    isPatient.value ? PatientLayout : PublicLayout,
+);
+
+function getAvatarUrl(doc: Doctor): string | null {
+    if (doc.user.avatar_url) {
+        return doc.user.avatar_url;
+    }
+
+    if (doc.user.avatar_path) {
+        if (
+            doc.user.avatar_path.startsWith('http://') ||
+            doc.user.avatar_path.startsWith('https://')
+        ) {
+            return doc.user.avatar_path;
+        }
+
+        return `/storage/${doc.user.avatar_path}`;
+    }
+
+    return null;
+}
+
+function getInitials(name?: string): string {
+    if (!name) {
+        return 'DR';
+    }
+
+    return name
+        .replace(/^Dr\.\s*/i, '')
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+}
 
 const dayNames = [
     'Sunday',
@@ -96,7 +145,8 @@ function startBooking() {
 </script>
 
 <template>
-    <PublicLayout
+    <component
+        :is="activeLayout"
         :title="`${doctor.user.name} — ${doctor.specialization} | MediFlow`"
     >
         <main class="py-8">
@@ -125,13 +175,13 @@ function startBooking() {
                                 }}
                             </span>
                             <img
-                                v-if="doctor.user.avatar_path"
-                                :src="doctor.user.avatar_path"
+                                v-if="getAvatarUrl(doctor)"
+                                :src="getAvatarUrl(doctor)!"
                                 :alt="doctor.user.name"
-                                class="doc-img-large"
+                                class="doc-img-large object-cover"
                             />
                             <div v-else class="avatar-large">
-                                {{ doctor.user.name.charAt(0) }}
+                                {{ getInitials(doctor.user.name) }}
                             </div>
                         </div>
 
@@ -140,7 +190,11 @@ function startBooking() {
                                 <b>{{ doctor.user.name }}</b>
                             </h1>
                             <p class="doc-subtitle">
-                                Senior Specialist — {{ doctor.department.name }}
+                                Senior Specialist —
+                                {{
+                                    doctor.department?.name ||
+                                    doctor.specialization
+                                }}
                             </p>
                             <span class="pill"
                                 >★ 4.9 ({{
@@ -173,7 +227,7 @@ function startBooking() {
                             <p>
                                 {{
                                     doctor.bio ||
-                                    `Dr. ${doctor.user.name} is a board-certified ${doctor.specialization} with over ${doctor.experience_years || 14} years of clinical experience in non-invasive diagnosis, patient care, and modern treatment plans.`
+                                    `Dr. ${doctor.user.name} is a board-certified ${doctor.specialization} with over ${doctor.years_of_experience || doctor.experience_years || 14} years of clinical experience in non-invasive diagnosis, patient care, and modern treatment plans.`
                                 }}
                             </p>
                         </section>
@@ -185,6 +239,7 @@ function startBooking() {
                                 <div class="qual-item">
                                     <h4>
                                         <b>{{
+                                            doctor.qualifications ||
                                             doctor.qualification ||
                                             'MD — Internal Medicine'
                                         }}</b>
@@ -328,9 +383,7 @@ function startBooking() {
                                     </div>
                                     <p>
                                         "Dr.
-                                        {{
-                                            doctor.user.name.split(' ')[0]
-                                        }}
+                                        {{ doctor.user.name.split(' ')[0] }}
                                         took the time to explain my test results
                                         thoroughly. I felt truly listened to and
                                         confident in the care plan."
@@ -361,7 +414,7 @@ function startBooking() {
                 </div>
             </div>
         </main>
-    </PublicLayout>
+    </component>
 </template>
 
 <style scoped>

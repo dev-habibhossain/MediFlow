@@ -45,14 +45,44 @@ interface PatientInfo {
     id: number;
     code: string;
     name: string;
+    first_name?: string;
     email: string;
+    phone?: string;
+    blood_group?: string;
+    gender?: string;
+    allergies?: string;
+    age?: number;
+}
+
+interface PrescriptionSummary {
+    id: number;
+    code: string;
+    doctor_name: string;
+    medication_summary: string;
+    dosage?: string;
+    issued_date: string;
+    url: string;
+}
+
+interface LatestVitals {
+    bp?: string;
+    pulse?: string | number;
+    weight?: string | number;
+    temp?: string | number;
+    recorded_date: string;
+    diagnosis?: string;
+    doctor_name: string;
+    record_url: string;
 }
 
 const props = defineProps<{
+    greeting?: string;
     patientInfo?: PatientInfo;
     stats: PatientStats;
     nextAppointment?: NextAppointment | null;
     upcomingAppointments: UpcomingAppointment[];
+    recentPrescriptions?: PrescriptionSummary[];
+    latestVitals?: LatestVitals | null;
     recentNotifications: NotificationFeedItem[];
 }>();
 
@@ -74,6 +104,59 @@ function getStatusBadgeClass(status: string) {
 
 <template>
     <Head title="Patient Dashboard - MediFlow" />
+
+    <!-- TOP GREETING & PRIMARY ACTIONS BAR (DESIGN GUIDELINES §16) -->
+    <div class="patient-greeting-bar">
+        <div class="greeting-content">
+            <div class="greeting-badge">
+                <span class="status-live-dot"></span>
+                <span>Patient Portal</span>
+                <span v-if="patientInfo?.code" class="patient-id-badge"
+                    >ID: {{ patientInfo.code }}</span
+                >
+            </div>
+            <h1>
+                {{
+                    greeting ||
+                    `Welcome back, ${patientInfo?.first_name || patientInfo?.name || 'Patient'}!`
+                }}
+            </h1>
+            <p>
+                Access your health records, scheduled visits, and browse
+                verified hospital specialists.
+            </p>
+        </div>
+        <div class="greeting-actions">
+            <Link href="/doctors" class="btn-greeting-primary">
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="16"
+                    height="16"
+                >
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="m21 21-4.3-4.3" />
+                </svg>
+                Find Doctors
+            </Link>
+            <Link href="/doctors" class="btn-greeting-secondary">
+                <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    width="16"
+                    height="16"
+                >
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                Book Appointment
+            </Link>
+        </div>
+    </div>
 
     <!-- HERO WELCOME BANNER -->
     <div class="welcome-banner">
@@ -314,12 +397,36 @@ function getStatusBadgeClass(status: string) {
                 </div>
                 <h4>No upcoming appointments scheduled</h4>
                 <p>
-                    Need medical advice or a routine checkup? Schedule a
-                    consultation today.
+                    Need medical advice or a routine checkup? Find a specialist
+                    and schedule your consultation today.
                 </p>
-                <Link href="/doctors" class="btn-table-action primary-btn">
-                    + Book New Appointment
-                </Link>
+                <div
+                    style="
+                        display: flex;
+                        gap: 10px;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                    "
+                >
+                    <Link href="/doctors" class="btn-table-action primary-btn">
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            width="13"
+                            height="13"
+                            style="margin-right: 5px"
+                        >
+                            <circle cx="11" cy="11" r="7" />
+                            <path d="m21 21-4.3-4.3" />
+                        </svg>
+                        Find a Doctor
+                    </Link>
+                    <Link href="/doctors" class="btn-table-action">
+                        + Book Appointment
+                    </Link>
+                </div>
             </div>
         </div>
 
@@ -342,6 +449,26 @@ function getStatusBadgeClass(status: string) {
                     </h3>
                 </div>
                 <div class="quick-action-list">
+                    <!-- 1. FIND DOCTOR -->
+                    <Link href="/doctors" class="action-item">
+                        <div class="action-icon icon-forest">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <circle cx="11" cy="11" r="7" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                        </div>
+                        <div class="action-info">
+                            <h4>Find a Doctor</h4>
+                            <p>Search specialists & availability</p>
+                        </div>
+                    </Link>
+
+                    <!-- 2. BOOK CONSULTATION -->
                     <Link href="/doctors" class="action-item">
                         <div class="action-icon">
                             <svg
@@ -443,6 +570,109 @@ function getStatusBadgeClass(status: string) {
 </template>
 
 <style scoped>
+/* GREETING BAR */
+.patient-greeting-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xl);
+    padding: 24px 32px;
+    box-shadow: var(--shadow-sm);
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.greeting-content {
+    max-width: 600px;
+}
+.greeting-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--forest);
+    background: var(--cream);
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    margin-bottom: 8px;
+}
+.status-live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+}
+.patient-id-badge {
+    font-family: var(--font-mono);
+    color: var(--ink-muted);
+    font-weight: 600;
+}
+.greeting-content h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--forest);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.01em;
+}
+.greeting-content p {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    margin: 0;
+    line-height: 1.45;
+}
+.greeting-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.btn-greeting-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 20px;
+    border-radius: 999px;
+    background: var(--forest);
+    color: #fff;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(22, 48, 31, 0.18);
+    transition: all 150ms ease;
+}
+.btn-greeting-primary:hover {
+    background: var(--forest-2);
+    transform: translateY(-1px);
+}
+.btn-greeting-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: var(--cream);
+    color: var(--forest);
+    border: 1.5px solid var(--line);
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 150ms ease;
+}
+.btn-greeting-secondary:hover {
+    background: var(--cream-alt);
+    border-color: var(--forest);
+    transform: translateY(-1px);
+}
+.action-icon.icon-forest {
+    background: #16301f;
+    color: var(--lime);
+}
+
 /* HERO BANNER */
 .welcome-banner {
     background: var(--forest);

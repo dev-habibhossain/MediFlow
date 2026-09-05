@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Link, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import PatientLayout from '@/layouts/PatientLayout.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 
 interface Department {
@@ -12,7 +13,9 @@ interface Department {
 interface Doctor {
     id: number;
     specialization: string;
-    qualification: string;
+    qualifications?: string;
+    qualification?: string;
+    years_of_experience?: number;
     experience_years?: number;
     bio?: string;
     consultation_fee: string | number;
@@ -23,8 +26,9 @@ interface Doctor {
         id: number;
         name: string;
         avatar_path?: string;
+        avatar_url?: string;
     };
-    department: Department;
+    department?: Department | null;
 }
 
 interface PaginatedDoctors {
@@ -42,6 +46,18 @@ const props = defineProps<{
         department: string;
     };
 }>();
+
+const page = usePage();
+const isPatient = computed(() => {
+    const role = (
+        page.props.auth?.user as { role?: string } | undefined
+    )?.role?.toLowerCase();
+
+    return role === 'patient';
+});
+const activeLayout = computed(() =>
+    isPatient.value ? PatientLayout : PublicLayout,
+);
 
 const search = ref(props.filters.search || '');
 const selectedDept = ref(props.filters.department || '');
@@ -61,6 +77,17 @@ function closeModal() {
     selectedDoctorForModal.value = null;
 }
 
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+function onSearchInput() {
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+    }
+
+    searchDebounceTimer = setTimeout(() => {
+        applyFilters();
+    }, 300);
+}
+
 function applyFilters() {
     router.get(
         '/doctors',
@@ -75,6 +102,39 @@ function applyFilters() {
 function setDepartment(slug: string) {
     selectedDept.value = slug;
     applyFilters();
+}
+
+function getAvatarUrl(doc: Doctor): string | null {
+    if (doc.user.avatar_url) {
+        return doc.user.avatar_url;
+    }
+
+    if (doc.user.avatar_path) {
+        if (
+            doc.user.avatar_path.startsWith('http://') ||
+            doc.user.avatar_path.startsWith('https://')
+        ) {
+            return doc.user.avatar_path;
+        }
+
+        return `/storage/${doc.user.avatar_path}`;
+    }
+
+    return null;
+}
+
+function getInitials(name?: string): string {
+    if (!name) {
+        return 'DR';
+    }
+
+    return name
+        .replace(/^Dr\.\s*/i, '')
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
 }
 
 // Client side sorting for current page doctors
@@ -94,9 +154,12 @@ const sortedDoctors = computed(() => {
     }
 
     if (sortBy.value === 'exp') {
-        return list.sort(
-            (a, b) => (b.experience_years || 10) - (a.experience_years || 10),
-        );
+        return list.sort((a, b) => {
+            const expA = a.years_of_experience ?? a.experience_years ?? 10;
+            const expB = b.years_of_experience ?? b.experience_years ?? 10;
+
+            return expB - expA;
+        });
     }
 
     return list;
@@ -104,11 +167,42 @@ const sortedDoctors = computed(() => {
 </script>
 
 <template>
-    <PublicLayout title="Doctors Directory — MediFlow">
-        <main class="py-8">
+    <component :is="activeLayout" title="Doctors Directory — MediFlow">
+        <main class="py-6">
             <div class="wrap">
-                <!-- PAGE HERO -->
-                <section class="about-hero">
+                <!-- PATIENT PORTAL HEADER (When inside Patient Dashboard) -->
+                <div v-if="isPatient" class="patient-directory-header mb-8">
+                    <div class="header-left">
+                        <span class="pill mb-2">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                            >
+                                <circle cx="11" cy="11" r="7" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                            Verified Hospital Specialists
+                        </span>
+                        <h1 class="portal-heading">Doctors Directory</h1>
+                        <p class="portal-subheading">
+                            Search our credentialed physicians, inspect verified
+                            reviews & consultation fees, and schedule an
+                            appointment directly.
+                        </p>
+                    </div>
+                    <Link
+                        href="/patient/dashboard"
+                        class="btn btn-outline btn-sm"
+                    >
+                        ← Back to Overview
+                    </Link>
+                </div>
+
+                <!-- PUBLIC GUEST HERO -->
+                <section v-else class="about-hero">
                     <span class="pill mb-4">
                         <svg
                             viewBox="0 0 24 24"
@@ -150,7 +244,7 @@ const sortedDoctors = computed(() => {
                                 type="text"
                                 placeholder="Search by doctor name, specialty, or condition..."
                                 aria-label="Search doctors"
-                                @input="applyFilters"
+                                @input="onSearchInput"
                             />
                         </div>
 
@@ -222,17 +316,19 @@ const sortedDoctors = computed(() => {
                                 </span>
 
                                 <img
-                                    v-if="doc.user.avatar_path"
-                                    :src="doc.user.avatar_path"
+                                    v-if="getAvatarUrl(doc)"
+                                    :src="getAvatarUrl(doc)!"
                                     :alt="doc.user.name"
                                     class="doc-img"
                                 />
                                 <div v-else class="avatar-ph">
-                                    {{ doc.user.name.charAt(0) }}
+                                    {{ getInitials(doc.user.name) }}
                                 </div>
 
                                 <span class="doc-dept-badge"
-                                    ><b>{{ doc.department.name }}</b></span
+                                    ><b>{{
+                                        doc.department?.name || 'Specialist'
+                                    }}</b></span
                                 >
                             </div>
 
@@ -245,7 +341,9 @@ const sortedDoctors = computed(() => {
                                     {{ doc.specialization }} ·
                                     <b
                                         >{{
-                                            doc.experience_years || 10 + idx
+                                            doc.years_of_experience ??
+                                            doc.experience_years ??
+                                            10
                                         }}
                                         yrs exp</b
                                     >
@@ -283,17 +381,25 @@ const sortedDoctors = computed(() => {
 
                         <!-- Action Buttons -->
                         <div class="doc-actions">
+                            <button
+                                @click="openModal(doc)"
+                                class="btn btn-outline btn-sm"
+                                type="button"
+                                title="Quick doctor overview"
+                            >
+                                Quick View
+                            </button>
                             <Link
                                 :href="`/doctors/${doc.license_number}`"
                                 class="btn btn-outline btn-sm"
                             >
-                                View Profile
+                                Profile
                             </Link>
                             <Link
                                 :href="`/appointments/book/${doc.license_number}`"
                                 class="btn btn-primary btn-sm"
                             >
-                                Book Appointment
+                                Book
                             </Link>
                         </div>
                     </div>
@@ -338,8 +444,8 @@ const sortedDoctors = computed(() => {
                     </template>
                 </div>
 
-                <!-- CLOSING CTA BANNER -->
-                <div class="closing mb-16">
+                <!-- CLOSING CTA BANNER (Guests only) -->
+                <div v-if="!isPatient" class="closing mb-16">
                     <div>
                         <h2>
                             Need help selecting the <b>right specialist</b>?
@@ -381,8 +487,18 @@ const sortedDoctors = computed(() => {
                             </svg>
                         </button>
                         <div class="modal-head">
-                            <div class="modal-avatar">
-                                {{ selectedDoctorForModal.user.name.charAt(0) }}
+                            <img
+                                v-if="getAvatarUrl(selectedDoctorForModal)"
+                                :src="getAvatarUrl(selectedDoctorForModal)!"
+                                :alt="selectedDoctorForModal.user.name"
+                                class="modal-avatar-img"
+                            />
+                            <div v-else class="modal-avatar">
+                                {{
+                                    getInitials(
+                                        selectedDoctorForModal.user.name,
+                                    )
+                                }}
                             </div>
                             <div>
                                 <h3>
@@ -400,7 +516,7 @@ const sortedDoctors = computed(() => {
                             <p>
                                 {{
                                     selectedDoctorForModal.bio ||
-                                    `Dr. ${selectedDoctorForModal.user.name} is a board-certified specialist with extensive experience in ${selectedDoctorForModal.department.name} clinical care.`
+                                    `Dr. ${selectedDoctorForModal.user.name} is a board-certified specialist with extensive experience in ${selectedDoctorForModal.department?.name || 'specialized'} clinical care.`
                                 }}
                             </p>
 
@@ -437,10 +553,44 @@ const sortedDoctors = computed(() => {
                 </div>
             </Teleport>
         </main>
-    </PublicLayout>
+    </component>
 </template>
 
 <style scoped>
+.patient-directory-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: var(--card, #fff);
+    border: 1px solid var(--line, #e7e3d3);
+    border-radius: 20px;
+    padding: 24px 28px;
+    box-shadow: 0 1px 3px rgba(22, 24, 15, 0.05);
+}
+.portal-heading {
+    font-size: 24px;
+    font-weight: 800;
+    color: #16301f;
+    margin: 4px 0 6px 0;
+    letter-spacing: -0.01em;
+}
+.portal-subheading {
+    font-size: 14px;
+    color: #62655a;
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.45;
+}
+.modal-avatar-img {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--lime, #ddf15c);
+}
+
 .wrap {
     max-width: 1320px;
     margin-inline: auto;
