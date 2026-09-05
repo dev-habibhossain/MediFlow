@@ -34,6 +34,11 @@ class BookingSelectSlotController extends Controller
             'scheduleExceptions' => function ($query) {
                 $query->where('exception_date', '>=', now()->format('Y-m-d'));
             },
+            'appointments' => function ($query) {
+                $query->where('appointment_date', '>=', now()->format('Y-m-d'))
+                    ->whereNotIn('status', ['cancelled'])
+                    ->select('id', 'doctor_id', 'appointment_date', 'start_time', 'end_time', 'status');
+            },
         ]);
 
         $availableDoctors = Doctor::where('status', 'active')
